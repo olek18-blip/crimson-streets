@@ -1,16 +1,15 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
 import { useGameStore } from '../game/store';
+import { WORLD_SIZE } from '../game/worldData';
 
-const MOVE_SPEED = 0.12;
-const RUN_SPEED = 0.22;
+const MOVE_SPEED = 0.15;
+const RUN_SPEED = 0.28;
 const ROTATE_SPEED = 0.04;
-const VEHICLE_SPEED = 0.3;
+const VEHICLE_SPEED = 0.45;
 
 export function usePlayerController() {
   const keys = useRef<Set<string>>(new Set());
-  const meshRef = useRef<THREE.Group>(null);
   
   const {
     player, screen, updatePlayerPosition, updatePlayerRotation,
@@ -22,14 +21,13 @@ export function usePlayerController() {
     if (e.key.toLowerCase() === 'shift') setRunning(true);
     if (e.key.toLowerCase() === 'q') switchWeapon();
     if (e.key.toLowerCase() === 'f') {
-      // Enter/exit vehicle
       if (player.inVehicle) {
         setPlayerInVehicle(null);
       } else {
         const nearVehicle = vehicles.find(v => {
           const dx = v.position[0] - player.position[0];
           const dz = v.position[2] - player.position[2];
-          return Math.sqrt(dx * dx + dz * dz) < 3;
+          return Math.sqrt(dx * dx + dz * dz) < 4;
         });
         if (nearVehicle) setPlayerInVehicle(nearVehicle.id);
       }
@@ -85,8 +83,8 @@ export function usePlayerController() {
     }
 
     // Clamp to world bounds
-    pos[0] = Math.max(-50, Math.min(50, pos[0]));
-    pos[2] = Math.max(-50, Math.min(50, pos[2]));
+    pos[0] = Math.max(-WORLD_SIZE, Math.min(WORLD_SIZE, pos[0]));
+    pos[2] = Math.max(-WORLD_SIZE, Math.min(WORLD_SIZE, pos[2]));
 
     if (moved) {
       updatePlayerPosition(pos);
@@ -94,5 +92,5 @@ export function usePlayerController() {
     }
   });
 
-  return { meshRef, keys };
+  return { keys };
 }

@@ -10,6 +10,7 @@ import Vehicles from './Vehicles';
 import NPCs from './NPCs';
 import GameCamera from './GameCamera';
 import GameHUD from './GameHUD';
+import Minimap from './Minimap';
 import MainMenu from './MainMenu';
 import PauseMenu from './PauseMenu';
 import GameOverScreen from './GameOverScreen';
@@ -25,9 +26,13 @@ function Scene() {
   return (
     <>
       <Sky sunPosition={[100, 20, 100]} turbidity={8} rayleigh={2} />
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[50, 50, 30]} intensity={1} castShadow shadow-mapSize={2048} />
-      <fog attach="fog" args={['#0a1520', 30, 80]} />
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[100, 80, 50]} intensity={1.2} castShadow
+        shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+        shadow-camera-far={500} shadow-camera-left={-200} shadow-camera-right={200}
+        shadow-camera-top={200} shadow-camera-bottom={-200}
+      />
+      <fog attach="fog" args={['#0a1520', 60, 200]} />
       
       <GameCamera />
       <GameLogic />
@@ -61,9 +66,14 @@ export default function GameScene() {
       {screen === 'game-over' && <GameOverScreen />}
       {screen === 'mission-complete' && <MissionCompleteScreen />}
       
-      {screen !== 'menu' && <GameHUD />}
+      {screen !== 'menu' && (
+        <>
+          <GameHUD />
+          <Minimap />
+        </>
+      )}
       
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 200 }}
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }}
         style={{ background: '#0a1520' }}>
         <Scene />
       </Canvas>

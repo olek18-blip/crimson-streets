@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { GameState, PlayerState, Vehicle, NPC, Mission } from './types';
+import type { GameState, PlayerState } from './types';
+import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 
 const initialPlayer: PlayerState = {
   position: [0, 0.5, 0],
@@ -13,38 +14,8 @@ const initialPlayer: PlayerState = {
   weapon: 'pistol',
   isShooting: false,
   isRunning: false,
+  currentCity: 'madrona',
 };
-
-const initialVehicles: Vehicle[] = [
-  { id: 'car1', type: 'car', position: [8, 0.4, 5], rotation: 0, color: '#cc2222', speed: 0 },
-  { id: 'car2', type: 'car', position: [-10, 0.4, -8], rotation: Math.PI / 2, color: '#2244aa', speed: 0 },
-  { id: 'moto1', type: 'motorcycle', position: [15, 0.3, -3], rotation: Math.PI, color: '#222222', speed: 0 },
-  { id: 'car3', type: 'car', position: [-5, 0.4, 20], rotation: -Math.PI / 4, color: '#eeee33', speed: 0 },
-];
-
-const initialNPCs: NPC[] = [
-  { id: 'civ1', type: 'civilian', position: [5, 0.5, 3], rotation: 0, health: 100, isHostile: false, isAlive: true },
-  { id: 'civ2', type: 'civilian', position: [-3, 0.5, 7], rotation: 1.5, health: 100, isHostile: false, isAlive: true },
-  { id: 'civ3', type: 'civilian', position: [12, 0.5, -5], rotation: 3, health: 100, isHostile: false, isAlive: true },
-  { id: 'police1', type: 'police', position: [-15, 0.5, -15], rotation: 0, health: 150, isHostile: false, isAlive: true },
-  { id: 'gang1', type: 'gang', position: [20, 0.5, 15], rotation: 2, health: 120, isHostile: false, isAlive: true },
-  { id: 'gang2', type: 'gang', position: [22, 0.5, 17], rotation: 1, health: 120, isHostile: false, isAlive: true },
-];
-
-const initialMissions: Mission[] = [
-  {
-    id: 'mission1',
-    title: 'The First Score',
-    description: 'Meet the contact near the warehouse district. A drug shipment needs intercepting.',
-    objectives: [
-      { id: 'obj1', text: 'Go to the warehouse (marked area)', completed: false, targetPosition: [20, 0, 15] },
-      { id: 'obj2', text: 'Eliminate the gang members', completed: false },
-      { id: 'obj3', text: 'Collect the evidence', completed: false, targetPosition: [22, 0, 17] },
-    ],
-    status: 'available',
-    reward: 5000,
-  },
-];
 
 interface GameStore extends GameState {
   startGame: () => void;
@@ -67,12 +38,15 @@ interface GameStore extends GameState {
   resetGame: () => void;
 }
 
+const deepCopy = <T,>(arr: T[]): T[] => JSON.parse(JSON.stringify(arr));
+
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'menu',
   player: { ...initialPlayer },
-  vehicles: initialVehicles.map(v => ({ ...v })),
-  npcs: initialNPCs.map(n => ({ ...n })),
-  missions: initialMissions.map(m => ({ ...m, objectives: m.objectives.map(o => ({ ...o })) })),
+  vehicles: deepCopy(initialVehicles),
+  npcs: deepCopy(initialNPCs),
+  missions: deepCopy(initialMissions),
+  cities: cities,
   activeMission: null,
   timeOfDay: 12,
 
@@ -80,7 +54,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pauseGame: () => set({ screen: 'paused' }),
   resumeGame: () => set({ screen: 'playing' }),
   
-  updatePlayerPosition: (pos) => set(s => ({ player: { ...s.player, position: pos } })),
+  updatePlayerPosition: (pos) => {
+    // Determine current city
+    let currentCity = 'rural';
+    for (const city of cities) {
+      const dx = pos[0] - city.center[0];
+      const dz = pos[2] - city.center[2];
+      if (Math.sqrt(dx * dx + dz * dz) < city.radius) {
+        currentCity = city.id;
+        break;
+      }
+    }
+    set(s => ({ player: { ...s.player, position: pos, currentCity } }));
+  },
   updatePlayerRotation: (rot) => set(s => ({ player: { ...s.player, rotation: rot } })),
   
   setPlayerInVehicle: (vehicleId) => set(s => ({
@@ -104,7 +90,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   
   startMission: (id) => set(s => ({
     activeMission: id,
-    missions: s.missions.map(m => m.id === id ? { ...m, status: 'active' } : m),
+    missions: s.missions.map(m => m.id === id ? { ...m, status: 'active' as const } : m),
   })),
   
   completeMissionObjective: (missionId, objectiveId) => set(s => ({
@@ -121,7 +107,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         screen: 'mission-complete',
         activeMission: null,
         player: { ...s.player, money: s.player.money + mission.reward },
-        missions: s.missions.map(m => m.id === id ? { ...m, status: 'completed' } : m),
+        missions: s.missions.map(m => m.id === id ? { ...m, status: 'completed' as const } : m),
       }));
     }
   },
@@ -145,9 +131,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   resetGame: () => set({
     screen: 'menu',
     player: { ...initialPlayer },
-    vehicles: initialVehicles.map(v => ({ ...v })),
-    npcs: initialNPCs.map(n => ({ ...n })),
-    missions: initialMissions.map(m => ({ ...m, objectives: m.objectives.map(o => ({ ...o })) })),
+    vehicles: deepCopy(initialVehicles),
+    npcs: deepCopy(initialNPCs),
+    missions: deepCopy(initialMissions),
     activeMission: null,
   }),
 }));

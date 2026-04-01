@@ -13,8 +13,8 @@ export default function GameCamera() {
     const [px, py, pz] = player.position;
     const rot = player.rotation;
     
-    const camDist = player.inVehicle ? 12 : 8;
-    const camHeight = player.inVehicle ? 6 : 5;
+    const camDist = player.inVehicle ? 14 : 10;
+    const camHeight = player.inVehicle ? 7 : 6;
     
     targetPos.current.set(
       px + Math.sin(rot) * camDist,
@@ -24,8 +24,7 @@ export default function GameCamera() {
     
     targetLook.current.set(px, py + 1, pz);
 
-    camera.position.lerp(targetPos.current, 0.08);
-    const lookTarget = new THREE.Vector3().copy(camera.position).lerp(targetLook.current, 1);
+    camera.position.lerp(targetPos.current, 0.06);
     camera.lookAt(targetLook.current);
   });
 
