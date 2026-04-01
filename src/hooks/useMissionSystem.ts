@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useGameStore } from '../game/store';
 
 export function useMissionSystem() {
@@ -6,14 +6,16 @@ export function useMissionSystem() {
   
   useEffect(() => {
     if (!activeMission) {
-      // Check if player is near a mission start
-      const available = missions.find(m => m.status === 'available');
-      if (available && available.objectives[0]?.targetPosition) {
-        const target = available.objectives[0].targetPosition;
-        const dx = player.position[0] - target[0];
-        const dz = player.position[2] - target[2];
+      // Check if player is near any mission start
+      for (const m of missions) {
+        if (m.status !== 'available') continue;
+        const firstObj = m.objectives[0];
+        if (!firstObj?.targetPosition) continue;
+        const dx = player.position[0] - firstObj.targetPosition[0];
+        const dz = player.position[2] - firstObj.targetPosition[2];
         if (Math.sqrt(dx * dx + dz * dz) < 5) {
-          startMission(available.id);
+          startMission(m.id);
+          break;
         }
       }
       return;
@@ -22,32 +24,38 @@ export function useMissionSystem() {
     const mission = missions.find(m => m.id === activeMission);
     if (!mission) return;
 
-    // Objective 1: reach warehouse
-    if (!mission.objectives[0].completed) {
-      const target = mission.objectives[0].targetPosition!;
-      const dx = player.position[0] - target[0];
-      const dz = player.position[2] - target[2];
-      if (Math.sqrt(dx * dx + dz * dz) < 5) {
-        completeMissionObjective(mission.id, 'obj1');
-      }
-    }
+    // Process objectives sequentially
+    for (let i = 0; i < mission.objectives.length; i++) {
+      const obj = mission.objectives[i];
+      if (obj.completed) continue;
 
-    // Objective 2: eliminate gang members
-    if (mission.objectives[0].completed && !mission.objectives[1].completed) {
-      const gangAlive = npcs.filter(n => n.type === 'gang' && n.isAlive);
-      if (gangAlive.length === 0) {
-        completeMissionObjective(mission.id, 'obj2');
-      }
-    }
+      // Check if previous objectives are done
+      const prevDone = mission.objectives.slice(0, i).every(o => o.completed);
+      if (!prevDone) break;
 
-    // Objective 3: collect evidence
-    if (mission.objectives[1].completed && !mission.objectives[2].completed) {
-      const target = mission.objectives[2].targetPosition!;
-      const dx = player.position[0] - target[0];
-      const dz = player.position[2] - target[2];
-      if (Math.sqrt(dx * dx + dz * dz) < 3) {
-        completeMissionObjective(mission.id, 'obj3');
+      // Position-based objectives
+      if (obj.targetPosition) {
+        const dx = player.position[0] - obj.targetPosition[0];
+        const dz = player.position[2] - obj.targetPosition[2];
+        if (Math.sqrt(dx * dx + dz * dz) < 4) {
+          // If this is an "eliminate" objective, check NPCs
+          if (obj.text.toLowerCase().includes('eliminar') || obj.text.toLowerCase().includes('eliminate')) {
+            // Don't complete position-based kill objectives by proximity alone
+            break;
+          }
+          completeMissionObjective(mission.id, obj.id);
+        }
       }
+
+      // Kill objectives - check if gang NPCs near mission area are dead
+      if (obj.text.toLowerCase().includes('eliminar') || obj.text.toLowerCase().includes('eliminate')) {
+        const gangAlive = npcs.filter(n => n.type === 'gang' && n.isAlive && n.city === mission.city);
+        if (gangAlive.length === 0) {
+          completeMissionObjective(mission.id, obj.id);
+        }
+      }
+
+      break; // Only process first incomplete objective
     }
 
     // All complete
