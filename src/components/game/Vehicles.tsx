@@ -11,12 +11,12 @@ function VehicleMesh({ type, color, isPlayerVehicle }: { type: 'car' | 'motorcyc
           <boxGeometry args={[0.4, 0.4, 1.2]} />
           <meshStandardMaterial color={color} />
         </mesh>
-        <mesh position={[0, 0.1, 0.4]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[0, 0.1, 0.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />
           <meshStandardMaterial color="#222" />
         </mesh>
-        <mesh position={[0, 0.1, -0.4]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[0, 0.1, -0.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />
           <meshStandardMaterial color="#222" />
         </mesh>
       </group>

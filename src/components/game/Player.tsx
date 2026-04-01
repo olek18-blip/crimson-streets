@@ -9,7 +9,7 @@ export default function Player() {
 
   useFrame(() => {
     if (!groupRef.current) return;
-    groupRef.current.position.set(...player.position);
+    groupRef.current.position.set(player.position[0], player.position[1], player.position[2]);
     groupRef.current.rotation.y = player.rotation;
   });
 
