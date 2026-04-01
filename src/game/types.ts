@@ -10,6 +10,7 @@ export interface PlayerState {
   weapon: 'fist' | 'pistol' | 'rifle';
   isShooting: boolean;
   isRunning: boolean;
+  currentCity: string;
 }
 
 export interface Vehicle {
@@ -19,6 +20,7 @@ export interface Vehicle {
   rotation: number;
   color: string;
   speed: number;
+  city: string;
 }
 
 export interface NPC {
@@ -29,6 +31,7 @@ export interface NPC {
   health: number;
   isHostile: boolean;
   isAlive: boolean;
+  city: string;
 }
 
 export interface Mission {
@@ -38,6 +41,7 @@ export interface Mission {
   objectives: MissionObjective[];
   status: 'available' | 'active' | 'completed' | 'failed';
   reward: number;
+  city: string;
 }
 
 export interface MissionObjective {
@@ -49,6 +53,15 @@ export interface MissionObjective {
 
 export type GameScreen = 'menu' | 'playing' | 'paused' | 'mission-complete' | 'game-over';
 
+export interface CityZone {
+  id: string;
+  name: string;
+  subtitle: string;
+  center: [number, number, number];
+  radius: number;
+  color: string;
+}
+
 export interface GameState {
   screen: GameScreen;
   player: PlayerState;
@@ -57,4 +70,5 @@ export interface GameState {
   missions: Mission[];
   activeMission: string | null;
   timeOfDay: number;
+  cities: CityZone[];
 }
