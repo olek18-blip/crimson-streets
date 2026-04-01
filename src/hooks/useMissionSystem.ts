@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useGameStore } from '../../game/store';
+import { useGameStore } from '../game/store';
 
 export function useMissionSystem() {
   const { player, missions, activeMission, startMission, completeMissionObjective, completeMission, npcs } = useGameStore();
