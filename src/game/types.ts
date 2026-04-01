@@ -1,0 +1,60 @@
+export interface PlayerState {
+  position: [number, number, number];
+  rotation: number;
+  health: number;
+  armor: number;
+  money: number;
+  wantedLevel: number;
+  inVehicle: boolean;
+  currentVehicle: string | null;
+  weapon: 'fist' | 'pistol' | 'rifle';
+  isShooting: boolean;
+  isRunning: boolean;
+}
+
+export interface Vehicle {
+  id: string;
+  type: 'car' | 'motorcycle';
+  position: [number, number, number];
+  rotation: number;
+  color: string;
+  speed: number;
+}
+
+export interface NPC {
+  id: string;
+  type: 'civilian' | 'police' | 'gang';
+  position: [number, number, number];
+  rotation: number;
+  health: number;
+  isHostile: boolean;
+  isAlive: boolean;
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  objectives: MissionObjective[];
+  status: 'available' | 'active' | 'completed' | 'failed';
+  reward: number;
+}
+
+export interface MissionObjective {
+  id: string;
+  text: string;
+  completed: boolean;
+  targetPosition?: [number, number, number];
+}
+
+export type GameScreen = 'menu' | 'playing' | 'paused' | 'mission-complete' | 'game-over';
+
+export interface GameState {
+  screen: GameScreen;
+  player: PlayerState;
+  vehicles: Vehicle[];
+  npcs: NPC[];
+  missions: Mission[];
+  activeMission: string | null;
+  timeOfDay: number;
+}
