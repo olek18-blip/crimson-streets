@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import mapBg from '../../assets/map-background.png';
 import { hasSavedGame } from '../../game/save';
 import { useGameStore } from '../../game/store';
@@ -32,7 +33,7 @@ export default function MainMenu() {
           A corrupt cop. A criminal empire. One city that never sleeps.
         </p>
 
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-3 mt-4 w-full max-w-sm">
           <button
             onClick={startGame}
             className="font-display text-2xl tracking-widest px-12 py-4 rounded transition-all hover:scale-105 active:scale-95"
@@ -57,6 +58,17 @@ export default function MainMenu() {
           >
             CONTINUE
           </button>
+          <Link
+            to="/mission-demo"
+            className="font-display text-sm tracking-[0.28em] px-8 py-3 rounded border text-center transition-all hover:bg-white/10"
+            style={{
+              borderColor: 'hsl(var(--secondary) / 0.4)',
+              color: 'hsl(var(--foreground))',
+              background: 'hsl(var(--background) / 0.28)',
+            }}
+          >
+            MISSION DEMO
+          </Link>
         </div>
 
         <div className="mt-8 text-xs text-muted-foreground font-display tracking-wider text-center">
