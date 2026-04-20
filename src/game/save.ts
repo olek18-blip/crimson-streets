@@ -1,12 +1,13 @@
 import type { GameState, GameScreen } from './types';
 
-const SAVE_KEY = 'crimson-streets-save-v1';
+const SAVE_KEY = 'crimson-streets-save-v2';
+const LEGACY_SAVE_KEYS = ['crimson-streets-save-v1'];
 
 type PersistedGameState = Pick<
   GameState,
   'player' | 'vehicles' | 'npcs' | 'missions' | 'activeMission' | 'timeOfDay' | 'lastCompletedMission'
 > & {
-  version: 1;
+  version: 2;
   savedAt: string;
 };
 
@@ -16,13 +17,25 @@ export function shouldAutosave(screen: GameScreen) {
   return AUTOSAVE_SCREENS.includes(screen);
 }
 
+function clearLegacySaves() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  for (const key of LEGACY_SAVE_KEYS) {
+    window.localStorage.removeItem(key);
+  }
+}
+
 export function saveGameState(state: GameState) {
   if (typeof window === 'undefined' || !shouldAutosave(state.screen)) {
     return;
   }
 
+  clearLegacySaves();
+
   const payload: PersistedGameState = {
-    version: 1,
+    version: 2,
     savedAt: new Date().toISOString(),
     player: state.player,
     vehicles: state.vehicles,
@@ -43,13 +56,20 @@ export function loadGameState(): Partial<GameState> | null {
 
   const raw = window.localStorage.getItem(SAVE_KEY);
   if (!raw) {
+    clearLegacySaves();
     return null;
   }
 
   try {
     const parsed = JSON.parse(raw) as Partial<PersistedGameState>;
 
+    if (parsed.version !== 2) {
+      clearSavedGame();
+      return null;
+    }
+
     if (!parsed.player || !Array.isArray(parsed.vehicles) || !Array.isArray(parsed.npcs) || !Array.isArray(parsed.missions)) {
+      clearSavedGame();
       return null;
     }
 
@@ -74,7 +94,12 @@ export function hasSavedGame() {
     return false;
   }
 
-  return !!window.localStorage.getItem(SAVE_KEY);
+  if (window.localStorage.getItem(SAVE_KEY)) {
+    return true;
+  }
+
+  clearLegacySaves();
+  return false;
 }
 
 export function clearSavedGame() {
@@ -83,4 +108,5 @@ export function clearSavedGame() {
   }
 
   window.localStorage.removeItem(SAVE_KEY);
+  clearLegacySaves();
 }
