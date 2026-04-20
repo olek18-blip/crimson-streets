@@ -4,6 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { useGameStore } from '../../game/store';
 import { usePlayerController } from '../../hooks/usePlayerController';
 import { useMissionSystem } from '../../hooks/useMissionSystem';
+import { useGamePersistence } from '../../hooks/useGamePersistence';
 import Player from './Player';
 import CityEnvironment from './CityEnvironment';
 import Vehicles from './Vehicles';
@@ -19,6 +20,7 @@ import MissionCompleteScreen from './MissionCompleteScreen';
 function GameLogic() {
   usePlayerController();
   useMissionSystem();
+  useGamePersistence();
   return null;
 }
 
@@ -27,13 +29,20 @@ function Scene() {
     <>
       <Sky sunPosition={[100, 20, 100]} turbidity={8} rayleigh={2} />
       <ambientLight intensity={0.35} />
-      <directionalLight position={[100, 80, 50]} intensity={1.2} castShadow
-        shadow-mapSize-width={2048} shadow-mapSize-height={2048}
-        shadow-camera-far={500} shadow-camera-left={-200} shadow-camera-right={200}
-        shadow-camera-top={200} shadow-camera-bottom={-200}
+      <directionalLight
+        position={[100, 80, 50]}
+        intensity={1.2}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={500}
+        shadow-camera-left={-200}
+        shadow-camera-right={200}
+        shadow-camera-top={200}
+        shadow-camera-bottom={-200}
       />
       <fog attach="fog" args={['#0a1520', 60, 200]} />
-      
+
       <GameCamera />
       <GameLogic />
       <Player />
@@ -45,14 +54,24 @@ function Scene() {
 }
 
 export default function GameScene() {
-  const { screen, pauseGame, resumeGame } = useGameStore();
+  const screen = useGameStore((state) => state.screen);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      if (screen === 'playing') pauseGame();
-      else if (screen === 'paused') resumeGame();
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.repeat) {
+      return;
     }
-  }, [screen, pauseGame, resumeGame]);
+
+    const { screen: currentScreen, pauseGame, resumeGame } = useGameStore.getState();
+
+    if (currentScreen === 'playing') {
+      pauseGame();
+      return;
+    }
+
+    if (currentScreen === 'paused') {
+      resumeGame();
+    }
+  }, []);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -65,16 +84,15 @@ export default function GameScene() {
       {screen === 'paused' && <PauseMenu />}
       {screen === 'game-over' && <GameOverScreen />}
       {screen === 'mission-complete' && <MissionCompleteScreen />}
-      
+
       {screen !== 'menu' && (
         <>
           <GameHUD />
           <Minimap />
         </>
       )}
-      
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }}
-        style={{ background: '#0a1520' }}>
+
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} style={{ background: '#0a1520' }}>
         <Scene />
       </Canvas>
     </div>
