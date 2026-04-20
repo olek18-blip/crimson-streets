@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../game/store';
+import { useMobileControlsStore } from '../game/mobileControls';
 import { WORLD_SIZE } from '../game/worldData';
 
 const WALK_SPEED = 7;
@@ -78,6 +79,7 @@ export function usePlayerController() {
     const { setRunning, setShooting } = useGameStore.getState();
     setRunning(false);
     setShooting(false);
+    useMobileControlsStore.getState().reset();
   }, []);
 
   useEffect(() => {
@@ -97,37 +99,51 @@ export function usePlayerController() {
   }, [handleKeyDown, handleKeyUp, handleMouseDown, handleMouseUp, handleWindowBlur]);
 
   useFrame((_, delta) => {
-    const { screen, player, updatePlayerPosition, updatePlayerRotation } = useGameStore.getState();
+    const { screen, player, updatePlayerPosition, updatePlayerRotation, setShooting } = useGameStore.getState();
+    const { axisX, axisY, sprint, shooting } = useMobileControlsStore.getState();
 
     if (screen !== 'playing') {
       return;
     }
 
+    setShooting(shooting);
+
     const dt = Math.min(delta, MAX_DELTA);
-    const speed = player.inVehicle ? VEHICLE_SPEED : player.isRunning ? RUN_SPEED : WALK_SPEED;
+    const usingTouchMovement = Math.abs(axisX) > 0.06 || Math.abs(axisY) > 0.06;
+    const movingForward = keys.current.has('w') || keys.current.has('arrowup') || axisY < -0.1;
+    const movingBackward = keys.current.has('s') || keys.current.has('arrowdown') || axisY > 0.1;
+    const turningLeft = keys.current.has('a') || keys.current.has('arrowleft') || axisX < -0.1;
+    const turningRight = keys.current.has('d') || keys.current.has('arrowright') || axisX > 0.1;
+    const effectiveRunning = player.isRunning || sprint;
+    const speed = player.inVehicle ? VEHICLE_SPEED : effectiveRunning ? RUN_SPEED : WALK_SPEED;
+
     let rotation = player.rotation;
     const position: [number, number, number] = [...player.position];
     let hasChanged = false;
 
-    if (keys.current.has('a') || keys.current.has('arrowleft')) {
-      rotation += ROTATE_SPEED * dt;
+    if (turningLeft) {
+      const rotateFactor = usingTouchMovement ? Math.min(1, Math.abs(axisX)) : 1;
+      rotation += ROTATE_SPEED * rotateFactor * dt;
       hasChanged = true;
     }
 
-    if (keys.current.has('d') || keys.current.has('arrowright')) {
-      rotation -= ROTATE_SPEED * dt;
+    if (turningRight) {
+      const rotateFactor = usingTouchMovement ? Math.min(1, Math.abs(axisX)) : 1;
+      rotation -= ROTATE_SPEED * rotateFactor * dt;
       hasChanged = true;
     }
 
-    if (keys.current.has('w') || keys.current.has('arrowup')) {
-      position[0] -= Math.sin(rotation) * speed * dt;
-      position[2] -= Math.cos(rotation) * speed * dt;
+    if (movingForward) {
+      const moveFactor = usingTouchMovement ? Math.min(1, Math.abs(axisY)) : 1;
+      position[0] -= Math.sin(rotation) * speed * moveFactor * dt;
+      position[2] -= Math.cos(rotation) * speed * moveFactor * dt;
       hasChanged = true;
     }
 
-    if (keys.current.has('s') || keys.current.has('arrowdown')) {
-      position[0] += Math.sin(rotation) * speed * dt;
-      position[2] += Math.cos(rotation) * speed * dt;
+    if (movingBackward) {
+      const moveFactor = usingTouchMovement ? Math.min(1, Math.abs(axisY)) : 1;
+      position[0] += Math.sin(rotation) * speed * moveFactor * dt;
+      position[2] += Math.cos(rotation) * speed * moveFactor * dt;
       hasChanged = true;
     }
 
