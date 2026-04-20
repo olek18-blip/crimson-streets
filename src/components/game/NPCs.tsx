@@ -46,19 +46,20 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
   const dz = player.position[2] - npc.position[2];
   const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
   const violenceNearby = player.isShooting && distanceToPlayer < FLEE_TRIGGER_RANGE;
+  const crimeDetected = player.wantedLevel > 0 || violenceNearby;
 
   if (npc.type === 'civilian') {
-    if (violenceNearby || (player.wantedLevel > 0 && distanceToPlayer < FLEE_TRIGGER_RANGE)) {
+    if (crimeDetected && distanceToPlayer < FLEE_TRIGGER_RANGE) {
       return 'flee' as const;
     }
     return distanceToPlayer < 8 ? 'idle' as const : 'patrol' as const;
   }
 
   if (npc.type === 'police') {
-    if (distanceToPlayer < ATTACK_RANGE && player.wantedLevel > 0) {
+    if (distanceToPlayer < ATTACK_RANGE && crimeDetected) {
       return 'attack' as const;
     }
-    if (player.wantedLevel > 0 || violenceNearby || distanceToPlayer < POLICE_NOTICE_RANGE) {
+    if (crimeDetected && distanceToPlayer < POLICE_NOTICE_RANGE) {
       return 'chase' as const;
     }
     return 'patrol' as const;
