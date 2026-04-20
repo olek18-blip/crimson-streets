@@ -16,6 +16,7 @@ import MainMenu from './MainMenu';
 import PauseMenu from './PauseMenu';
 import GameOverScreen from './GameOverScreen';
 import MissionCompleteScreen from './MissionCompleteScreen';
+import MissionBeacon from './MissionBeacon';
 
 function GameLogic() {
   usePlayerController();
@@ -45,6 +46,7 @@ function Scene() {
 
       <GameCamera />
       <GameLogic />
+      <MissionBeacon />
       <Player />
       <CityEnvironment />
       <Vehicles />
