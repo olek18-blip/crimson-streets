@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import MissionDemo from "./pages/MissionDemo.tsx";
+import WorldMap from "./pages/WorldMap.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/mission-demo" element={<MissionDemo />} />
+          <Route path="/world-map" element={<WorldMap />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
