@@ -25,6 +25,7 @@ interface GameStore extends GameState {
   resumeGame: () => void;
   updatePlayerPosition: (pos: [number, number, number]) => void;
   updatePlayerRotation: (rot: number) => void;
+  updateNPCTransform: (id: string, position: [number, number, number], rotation: number) => void;
   setPlayerInVehicle: (vehicleId: string | null) => void;
   takeDamage: (amount: number) => void;
   addMoney: (amount: number) => void;
@@ -107,6 +108,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   updatePlayerRotation: (rot) => set((state) => ({ player: { ...state.player, rotation: rot } })),
+
+  updateNPCTransform: (id, position, rotation) =>
+    set((state) => ({
+      npcs: state.npcs.map((npc) => (npc.id === id ? { ...npc, position, rotation } : npc)),
+    })),
 
   setPlayerInVehicle: (vehicleId) =>
     set((state) => ({
