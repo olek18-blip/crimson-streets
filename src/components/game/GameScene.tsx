@@ -30,14 +30,14 @@ function GameLogic() {
 function Scene() {
   return (
     <>
-      <color attach="background" args={['#08111a']} />
+      <color attach="background" args={['#0a1520']} />
       <Sky sunPosition={[60, 8, 40]} turbidity={10} rayleigh={0.55} mieCoefficient={0.02} mieDirectionalG={0.95} />
-      <ambientLight intensity={0.24} color="#8fb4d8" />
-      <hemisphereLight args={['#7da0c4', '#132016', 0.42]} />
+      <ambientLight intensity={0.34} color="#99bce0" />
+      <hemisphereLight args={['#88add2', '#17231a', 0.6]} />
       <directionalLight
         position={[65, 24, 30]}
-        intensity={0.8}
-        color="#9cb7d3"
+        intensity={1.05}
+        color="#adc4de"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -47,10 +47,11 @@ function Scene() {
         shadow-camera-top={220}
         shadow-camera-bottom={-220}
       />
-      <pointLight position={[0, 9, 0]} color="#d28c45" intensity={1.25} distance={42} />
-      <pointLight position={[18, 6, 12]} color="#ff5dd8" intensity={1.2} distance={24} />
-      <pointLight position={[23, 5, 12]} color="#00cfff" intensity={0.95} distance={18} />
-      <fog attach="fog" args={['#0c1722', 42, 165]} />
+      <pointLight position={[0, 9, 0]} color="#d28c45" intensity={1.45} distance={46} />
+      <pointLight position={[18, 6, 12]} color="#ff5dd8" intensity={1.35} distance={24} />
+      <pointLight position={[23, 5, 12]} color="#00cfff" intensity={1.05} distance={18} />
+      <pointLight position={[3, 3.2, -28]} color="#ffe8a3" intensity={1.3} distance={14} />
+      <fog attach="fog" args={['#102030', 58, 210]} />
 
       <GameCamera />
       <GameLogic />
@@ -117,7 +118,7 @@ export default function GameScene() {
 
       {showLoading && screen !== 'menu' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
 
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#08111a' }}>
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#0a1520' }}>
         <Scene />
       </Canvas>
     </div>
