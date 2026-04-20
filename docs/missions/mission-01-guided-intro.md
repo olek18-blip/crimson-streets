@@ -4,53 +4,121 @@
 
 - **Mission ID:** `mission1`
 - **Title:** `Primeros Pasos en Madrona`
-- **City / Zone:** `Madrona / warehouse district`
+- **City / Zone:** `Madrona / reserved booth / central streets / warehouse district`
 - **Mission Type:** `tutorial-combat hybrid`
-- **Playable Tone:** `controlled introduction with rising tension`
-- **Narrative Purpose:** `teach the base verbs of the game while framing the player as an already active operator in the city`
+- **Playable Tone:** `directed intro with rising tension`
+- **Narrative Purpose:** `teach the base verbs of the game while presenting the player as an active operator already inside a dangerous city network`
 - **Unlock Condition:** `new game start`
 - **Reward:** `5000 money + unlock mission 02`
 
 ## One-Line Summary
 
-The player learns movement, weapon cycling, vehicle entry, navigation, and basic combat during a short operation in Madrona that ends with a warehouse clean-up.
+A short but directed opening job moves the player from a private briefing booth to the streets of Madrona, through a live pickup and into a warehouse cleanup that establishes the city’s tone and the player’s role.
 
 ## Player Fantasy
 
-- Feel like a capable but exposed street operator entering a live job.
-- Learn the game naturally through action instead of pop-up overload.
-- Finish the mission feeling ready for larger city-wide operations.
+- Feel like a capable street operator receiving a real assignment, not a sterile tutorial.
+- Learn movement, weapon, vehicle, navigation, and combat through fiction-driven objectives.
+- Finish the mission with the sense that the city has opened up and bigger operations are coming.
+
+## High-Level Scene Flow
+
+1. **Briefing Scene** — reserved booth / criminal contact
+2. **Street Deployment** — first movement and orientation in Madrona
+3. **Contact Beat** — reach pickup point and confirm instructions
+4. **Vehicle Beat** — claim a nearby car and head to the objective zone
+5. **Warehouse Assault** — first combat space with gang resistance
+6. **Aftermath Beat** — secure evidence and close the scene
 
 ## Entry Conditions
 
-- Player starts in Madrona near the city center.
-- Time of day: late afternoon / early evening feel.
+- Player starts in Madrona.
+- Opening framing should imply they just left a private meeting.
+- Time of day: late afternoon or blue-hour evening, depending on art direction pass.
 - Starting weapon available: pistol.
 - Nearby vehicle available: red car at `[8, 0, 5]`.
 - No wanted level on start.
-- Light civilian presence, moderate police presence, gang presence only near the warehouse.
+- Light civilian presence near the opening streets.
+- Police visible but not aggressive until violence begins.
+- Gang presence concentrated near the warehouse.
 
-## Mission Flow
+## Scene 01 — Briefing
 
-### Phase 01
+### Intent
+Introduce tone, hierarchy, and purpose before the player enters free movement.
+
+### Target Space
+- reserved booth / bar back room
+- warm tungsten pendant light
+- dark wood surfaces
+- controlled, private atmosphere
+
+### Narrative Beat
+A contact gives the player a fast job: recover incriminating evidence from a Madrona warehouse before a local gang relocates it.
+
+### Implementation Shape
+- In current prototype: represented through HUD text, mission title, or future modal panel.
+- In Godot later: short in-engine conversation scene or stylized briefing overlay.
+
+### Outcome
+The player exits the scene already knowing they are on a live job.
+
+## Scene 02 — Street Deployment
+
+### Intent
+Teach basic movement while grounding the player in the city.
+
+### Target Space
+- public street edge in Madrona
+- readable sightline toward first marker
+- light civilian density
+- visible urban signage or city identity elements
+
+### Objective
+#### Phase 01
 - **Name:** Reach the contact point
 - **Goal:** Teach basic movement and orientation.
 - **Objective Type:** `reach`
 - **Hint shown to player:** `Move with WASD. Reach the marked point.`
 - **Success Condition:** Player enters radius near `[6, 0, 6]`.
 - **Fail Condition:** None.
-- **Target / Trigger Data:** Small safe zone marker near the opening block.
+- **Target / Trigger Data:** Safe zone marker near the opening street block.
 
-### Phase 02
+## Scene 03 — Contact Beat
+
+### Intent
+Bridge tutorial and mission fiction.
+
+### Target Space
+- small street-side interaction area
+- should feel like a public but controlled pickup point
+- no full dialogue tree required; clarity matters more than complexity
+
+### Objective
+#### Phase 02
 - **Name:** Equip the weapon
-- **Goal:** Teach weapon cycling.
+- **Goal:** Teach weapon cycling as part of operational readiness.
 - **Objective Type:** `switch-weapon`
 - **Hint shown to player:** `Press Q to cycle weapons and equip your sidearm.`
 - **Success Condition:** Player weapon is not `fist`.
 - **Fail Condition:** None.
 - **Target / Trigger Data:** No world target required.
 
-### Phase 03
+### Narrative Function
+The game implies the player confirms the job and prepares before moving out.
+
+## Scene 04 — Vehicle Beat
+
+### Intent
+Teach mobility and transition the player from setup to mission approach.
+
+### Target Space
+- nearby curbside lane
+- tutorial car easy to spot
+- no threat yet, only urgency
+
+### Objective
+#### Phase 03
 - **Name:** Take a vehicle
 - **Goal:** Teach entering vehicles and improve pacing.
 - **Objective Type:** `enter-vehicle`
@@ -59,7 +127,7 @@ The player learns movement, weapon cycling, vehicle entry, navigation, and basic
 - **Fail Condition:** None.
 - **Target / Trigger Data:** Use the car at `[8, 0, 5]` as the preferred tutorial vehicle.
 
-### Phase 04
+#### Phase 04
 - **Name:** Drive to the warehouse
 - **Goal:** Teach navigation using the beacon and minimap.
 - **Objective Type:** `reach`
@@ -68,23 +136,55 @@ The player learns movement, weapon cycling, vehicle entry, navigation, and basic
 - **Fail Condition:** None.
 - **Target / Trigger Data:** Strong world-space beacon + minimap highlight.
 
-### Phase 05
+## Scene 05 — Warehouse Assault
+
+### Intent
+Deliver the first real spike of danger.
+
+### Target Space
+- warehouse exterior
+- fenced edge or loading zone
+- readable combat perimeter
+- clear enemy silhouettes
+- cover objects that are easy to understand
+
+### Objectives
+#### Phase 05
 - **Name:** Clear the warehouse exterior
 - **Goal:** Teach first combat under pressure.
 - **Objective Type:** `eliminate-gangs`
 - **Hint shown to player:** `Take down the gang members before they move the cargo.`
-- **Success Condition:** Gang NPCs in Madrona mission area are dead.
+- **Success Condition:** Intro gang group is eliminated.
 - **Fail Condition:** Player death.
-- **Target / Trigger Data:** Focus on the local warehouse gang group, not every gang NPC in the entire map long-term.
+- **Target / Trigger Data:** Use a specific intro enemy group such as `gang_madrona_intro`, not all gangs in the city.
 
-### Phase 06
+### Combat Tuning
+- Enemy count: 2 to 3 gang members.
+- Aggression should feel real but forgiving.
+- Police should remain a looming presence, not immediate chaos.
+
+## Scene 06 — Aftermath Beat
+
+### Intent
+Teach that combat is not the end of an objective loop.
+
+### Target Space
+- same warehouse zone after combat
+- calmer, readable objective marker
+- evidence point easy to identify
+
+### Objective
+#### Phase 06
 - **Name:** Secure the evidence
 - **Goal:** End the mission with a physical closing action.
 - **Objective Type:** `reach`
 - **Hint shown to player:** `Move to the evidence marker and secure the scene.`
 - **Success Condition:** Player reaches `[27, 0, 27]` after combat phase is complete.
 - **Fail Condition:** Player death.
-- **Target / Trigger Data:** Final short-range marker inside or beside the warehouse zone.
+- **Target / Trigger Data:** Final marker at evidence zone.
+
+### Narrative Outcome
+The player successfully recovers proof, gets paid, and becomes tied to the wider criminal/political conflict.
 
 ## HUD / UI Support
 
@@ -103,9 +203,9 @@ The player learns movement, weapon cycling, vehicle entry, navigation, and basic
   - Warehouse zone: `[25, 0, 25]`
   - Evidence point: `[27, 0, 27]`
 - **Enemies present**
-  - Madrona gang group at the warehouse.
+  - Intro gang group at warehouse perimeter.
 - **Civilians present**
-  - A few civilians near the start area to make the city feel alive.
+  - A few civilians near start streets.
 - **Police presence**
   - Police patrols visible but not aggressive until violence begins.
 - **Vehicles available**
@@ -129,7 +229,7 @@ The player learns movement, weapon cycling, vehicle entry, navigation, and basic
 
 - Player dies during warehouse assault.
 - Optional future fail state: player leaves the combat area for too long.
-- Avoid strict fail states during the first 3 tutorial phases.
+- Avoid strict fail states during the first 4 tutorial phases.
 
 ## Completion Logic
 
@@ -141,7 +241,7 @@ The player learns movement, weapon cycling, vehicle entry, navigation, and basic
 
 ## Implementation Notes for Godot
 
-- **Scene(s) involved:** intro block, vehicle zone, warehouse block.
+- **Scene(s) involved:** briefing overlay or in-engine booth scene, Madrona street block, vehicle zone, warehouse block.
 - **Trigger node(s):** area triggers for reach phases, vehicle proximity interaction, combat clear check, final evidence area.
 - **NPC groups used:** `gang_madrona_intro` preferred instead of checking all city gangs.
 - **Objective script hooks needed:**
