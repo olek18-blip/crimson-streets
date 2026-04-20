@@ -14,7 +14,7 @@ export const cities: CityZone[] = [
 
 // Vehicles spread across cities
 export const initialVehicles: Vehicle[] = [
-  // Madrona
+  // Madrona / Mandril prototype zone
   { id: 'mad-car1', type: 'car', position: [8, 0.4, 5], rotation: 0, color: '#cc2222', speed: 0, city: 'madrona' },
   { id: 'mad-car2', type: 'car', position: [-10, 0.4, -8], rotation: Math.PI / 2, color: '#2244aa', speed: 0, city: 'madrona' },
   { id: 'mad-moto1', type: 'motorcycle', position: [15, 0.3, -3], rotation: Math.PI, color: '#222222', speed: 0, city: 'madrona' },
@@ -36,14 +36,14 @@ export const initialVehicles: Vehicle[] = [
 
 // NPCs across cities
 export const initialNPCs: NPC[] = [
-  // Madrona - civilians, police, gangs
+  // Madrona / Mandril prototype zone
   { id: 'mad-civ1', type: 'civilian', position: [5, 0.5, 3], rotation: 0, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-civ2', type: 'civilian', position: [-3, 0.5, 7], rotation: 1.5, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ2', type: 'civilian', position: [-18, 0.5, 8], rotation: 1.5, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-civ3', type: 'civilian', position: [12, 0.5, -5], rotation: 3, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-pol1', type: 'police', position: [-15, 0.5, -15], rotation: 0, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-pol2', type: 'police', position: [10, 0.5, -20], rotation: 2, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-gang1', type: 'gang', position: [25, 0.5, 25], rotation: 2, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-gang2', type: 'gang', position: [27, 0.5, 27], rotation: 1, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-pol1', type: 'police', position: [0, 0.5, -18], rotation: 0, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-pol2', type: 'police', position: [6, 0.5, -18], rotation: 2, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-gang1', type: 'gang', position: [24, 0.5, 24], rotation: 2, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-gang2', type: 'gang', position: [28, 0.5, 25], rotation: 1, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
   // Barceloma - nightlife area, more gangs
   { id: 'bar-civ1', type: 'civilian', position: [178, 0.5, -118], rotation: 0, health: 100, isHostile: false, isAlive: true, city: 'barceloma' },
   { id: 'bar-civ2', type: 'civilian', position: [183, 0.5, -125], rotation: 2, health: 100, isHostile: false, isAlive: true, city: 'barceloma' },
@@ -69,58 +69,66 @@ export const initialNPCs: NPC[] = [
 export const initialMissions: Mission[] = [
   {
     id: 'mission1',
-    title: 'Primeros Pasos en Madrona',
-    description: 'Tu contacto te ha soltado en Madrona sin tiempo que perder. Aprende a moverte, equipa el arma, toma un vehículo y llega al almacén antes de que la banda haga desaparecer la carga.',
+    title: 'Dirty Patrol',
+    description: 'Roldán te manda a una patrulla sucia en Mandril. Cobra en la zona del mercado, mide la presión de la banda local y corta el handoff antes de que desaparezca la evidencia.',
     objectives: [
       {
         id: 'obj1',
-        text: 'Acércate al punto de encuentro',
+        text: 'Ve al punto de acceso policial',
         completed: false,
-        targetPosition: [6, 0, 6],
+        targetPosition: [3, 0, -18],
         objectiveType: 'reach',
-        hint: 'Muévete con WASD y orienta al personaje con A / D.',
+        hint: 'Empieza la patrulla en el acceso policial y recibe la orden sucia.',
       },
       {
         id: 'obj2',
-        text: 'Equipa el arma principal',
+        text: 'Equipa el arma reglamentaria',
         completed: false,
         objectiveType: 'switch-weapon',
-        hint: 'Pulsa Q hasta sacar la pistola o el rifle.',
+        hint: 'Pulsa Q y prepárate antes de entrar en la zona de cobro.',
       },
       {
         id: 'obj3',
-        text: 'Entra en un vehículo cercano',
+        text: 'Recoge el pago en el mercado',
         completed: false,
-        targetPosition: [8, 0, 5],
-        objectiveType: 'enter-vehicle',
-        hint: 'Acércate al coche rojo y pulsa F para subir.',
+        targetPosition: [-18, 0, 8],
+        objectiveType: 'reach',
+        hint: 'Llega al mercado y haz notar que la patrulla va en serio.',
       },
       {
         id: 'obj4',
-        text: 'Llega al almacén de la banda',
+        text: 'Entra en el vehículo para perseguir al corredor',
         completed: false,
-        targetPosition: [25, 0, 25],
-        objectiveType: 'reach',
-        hint: 'Sigue el beacon dorado y usa el minimapa para orientarte.',
+        targetPosition: [8, 0, 5],
+        objectiveType: 'enter-vehicle',
+        hint: 'Cuando la banda se mueva, toma el coche rojo y corta la huida.',
       },
       {
         id: 'obj5',
-        text: 'Elimina a los pandilleros del almacén',
+        text: 'Llega al punto de handoff en el back lot',
         completed: false,
-        objectiveType: 'eliminate-gangs',
-        hint: 'Apunta con el retículo y dispara cuando estés a distancia segura.',
+        targetPosition: [26, 0, 24],
+        objectiveType: 'reach',
+        hint: 'Sigue el beacon hasta la zona de intercambio.',
       },
       {
         id: 'obj6',
-        text: 'Recoge la evidencia y asegura la zona',
+        text: 'Elimina a la cobertura de la banda',
         completed: false,
-        targetPosition: [27, 0, 27],
+        objectiveType: 'eliminate-gangs',
+        hint: 'Rompe la protección del handoff y asegura la escena.',
+      },
+      {
+        id: 'obj7',
+        text: 'Asegura la evidencia',
+        completed: false,
+        targetPosition: [28, 0, 25],
         objectiveType: 'reach',
-        hint: 'Camina hasta la segunda marca para cerrar la operación.',
+        hint: 'Muévete hasta la evidencia para cerrar la operación.',
       },
     ],
     status: 'available',
-    reward: 5000,
+    reward: 6500,
     city: 'madrona',
   },
   {
