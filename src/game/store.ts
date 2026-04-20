@@ -164,8 +164,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
 
   completeMissionObjective: (missionId, objectiveId) =>
-    set((state) => ({
-      missions: state.missions.map((mission) =>
+    set((state) => {
+      const nextMissions = state.missions.map((mission) =>
         mission.id === missionId
           ? {
               ...mission,
@@ -174,8 +174,49 @@ export const useGameStore = create<GameStore>((set, get) => ({
               ),
             }
           : mission,
-      ),
-    })),
+      );
+
+      if (missionId !== INTRO_MISSION_ID) {
+        return { missions: nextMissions };
+      }
+
+      let nextMoney = state.player.money;
+      let nextWanted = state.player.wantedLevel;
+      let nextNPCs = state.npcs;
+
+      if (objectiveId === 'obj3') {
+        nextMoney += 800;
+      }
+
+      if (objectiveId === 'obj4') {
+        nextWanted = Math.max(nextWanted, 1);
+      }
+
+      if (objectiveId === 'obj5') {
+        nextWanted = Math.max(nextWanted, 2);
+        nextNPCs = state.npcs.map((npc) =>
+          npc.city === 'madrona' && npc.type === 'gang' ? { ...npc, isHostile: true } : npc,
+        );
+      }
+
+      if (objectiveId === 'obj6') {
+        nextWanted = Math.max(nextWanted, 3);
+      }
+
+      if (objectiveId === 'obj7') {
+        nextWanted = 1;
+      }
+
+      return {
+        missions: nextMissions,
+        npcs: nextNPCs,
+        player: {
+          ...state.player,
+          money: nextMoney,
+          wantedLevel: nextWanted,
+        },
+      };
+    }),
 
   completeMission: (id) => {
     const mission = get().missions.find((item) => item.id === id);
@@ -188,7 +229,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       screen: 'mission-complete',
       activeMission: null,
       lastCompletedMission: id,
-      player: { ...state.player, money: state.player.money + mission.reward },
+      player: {
+        ...state.player,
+        money: state.player.money + mission.reward,
+        wantedLevel: id === INTRO_MISSION_ID ? 0 : state.player.wantedLevel,
+      },
       missions: state.missions.map((item) =>
         item.id === id ? { ...item, status: 'completed' as const } : item,
       ),
