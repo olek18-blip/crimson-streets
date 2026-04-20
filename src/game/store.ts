@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GameState, PlayerState } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
+import { clearSavedGame, loadGameState } from './save';
 
 const initialPlayer: PlayerState = {
   position: [0, 0.5, 0],
@@ -19,6 +20,7 @@ const initialPlayer: PlayerState = {
 
 interface GameStore extends GameState {
   startGame: () => void;
+  continueGame: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
   updatePlayerPosition: (pos: [number, number, number]) => void;
@@ -40,23 +42,58 @@ interface GameStore extends GameState {
 
 const deepCopy = <T,>(arr: T[]): T[] => JSON.parse(JSON.stringify(arr));
 
-export const useGameStore = create<GameStore>((set, get) => ({
-  screen: 'menu',
+const createFreshState = (): Omit<GameState, 'screen'> => ({
   player: { ...initialPlayer },
   vehicles: deepCopy(initialVehicles),
   npcs: deepCopy(initialNPCs),
   missions: deepCopy(initialMissions),
-  cities: cities,
+  cities,
   activeMission: null,
   timeOfDay: 12,
+  lastCompletedMission: null,
+});
 
-  startGame: () => set({ screen: 'playing' }),
+export const useGameStore = create<GameStore>((set, get) => ({
+  screen: 'menu',
+  ...createFreshState(),
+
+  startGame: () => {
+    clearSavedGame();
+    set({
+      screen: 'playing',
+      ...createFreshState(),
+    });
+  },
+
+  continueGame: () => {
+    const saved = loadGameState();
+
+    if (!saved) {
+      set({
+        screen: 'playing',
+        ...createFreshState(),
+      });
+      return;
+    }
+
+    set({
+      ...createFreshState(),
+      ...saved,
+      screen: 'playing',
+    });
+  },
+
   pauseGame: () => set({ screen: 'paused' }),
-  resumeGame: () => set({ screen: 'playing' }),
-  
+
+  resumeGame: () =>
+    set((state) => ({
+      screen: 'playing',
+      ...(state.screen === 'mission-complete' ? { lastCompletedMission: null } : {}),
+    })),
+
   updatePlayerPosition: (pos) => {
-    // Determine current city
     let currentCity = 'rural';
+
     for (const city of cities) {
       const dx = pos[0] - city.center[0];
       const dz = pos[2] - city.center[2];
@@ -65,75 +102,110 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       }
     }
-    set(s => ({ player: { ...s.player, position: pos, currentCity } }));
+
+    set((state) => ({ player: { ...state.player, position: pos, currentCity } }));
   },
-  updatePlayerRotation: (rot) => set(s => ({ player: { ...s.player, rotation: rot } })),
-  
-  setPlayerInVehicle: (vehicleId) => set(s => ({
-    player: { ...s.player, inVehicle: !!vehicleId, currentVehicle: vehicleId }
-  })),
-  
+
+  updatePlayerRotation: (rot) => set((state) => ({ player: { ...state.player, rotation: rot } })),
+
+  setPlayerInVehicle: (vehicleId) =>
+    set((state) => ({
+      player: { ...state.player, inVehicle: !!vehicleId, currentVehicle: vehicleId },
+    })),
+
   takeDamage: (amount) => {
-    const s = get();
-    const newHealth = Math.max(0, s.player.health - amount);
+    const state = get();
+    const newHealth = Math.max(0, state.player.health - amount);
+
     if (newHealth <= 0) {
-      set({ player: { ...s.player, health: 0 }, screen: 'game-over' });
-    } else {
-      set({ player: { ...s.player, health: newHealth } });
+      set({ player: { ...state.player, health: 0 }, screen: 'game-over' });
+      return;
     }
+
+    set({ player: { ...state.player, health: newHealth } });
   },
-  
-  addMoney: (amount) => set(s => ({ player: { ...s.player, money: s.player.money + amount } })),
-  setWantedLevel: (level) => set(s => ({ player: { ...s.player, wantedLevel: Math.min(5, Math.max(0, level)) } })),
-  setShooting: (shooting) => set(s => ({ player: { ...s.player, isShooting: shooting } })),
-  setRunning: (running) => set(s => ({ player: { ...s.player, isRunning: running } })),
-  
-  startMission: (id) => set(s => ({
-    activeMission: id,
-    missions: s.missions.map(m => m.id === id ? { ...m, status: 'active' as const } : m),
-  })),
-  
-  completeMissionObjective: (missionId, objectiveId) => set(s => ({
-    missions: s.missions.map(m => m.id === missionId ? {
-      ...m,
-      objectives: m.objectives.map(o => o.id === objectiveId ? { ...o, completed: true } : o),
-    } : m),
-  })),
-  
+
+  addMoney: (amount) => set((state) => ({ player: { ...state.player, money: state.player.money + amount } })),
+
+  setWantedLevel: (level) =>
+    set((state) => ({
+      player: { ...state.player, wantedLevel: Math.min(5, Math.max(0, level)) },
+    })),
+
+  setShooting: (shooting) => set((state) => ({ player: { ...state.player, isShooting: shooting } })),
+
+  setRunning: (running) => set((state) => ({ player: { ...state.player, isRunning: running } })),
+
+  startMission: (id) =>
+    set((state) => ({
+      activeMission: id,
+      missions: state.missions.map((mission) =>
+        mission.id === id ? { ...mission, status: 'active' as const } : mission,
+      ),
+    })),
+
+  completeMissionObjective: (missionId, objectiveId) =>
+    set((state) => ({
+      missions: state.missions.map((mission) =>
+        mission.id === missionId
+          ? {
+              ...mission,
+              objectives: mission.objectives.map((objective) =>
+                objective.id === objectiveId ? { ...objective, completed: true } : objective,
+              ),
+            }
+          : mission,
+      ),
+    })),
+
   completeMission: (id) => {
-    const mission = get().missions.find(m => m.id === id);
-    if (mission) {
-      set(s => ({
-        screen: 'mission-complete',
-        activeMission: null,
-        player: { ...s.player, money: s.player.money + mission.reward },
-        missions: s.missions.map(m => m.id === id ? { ...m, status: 'completed' as const } : m),
-      }));
+    const mission = get().missions.find((item) => item.id === id);
+
+    if (!mission) {
+      return;
     }
+
+    set((state) => ({
+      screen: 'mission-complete',
+      activeMission: null,
+      lastCompletedMission: id,
+      player: { ...state.player, money: state.player.money + mission.reward },
+      missions: state.missions.map((item) =>
+        item.id === id ? { ...item, status: 'completed' as const } : item,
+      ),
+    }));
   },
-  
-  damageNPC: (id, amount) => set(s => ({
-    npcs: s.npcs.map(n => {
-      if (n.id !== id) return n;
-      const newHealth = Math.max(0, n.health - amount);
-      return { ...n, health: newHealth, isAlive: newHealth > 0 };
+
+  damageNPC: (id, amount) =>
+    set((state) => ({
+      npcs: state.npcs.map((npc) => {
+        if (npc.id !== id) {
+          return npc;
+        }
+
+        const newHealth = Math.max(0, npc.health - amount);
+        return { ...npc, health: newHealth, isAlive: newHealth > 0 };
+      }),
+    })),
+
+  switchWeapon: () =>
+    set((state) => {
+      const weapons: ('fist' | 'pistol' | 'rifle')[] = ['fist', 'pistol', 'rifle'];
+      const currentIndex = weapons.indexOf(state.player.weapon);
+
+      return {
+        player: {
+          ...state.player,
+          weapon: weapons[(currentIndex + 1) % weapons.length],
+        },
+      };
     }),
-  })),
-  
-  switchWeapon: () => set(s => {
-    const weapons: ('fist' | 'pistol' | 'rifle')[] = ['fist', 'pistol', 'rifle'];
-    const idx = weapons.indexOf(s.player.weapon);
-    return { player: { ...s.player, weapon: weapons[(idx + 1) % weapons.length] } };
-  }),
-  
+
   gameOver: () => set({ screen: 'game-over' }),
-  
-  resetGame: () => set({
-    screen: 'menu',
-    player: { ...initialPlayer },
-    vehicles: deepCopy(initialVehicles),
-    npcs: deepCopy(initialNPCs),
-    missions: deepCopy(initialMissions),
-    activeMission: null,
-  }),
+
+  resetGame: () =>
+    set({
+      screen: 'menu',
+      ...createFreshState(),
+    }),
 }));
