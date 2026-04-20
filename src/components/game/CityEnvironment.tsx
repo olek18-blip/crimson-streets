@@ -69,6 +69,15 @@ function WindowBands({
   );
 }
 
+function WetPatch({ position, size, rotation = 0 }: { position: [number, number, number]; size: [number, number]; rotation?: number }) {
+  return (
+    <mesh position={position} rotation={[-Math.PI / 2, rotation, 0]} receiveShadow>
+      <planeGeometry args={size} />
+      <meshStandardMaterial color="#111820" emissive="#162330" emissiveIntensity={0.18} transparent opacity={0.62} />
+    </mesh>
+  );
+}
+
 function CityBuildings({ cx, cz, radius, cityId }: { cx: number; cz: number; radius: number; cityId: string }) {
   const palette: Record<string, { base: string[]; window: string; sign?: string }> = {
     madrona: { base: ['#343946', '#2b303a', '#414857', '#262a33', '#535b69'], window: '#d6a258', sign: '#ff9d3a' },
@@ -320,6 +329,10 @@ function Dumpster({ position }: { position: [number, number, number] }) {
 function MandrilDistrictPass() {
   return (
     <group>
+      <WetPatch position={[-18, 0.105, 2]} size={[22, 8]} rotation={0.08} />
+      <WetPatch position={[12, 0.105, -4]} size={[18, 7]} rotation={-0.12} />
+      <WetPatch position={[23, 0.105, 22]} size={[16, 6]} rotation={0.05} />
+
       <mesh position={[-18, 0.06, 6]} receiveShadow>
         <boxGeometry args={[18, 0.08, 10]} />
         <meshStandardMaterial color="#69655f" />
@@ -331,6 +344,7 @@ function MandrilDistrictPass() {
       <PoliceBarrier position={[0, 0, -18]} />
       <PoliceBarrier position={[6, 0, -18]} />
       <pointLight position={[3, 3.5, -18]} color="#5fb4ff" intensity={1.8} distance={12} />
+      <pointLight position={[-2, 2.8, -14]} color="#4c8dff" intensity={0.8} distance={10} />
 
       <Building position={[18, 0, 8]} size={[12, 8, 10]} color="#251c35" emissive="#ff61d2" />
       <NeonSign position={[18, 4.2, 13.2]} size={[4.4, 0.38, 0.05]} color="#ff61d2" />
@@ -344,6 +358,10 @@ function MandrilDistrictPass() {
       <mesh position={[26, 0.08, 30]} receiveShadow>
         <boxGeometry args={[18, 0.08, 7]} />
         <meshStandardMaterial color="#6a6763" />
+      </mesh>
+      <mesh position={[26, 2.4, 29.5]}>
+        <boxGeometry args={[7, 0.22, 0.05]} />
+        <meshStandardMaterial color="#ff9d3a" emissive="#ff9d3a" emissiveIntensity={0.9} />
       </mesh>
 
       <Building position={[10, 0, -10]} size={[7, 12, 7]} color="#39425b" emissive="#d6a258" />
