@@ -72,6 +72,17 @@ export default function MainMenu() {
           >
             DEMOSTRACIÓN DE LA MISIÓN
           </Link>
+          <Link
+            to="/world-map"
+            className="font-display text-[11px] sm:text-sm tracking-[0.22em] sm:tracking-[0.28em] px-6 py-3 rounded-xl border text-center transition-all hover:bg-white/10"
+            style={{
+              borderColor: 'rgba(34,211,238,0.35)',
+              color: 'hsl(var(--foreground))',
+              background: 'rgba(3,7,18,0.28)',
+            }}
+          >
+            MAPA INTERACTIVO
+          </Link>
         </div>
 
         <div className="mt-3 text-[11px] sm:text-xs text-slate-400 font-display tracking-[0.16em] sm:tracking-wider text-center px-3">
