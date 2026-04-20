@@ -78,6 +78,31 @@ function WetPatch({ position, size, rotation = 0 }: { position: [number, number,
   );
 }
 
+function MissionZone({
+  position,
+  radius,
+  color,
+  height = 4,
+}: {
+  position: [number, number, number];
+  radius: number;
+  color: string;
+  height?: number;
+}) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[radius, radius + 0.45, 32]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} transparent opacity={0.35} />
+      </mesh>
+      <mesh position={[0, height / 2, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, height, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} transparent opacity={0.22} />
+      </mesh>
+    </group>
+  );
+}
+
 function CityBuildings({ cx, cz, radius, cityId }: { cx: number; cz: number; radius: number; cityId: string }) {
   const palette: Record<string, { base: string[]; window: string; sign?: string }> = {
     madrona: { base: ['#343946', '#2b303a', '#414857', '#262a33', '#535b69'], window: '#d6a258', sign: '#ff9d3a' },
@@ -329,6 +354,12 @@ function Dumpster({ position }: { position: [number, number, number] }) {
 function MandrilDistrictPass() {
   return (
     <group>
+      <MissionZone position={[3, 0, -18]} radius={3.4} color="#5fb4ff" height={4.8} />
+      <MissionZone position={[-18, 0, 8]} radius={4.1} color="#d6a258" height={4.2} />
+      <MissionZone position={[18, 0, 8]} radius={4.4} color="#ff61d2" height={4.8} />
+      <MissionZone position={[26, 0, 24]} radius={4.8} color="#ff9d3a" height={4.8} />
+      <MissionZone position={[28, 0, 25]} radius={3.1} color="#ffe082" height={3.8} />
+
       <WetPatch position={[-18, 0.105, 2]} size={[22, 8]} rotation={0.08} />
       <WetPatch position={[12, 0.105, -4]} size={[18, 7]} rotation={-0.12} />
       <WetPatch position={[23, 0.105, 22]} size={[16, 6]} rotation={0.05} />
