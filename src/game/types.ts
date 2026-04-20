@@ -44,11 +44,15 @@ export interface Mission {
   city: string;
 }
 
+export type MissionObjectiveType = 'reach' | 'switch-weapon' | 'enter-vehicle' | 'eliminate-gangs';
+
 export interface MissionObjective {
   id: string;
   text: string;
   completed: boolean;
   targetPosition?: [number, number, number];
+  objectiveType?: MissionObjectiveType;
+  hint?: string;
 }
 
 export type GameScreen = 'menu' | 'playing' | 'paused' | 'mission-complete' | 'game-over';
