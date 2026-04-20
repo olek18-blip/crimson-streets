@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Sky } from '@react-three/drei';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useGameStore } from '../../game/store';
 import { usePlayerController } from '../../hooks/usePlayerController';
 import { useMissionSystem } from '../../hooks/useMissionSystem';
@@ -17,6 +17,8 @@ import PauseMenu from './PauseMenu';
 import GameOverScreen from './GameOverScreen';
 import MissionCompleteScreen from './MissionCompleteScreen';
 import MissionBeacon from './MissionBeacon';
+import MobileControls from './MobileControls';
+import LoadingSplash from './LoadingSplash';
 
 function GameLogic() {
   usePlayerController();
@@ -63,6 +65,7 @@ function Scene() {
 
 export default function GameScene() {
   const screen = useGameStore((state) => state.screen);
+  const [showLoading, setShowLoading] = useState(false);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.key !== 'Escape' || event.repeat) {
@@ -86,8 +89,19 @@ export default function GameScene() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  useEffect(() => {
+    if (screen === 'menu') {
+      setShowLoading(false);
+      return;
+    }
+
+    setShowLoading(true);
+    const timeout = window.setTimeout(() => setShowLoading(false), 1200);
+    return () => window.clearTimeout(timeout);
+  }, [screen]);
+
   return (
-    <div className="w-screen h-screen relative">
+    <div className="w-screen h-screen relative overflow-hidden">
       {screen === 'menu' && <MainMenu />}
       {screen === 'paused' && <PauseMenu />}
       {screen === 'game-over' && <GameOverScreen />}
@@ -97,8 +111,11 @@ export default function GameScene() {
         <>
           <GameHUD />
           <Minimap />
+          <MobileControls />
         </>
       )}
+
+      {showLoading && screen !== 'menu' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
 
       <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#08111a' }}>
         <Scene />
