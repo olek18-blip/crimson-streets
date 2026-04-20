@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import mapBg from '../assets/map-background.png';
 
 type SlicePhase = {
   id: string;
@@ -118,15 +117,12 @@ export default function MissionDemo() {
     if (phase.category === 'corruption') {
       setMoney((value) => value + 800);
     }
-
     if (phase.category === 'street-control') {
       setWanted(1);
     }
-
     if (phase.category === 'pursuit') {
       setWanted(2);
     }
-
     if (phase.category === 'reveal') {
       setMoney((value) => value + 1800);
     }
@@ -161,57 +157,49 @@ export default function MissionDemo() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden text-white">
-      <div className="absolute inset-0">
-        <img src={mapBg} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-slate-950/88" />
-      </div>
+    <div className="min-h-screen relative overflow-hidden text-white bg-[#060a12]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,86,34,0.16),transparent_24%),radial-gradient(circle_at_82%_24%,rgba(0,212,255,0.08),transparent_18%),linear-gradient(180deg,#08111a_0%,#070d15_46%,#04070c_100%)]" />
+      <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '34px 34px' }} />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(0,212,255,0.04)_35%,transparent_50%,rgba(255,97,210,0.04)_76%,transparent_100%)]" />
 
-      <div className="relative z-10 px-6 py-6 md:px-10 md:py-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
+      <div className="relative z-10 px-4 py-5 sm:px-6 md:px-10 md:py-8">
+        <div className="flex flex-col gap-4 mb-6 md:mb-8 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-3xl">
             <div className="text-[11px] tracking-[0.35em] uppercase text-amber-300/80 mb-2">Mandril Vertical Slice</div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">The Dangerous Spain — MVP Demo</h1>
-            <p className="text-slate-300 mt-2 max-w-3xl">
-              Demo de flujo pensada como vertical slice canónica: corrupción policial, fricción con bandas, persecución y hook político-criminal. Ya no representa solo un tutorial, sino el núcleo del MVP definido por el GDD.
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl tracking-[0.08em] leading-[0.95] text-orange-400">DEMO DEL MVP</h1>
+            <p className="text-slate-300 mt-3 text-sm sm:text-base leading-relaxed">
+              Flujo noir del slice canónico: corrupción policial, fricción con bandas, persecución y hook político-criminal. Ya no representa un tutorial viejo, sino el núcleo real del MVP definido por el GDD.
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <Link
-              to="/"
-              className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition-colors"
-            >
+          <div className="flex gap-3 flex-wrap">
+            <Link to="/" className="px-4 py-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm">
               Volver al juego
             </Link>
-            <button
-              onClick={resetDemo}
-              className="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors"
-            >
+            <button onClick={resetDemo} className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors text-sm">
               Reiniciar slice
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.95fr] gap-6">
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
+        <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.95fr] gap-4 md:gap-6">
+          <div className="space-y-4 md:space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-4 md:p-5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-2">Beat activo</div>
-                  <div className="text-2xl font-semibold leading-tight">{activeObjectiveText}</div>
+                  <div className="text-xl sm:text-2xl font-semibold leading-tight">{activeObjectiveText}</div>
                   {!sliceFinished && (
-                    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm ${categoryColors[currentPhase.category]}`}>
+                    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs sm:text-sm ${categoryColors[currentPhase.category]}`}>
                       <span className="font-semibold">{categoryLabel[currentPhase.category]}</span>
                       <span className="opacity-60">•</span>
                       <span>{currentPhase.location}</span>
                     </div>
                   )}
                 </div>
-
-                <div className="text-right min-w-[110px]">
+                <div className="text-right min-w-[84px]">
                   <div className="text-[11px] tracking-[0.25em] uppercase text-slate-400 mb-2">Progreso</div>
-                  <div className="text-3xl font-bold text-amber-300">{progressPercent}%</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-300">{progressPercent}%</div>
                 </div>
               </div>
 
@@ -223,52 +211,35 @@ export default function MissionDemo() {
                 <>
                   <div className="rounded-xl border border-white/8 bg-white/5 p-4 mb-4">
                     <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Lectura del beat</div>
-                    <p className="text-slate-200">{currentPhase.hint}</p>
+                    <p className="text-slate-200 text-sm sm:text-base">{currentPhase.hint}</p>
                   </div>
-
-                  <button
-                    onClick={completePhase}
-                    className="w-full md:w-auto px-5 py-3 rounded-xl bg-red-500 hover:bg-red-400 text-white font-semibold transition-colors"
-                  >
+                  <button onClick={completePhase} className="w-full md:w-auto px-5 py-3 rounded-xl bg-red-500 hover:bg-red-400 text-white font-semibold transition-colors">
                     {currentPhase.actionLabel}
                   </button>
                 </>
               ) : (
                 <div className="rounded-xl border border-emerald-400/20 bg-emerald-300/10 p-4">
                   <div className="text-[11px] tracking-[0.22em] uppercase text-emerald-200/80 mb-2">Resultado</div>
-                  <p className="text-emerald-100">La demo ya deja claro el pitch del juego: Daniel Vega, policía corrupto, opera en Mandril dentro de una red más grande que el crimen callejero.</p>
+                  <p className="text-emerald-100 text-sm sm:text-base">La demo ya deja claro el pitch del juego: Daniel Vega, policía corrupto, opera en Mandril dentro de una red más grande que el crimen callejero.</p>
                 </div>
               )}
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
+            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-4 md:p-5">
               <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Estructura del slice</div>
               <div className="space-y-3">
                 {phases.map((phase, index) => {
                   const isDone = index < currentPhaseIndex;
                   const isCurrent = index === currentPhaseIndex && !sliceFinished;
                   return (
-                    <div
-                      key={phase.id}
-                      className={`rounded-xl border p-4 transition-colors ${
-                        isCurrent
-                          ? 'border-amber-300/40 bg-amber-300/10'
-                          : isDone
-                            ? 'border-emerald-400/20 bg-emerald-300/10'
-                            : 'border-white/8 bg-white/5'
-                      }`}
-                    >
+                    <div key={phase.id} className={`rounded-xl border p-4 transition-colors ${isCurrent ? 'border-amber-300/40 bg-amber-300/10' : isDone ? 'border-emerald-400/20 bg-emerald-300/10' : 'border-white/8 bg-white/5'}`}>
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="text-sm text-slate-300 mb-1">Beat {index + 1}</div>
-                          <div className="font-semibold text-lg">{phase.title}</div>
-                          <div className={`text-xs mt-2 uppercase tracking-[0.2em] ${categoryColors[phase.category]}`}>
-                            {categoryLabel[phase.category]}
-                          </div>
+                          <div className="font-semibold text-base sm:text-lg">{phase.title}</div>
+                          <div className={`text-xs mt-2 uppercase tracking-[0.2em] ${categoryColors[phase.category]}`}>{categoryLabel[phase.category]}</div>
                         </div>
-                        <div className={`text-xs font-semibold uppercase tracking-[0.2em] ${isCurrent ? 'text-amber-200' : isDone ? 'text-emerald-200' : 'text-slate-500'}`}>
-                          {isDone ? 'Done' : isCurrent ? 'Active' : 'Pending'}
-                        </div>
+                        <div className={`text-xs font-semibold uppercase tracking-[0.2em] ${isCurrent ? 'text-amber-200' : isDone ? 'text-emerald-200' : 'text-slate-500'}`}>{isDone ? 'Done' : isCurrent ? 'Active' : 'Pending'}</div>
                       </div>
                     </div>
                   );
@@ -277,43 +248,22 @@ export default function MissionDemo() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
+          <div className="space-y-4 md:space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-4 md:p-5">
               <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">HUD simulado</div>
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="rounded-xl border border-white/8 bg-white/5 p-4">
-                  <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Dinero</div>
-                  <div className="text-2xl font-bold text-emerald-300">${money.toLocaleString()}</div>
-                </div>
-                <div className="rounded-xl border border-white/8 bg-white/5 p-4">
-                  <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Wanted</div>
-                  <div className="text-2xl font-bold text-slate-200">{wanted}★</div>
-                </div>
+                <div className="rounded-xl border border-white/8 bg-white/5 p-4"><div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Dinero</div><div className="text-2xl font-bold text-emerald-300">${money.toLocaleString()}</div></div>
+                <div className="rounded-xl border border-white/8 bg-white/5 p-4"><div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Wanted</div><div className="text-2xl font-bold text-slate-200">{wanted}★</div></div>
               </div>
-              <div className="rounded-xl border border-white/8 bg-white/5 p-4 mb-4">
-                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Prueba del MVP</div>
-                <ul className="space-y-2 text-sm text-slate-300 list-disc pl-5">
-                  <li>Corrupción policial como loop principal.</li>
-                  <li>Persecución significativa en Mandril.</li>
-                  <li>Fricción visible entre policía y gangs.</li>
-                  <li>Hook narrativo que abre la conspiración.</li>
-                </ul>
-              </div>
-              <div className="rounded-xl border border-white/8 bg-white/5 p-4">
-                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Sub-áreas objetivo</div>
-                <p className="text-slate-300 text-sm">
-                  Police access point, street market, gang blocks, arterial road, club edge y un back lot / warehouse corto. Esa es la mezcla ideal para el slice canónico de Mandril.
-                </p>
-              </div>
+              <div className="rounded-xl border border-white/8 bg-white/5 p-4 mb-4"><div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Prueba del MVP</div><ul className="space-y-2 text-sm text-slate-300 list-disc pl-5"><li>Corrupción policial como loop principal.</li><li>Persecución significativa en Mandril.</li><li>Fricción visible entre policía y gangs.</li><li>Hook narrativo que abre la conspiración.</li></ul></div>
+              <div className="rounded-xl border border-white/8 bg-white/5 p-4"><div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Sub-áreas objetivo</div><p className="text-slate-300 text-sm">Police access point, street market, gang blocks, arterial road, club edge y un back lot / warehouse corto. Esa es la mezcla ideal para el slice canónico de Mandril.</p></div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
+            <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-4 md:p-5">
               <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Log de slice</div>
               <div className="space-y-2">
                 {statusLog.map((entry, index) => (
-                  <div key={`${entry}-${index}`} className="rounded-lg bg-white/5 px-3 py-2 text-sm text-slate-300 border border-white/6">
-                    {entry}
-                  </div>
+                  <div key={`${entry}-${index}`} className="rounded-lg bg-white/5 px-3 py-2 text-sm text-slate-300 border border-white/6">{entry}</div>
                 ))}
               </div>
             </div>
