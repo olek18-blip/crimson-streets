@@ -8,6 +8,7 @@ function clamp(value: number, min: number, max: number) {
 
 export default function MobileControls() {
   const screen = useGameStore((state) => state.screen);
+  const playerInVehicle = useGameStore((state) => state.player.inVehicle);
   const switchWeapon = useGameStore((state) => state.switchWeapon);
   const setPlayerInVehicle = useGameStore((state) => state.setPlayerInVehicle);
   const setAxis = useMobileControlsStore((state) => state.setAxis);
@@ -32,7 +33,7 @@ export default function MobileControls() {
 
   const knobStyle = useMemo(
     () => ({
-      transform: `translate(calc(-50% + ${axisX * 26}px), calc(-50% + ${axisY * 26}px))`,
+      transform: `translate(calc(-50% + ${axisX * 24}px), calc(-50% + ${axisY * 24}px))`,
     }),
     [axisX, axisY],
   );
@@ -51,8 +52,17 @@ export default function MobileControls() {
     const dx = clientX - centerX;
     const dy = clientY - centerY;
     const maxRadius = rect.width * 0.34;
-    const nx = clamp(dx / maxRadius, -1, 1);
-    const ny = clamp(dy / maxRadius, -1, 1);
+
+    let nx = clamp(dx / maxRadius, -1, 1);
+    let ny = clamp(dy / maxRadius, -1, 1);
+
+    const deadZone = 0.18;
+    if (Math.abs(nx) < deadZone) nx = 0;
+    if (Math.abs(ny) < deadZone) ny = 0;
+
+    nx = nx * 0.82;
+    ny = ny * 0.96;
+
     setAxis(nx, ny);
   };
 
@@ -78,25 +88,25 @@ export default function MobileControls() {
 
   return (
     <div className="fixed inset-0 z-20 pointer-events-none sm:hidden">
-      <div className="absolute left-4 bottom-6 pointer-events-auto">
+      <div className="absolute left-4 bottom-5 pointer-events-auto">
         <div
           ref={padRef}
-          className="relative h-28 w-28 rounded-full border border-white/15 bg-black/25 backdrop-blur-md touch-none"
+          className="relative h-28 w-28 rounded-full border border-white/12 bg-black/20 backdrop-blur-md touch-none"
           onTouchStart={handlePadTouchStart}
           onTouchMove={handlePadTouchMove}
           onTouchEnd={handlePadTouchEnd}
           onTouchCancel={handlePadTouchEnd}
         >
-          <div className="absolute inset-[16%] rounded-full border border-white/10" />
-          <div className="absolute left-1/2 top-1/2 h-12 w-12 rounded-full bg-white/15 border border-white/20" style={knobStyle} />
+          <div className="absolute inset-[14%] rounded-full border border-white/10" />
+          <div className="absolute inset-[32%] rounded-full border border-white/8" />
+          <div className="absolute left-1/2 top-1/2 h-11 w-11 rounded-full bg-white/14 border border-white/20 shadow-[0_0_18px_rgba(255,255,255,0.08)]" style={knobStyle} />
         </div>
-        <div className="mt-2 text-center text-[10px] tracking-[0.18em] text-slate-400">MOVER</div>
       </div>
 
       <div className="absolute right-4 bottom-6 flex flex-col items-end gap-3 pointer-events-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-end gap-3">
           <button
-            className="h-14 w-14 rounded-full border border-cyan-300/20 bg-cyan-400/15 text-cyan-100 text-[11px] tracking-[0.14em]"
+            className="h-12 w-12 rounded-full border border-cyan-300/20 bg-cyan-400/15 text-cyan-100 text-[10px] tracking-[0.12em]"
             onTouchStart={() => setSprint(true)}
             onTouchEnd={() => setSprint(false)}
             onTouchCancel={() => setSprint(false)}
@@ -104,7 +114,7 @@ export default function MobileControls() {
             RUN
           </button>
           <button
-            className="h-16 w-16 rounded-full border border-red-300/25 bg-red-500/20 text-red-100 text-[11px] tracking-[0.14em]"
+            className="h-16 w-16 rounded-full border border-red-300/25 bg-red-500/22 text-red-100 text-[11px] tracking-[0.14em] shadow-[0_0_30px_rgba(127,29,29,0.18)]"
             onTouchStart={() => setShooting(true)}
             onTouchEnd={() => setShooting(false)}
             onTouchCancel={() => setShooting(false)}
@@ -112,19 +122,21 @@ export default function MobileControls() {
             FIRE
           </button>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
-            className="h-12 w-12 rounded-full border border-amber-300/20 bg-amber-400/15 text-amber-100 text-[10px] tracking-[0.14em]"
+            className="h-11 rounded-full border border-amber-300/20 bg-amber-400/15 px-4 text-amber-100 text-[10px] tracking-[0.14em]"
             onClick={() => switchWeapon()}
           >
             ARMA
           </button>
-          <button
-            className="h-12 w-12 rounded-full border border-white/20 bg-white/10 text-white text-[10px] tracking-[0.14em]"
-            onClick={() => setPlayerInVehicle(null)}
-          >
-            SALIR
-          </button>
+          {playerInVehicle && (
+            <button
+              className="h-11 rounded-full border border-white/20 bg-white/10 px-4 text-white text-[10px] tracking-[0.14em]"
+              onClick={() => setPlayerInVehicle(null)}
+            >
+              SALIR
+            </button>
+          )}
         </div>
       </div>
     </div>
