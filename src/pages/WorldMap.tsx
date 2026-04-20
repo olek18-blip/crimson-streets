@@ -119,7 +119,24 @@ export default function WorldMap() {
             </p>
           </div>
 
-          <div className="relative rounded-3xl border border-white/10 bg-[#07111a] overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.45)] min-h-[58vh] sm:min-h-[68vh]">
+          <div className="flex flex-wrap gap-2 mb-4 xl:hidden">
+            {cities.map((city) => (
+              <button
+                key={city.id}
+                onClick={() => setActiveCityId(city.id)}
+                className="rounded-full border px-3 py-2 text-xs tracking-[0.16em] uppercase"
+                style={{
+                  borderColor: activeCity.id === city.id ? city.color : 'rgba(255,255,255,0.14)',
+                  background: activeCity.id === city.id ? `${city.color}22` : 'rgba(255,255,255,0.03)',
+                  color: activeCity.id === city.id ? city.color : '#cbd5e1',
+                }}
+              >
+                {city.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative rounded-3xl border border-white/10 bg-[#07111a] overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.45)] aspect-[16/10] min-h-[280px] sm:min-h-[420px] xl:min-h-[68vh]">
             <svg viewBox="0 0 1600 800" className="w-full h-full">
               <defs>
                 <linearGradient id="skyNoir" x1="0" y1="0" x2="0" y2="1">
@@ -129,10 +146,7 @@ export default function WorldMap() {
                 </linearGradient>
                 <filter id="cityGlow" x="-80%" y="-80%" width="260%" height="260%">
                   <feGaussianBlur stdDeviation="18" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
               </defs>
 
@@ -153,9 +167,9 @@ export default function WorldMap() {
 
               {cities.map((city) => (
                 <g key={city.id} onClick={() => setActiveCityId(city.id)} style={{ cursor: 'pointer' }}>
-                  <circle cx={city.x} cy={city.y} r="48" fill={city.glow} filter="url(#cityGlow)" opacity={activeCityId === city.id ? 1 : 0.65} />
-                  <circle cx={city.x} cy={city.y} r="20" fill={city.color} stroke="#fff" strokeWidth="2" />
-                  <circle cx={city.x} cy={city.y} r="34" fill="none" stroke={city.color} strokeWidth="2" strokeOpacity={activeCityId === city.id ? 0.95 : 0.5} />
+                  <circle cx={city.x} cy={city.y} r={activeCityId === city.id ? 58 : 48} fill={city.glow} filter="url(#cityGlow)" opacity={activeCityId === city.id ? 1 : 0.65} />
+                  <circle cx={city.x} cy={city.y} r={activeCityId === city.id ? 24 : 20} fill={city.color} stroke="#fff" strokeWidth="2" />
+                  <circle cx={city.x} cy={city.y} r={activeCityId === city.id ? 40 : 34} fill="none" stroke={city.color} strokeWidth="2" strokeOpacity={activeCityId === city.id ? 0.95 : 0.5} />
                   <text x={city.x} y={city.y - 42} textAnchor="middle" fill={city.color} fontSize="16" letterSpacing="3">{city.name.toUpperCase()}</text>
                 </g>
               ))}
@@ -180,9 +194,7 @@ export default function WorldMap() {
                       <div className="font-display text-lg tracking-[0.06em] text-white">{mission.name}</div>
                       <div className="mt-1 text-sm text-slate-300 leading-snug">{mission.description}</div>
                     </div>
-                    <div className={`shrink-0 rounded-full border px-2 py-1 text-[10px] tracking-[0.16em] ${badgeStyles[mission.type]}`}>
-                      {badgeLabels[mission.type]}
-                    </div>
+                    <div className={`shrink-0 rounded-full border px-2 py-1 text-[10px] tracking-[0.16em] ${badgeStyles[mission.type]}`}>{badgeLabels[mission.type]}</div>
                   </div>
                   <div className="mt-3 text-sm text-emerald-300">{mission.reward}</div>
                 </div>
