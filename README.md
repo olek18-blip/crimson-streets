@@ -1,139 +1,183 @@
-# 🩸 Crimson Streets
+# The Dangerous Spain / Crimson Streets
 
-> A GTA-style open-world game set in a fictional Spain. Built with HTML5 Canvas.
+A third-person crime-action game project in active prototype development.
 
-![Status](https://img.shields.io/badge/status-prototype-red)
-![Engine](https://img.shields.io/badge/engine-HTML5%20Canvas-orange)
-![Language](https://img.shields.io/badge/language-JavaScript-yellow)
-![License](https://img.shields.io/badge/license-MIT-blue)
+This repository currently contains a **web prototype built with React + Vite + Three.js / React Three Fiber**, while the longer-term production direction is a **Godot 4** game with Web export support.
 
----
+## Current project direction
 
-## 🎮 About
+The project has moved beyond the old top-down / Canvas concept.
 
-**Crimson Streets** is a top-down open-world game inspired by classic GTA mechanics, set across six fictional Spanish cities. You play as **Inspector Vargas** — a morally ambiguous figure navigating crime, corruption, and chaos through the streets of a sun-scorched, politically volatile España.
+The current canonical direction is:
+- **title universe:** The Dangerous Spain
+- **prototype repository name:** Crimson Streets
+- **core fantasy:** a corrupt police officer operating inside a layered system of gangs, institutional corruption, logistics crime, and political conspiracy
+- **MVP target:** a **Mandril vertical slice**
 
-The game runs entirely in the browser using **HTML5 Canvas**, with no external game engine dependencies.
+## Canon premise
 
----
+You play as **Daniel Vega**, a corrupt police officer working inside a compromised system.
 
-## 🗺️ World
+The game is not centered only on street crime. Its identity comes from the tension between:
+- police authority
+- corruption as routine
+- gang pressure
+- evidence control
+- internal investigations
+- political power above street-level violence
 
-Six fictional cities, each with its own aesthetic and atmosphere:
+## Current state of the repo
 
-| City | Vibe |
-|------|------|
-| 🏙️ **Valdecanto** | Urban sprawl, gang territory, main hub |
-| 🌊 **Puerto Carmesí** | Coastal crime port, smuggling routes |
-| 🏜️ **Ardales Seco** | Desert outskirts, lawless frontier |
-| 🌿 **Sierra Oscura** | Mountain hideouts, rural corruption |
-| 🏛️ **Torresanta** | Political capital, white-collar crime |
-| 🔥 **Barrio Rojo** | Underground district, nightlife & vice |
+This repository currently includes:
+- a playable 3D web prototype
+- a redesigned HUD and minimap
+- in-world objective beacon support
+- a mission demo aligned with the MVP direction
+- improved city blockout and district readability
+- a stronger **Mandril** district pass
+- atmospheric lighting and noir mood improvements
+- mission, art direction, MVP, and GDD-alignment documentation
 
----
+## MVP focus: Mandril vertical slice
 
-## 🕹️ Core Mechanics (Prototype)
+The near-term goal is **not** a full open world.
 
-- [x] Top-down movement (player character)
-- [x] Canvas rendering loop (`requestAnimationFrame`)
-- [x] Basic city map / tilemap
-- [x] Collision detection (rudimentary)
-- [x] Player sprite & animation states
-- [ ] Vehicle system
-- [ ] NPC behavior / pathfinding
-- [ ] Wanted level system
-- [ ] Mission triggers
-- [ ] Minimap HUD
-- [ ] Sound & music system
-- [ ] Save/load state
+The goal is a polished **Mandril slice** that proves:
+- tone
+- third-person traversal
+- vehicle entry / exit
+- basic driving pressure
+- corruption-driven mission structure
+- gang / police faction tension
+- one meaningful pursuit
+- one narrative hook strong enough to justify the full game
 
----
+### Mandril slice target spaces
+- police access point
+- street market edge
+- gang block pressure zone
+- nightlife / club edge
+- arterial road
+- back lot / warehouse resolution space
 
-## 🧱 Tech Stack
+## Main playable / reviewable pieces right now
 
+### 1. Game prototype
+The main game scene is the active environment prototype.
+
+### 2. Mission demo
+A mission demo route exists to communicate the MVP flow more clearly.
+
+Current demo direction:
+- briefing corruption beat
+- protection money collection
+- gang pressure
+- pursuit escalation
+- evidence recovery
+- final conspiracy hook
+
+## Repository structure
+
+```text
+crimson-streets/
+├─ src/                        # Current web prototype code
+├─ public/
+├─ docs/
+│  ├─ art-direction/
+│  ├─ deploy/
+│  ├─ gdd/
+│  ├─ missions/
+│  └─ mvp/
+├─ godot/                      # Reserved for Godot 4 production migration
+├─ build/web/                  # Reserved for future Godot Web export
+├─ vercel.json
+├─ package.json
+└─ README.md
 ```
-📁 crimson-streets/
-├── index.html          # Entry point
-├── game.js             # Main game loop & state manager
-├── player.js           # Player entity & controls
-├── map.js              # Tilemap / world rendering
-├── collision.js        # Collision logic
-├── entities/           # NPCs, vehicles, objects
-├── assets/
-│   ├── sprites/        # Spritesheets
-│   ├── tiles/          # Map tiles
-│   └── audio/          # SFX & music (planned)
-└── utils/              # Math helpers, vector2, etc.
-```
 
-> Built with: **Vanilla JS + HTML5 Canvas** — zero dependencies, runs in any modern browser.
+## Tech stack (current prototype)
 
----
+- **React**
+- **Vite**
+- **TypeScript**
+- **Three.js / React Three Fiber**
+- **Zustand**
+- **Tailwind-style UI workflow already present in the project**
 
-## 🚀 Getting Started
+## Planned production direction
+
+The long-term production target is:
+- **Godot 4** as the real game runtime
+- Web export for browser testing
+- Vercel used now for the prototype, and later optionally for static Godot Web exports
+
+## How to run locally
 
 ```bash
-# Clone the repo
 git clone https://github.com/olek18-blip/crimson-streets.git
 cd crimson-streets
-
-# No install needed — just open in browser
-open index.html
-# or serve locally:
-npx serve .
+npm install
+npm run dev
 ```
 
----
+Then open the local Vite URL in the browser.
 
-## 🗓️ Roadmap
+## Current Vercel deployment
 
-### Phase 1 — World Foundation *(current)*
-- Stable game loop & rendering pipeline
-- Playable character with collision
-- Basic city layout
+The repository is currently configured for the **Vite prototype**, not yet for the future Godot export.
 
-### Phase 2 — Life in the Streets
-- NPC spawning & basic AI (wander, flee, chase)
-- Driveable vehicles
-- Pedestrian traffic simulation
+### Current deploy target
+- framework: `vite`
+- build command: `npm run build`
+- output directory: `dist`
 
-### Phase 3 — Story & Missions
-- Inspector Vargas storyline
-- Mission trigger system
-- Dialogue system (minimal, text-based)
-- Wanted level mechanic
+See:
+- `docs/deploy/vercel-prototype-deploy.md`
 
-### Phase 4 — Polish
-- Minimap HUD
-- Ambient audio & SFX
-- Particle effects (explosions, tire tracks, blood)
-- Day/night cycle
+## Important note about Godot
 
-### Phase 5 — Distribution
-- Itch.io release (free / pay-what-you-want)
-- Mobile-friendly controls (touch input)
-- Optional: port to Electron or PWA
+The repo already contains structure and planning for a future Godot 4 migration, but the current live-friendly version is still the web prototype.
 
----
+When the Godot Web export becomes the primary runtime, deployment should switch from:
+- `dist`
 
-## 🎭 Characters
+to:
+- `build/web`
 
-**Inspector Vargas** — The protagonist. Ex-cop turned freelance operative. Knows where the bodies are buried because he put some of them there. Morally grey, tactically brilliant.
+## Core documentation inside the repo
 
-*More characters to be revealed as the story develops.*
+### GDD alignment
+- `docs/gdd/gdd-canon-alignment.md`
 
----
+### MVP planning
+- `docs/mvp/mandril-vertical-slice.md`
 
-## 🤝 Contributing
+### Mission structure
+- `docs/missions/mission-template.md`
+- `docs/missions/mission-01-guided-intro.md`
+- `docs/missions/mission-mandril-dirty-patrol-blockout.md`
+- `docs/missions/mission-data-schema.json`
 
-This is a solo dev project for now. Feel free to open issues with ideas, bugs, or city lore suggestions.
+### Art direction
+- `docs/art-direction/visual-target.md`
+- `docs/art-direction/character-style-guide.md`
+- `docs/art-direction/environment-style-guide.md`
+- `docs/art-direction/scene-targets.md`
 
----
+## Current priorities
 
-## 📄 License
+1. strengthen the Mandril vertical slice
+2. turn the current blockout into a real mission flow
+3. improve environment readability and atmosphere
+4. move from prototype mission logic toward a reusable mission system
+5. prepare the eventual Godot implementation path without losing momentum
 
-MIT — do whatever you want, just don't make a worse GTA clone than this one.
+## Strategic rule
 
----
+Do not expand into a huge map before Mandril feels real.
 
-*Made with 🩸 and Canvas API somewhere in Spain.*
+A strong 15–20 minute vertical slice with identity, tension, and mission direction is more valuable than a broad but empty open world.
+
+## License
+
+MIT
