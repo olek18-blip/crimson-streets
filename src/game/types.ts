@@ -71,4 +71,5 @@ export interface GameState {
   activeMission: string | null;
   timeOfDay: number;
   cities: CityZone[];
+  lastCompletedMission: string | null;
 }
