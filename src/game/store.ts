@@ -3,6 +3,8 @@ import type { GameState, PlayerState } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
+const INTRO_MISSION_ID = 'mission1';
+
 const initialPlayer: PlayerState = {
   position: [0, 0.5, 0],
   rotation: 0,
@@ -54,6 +56,17 @@ const createFreshState = (): Omit<GameState, 'screen'> => ({
   lastCompletedMission: null,
 });
 
+const createIntroState = (): Omit<GameState, 'screen'> => {
+  const state = createFreshState();
+  return {
+    ...state,
+    activeMission: INTRO_MISSION_ID,
+    missions: state.missions.map((mission) =>
+      mission.id === INTRO_MISSION_ID ? { ...mission, status: 'active' as const } : mission,
+    ),
+  };
+};
+
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'menu',
   ...createFreshState(),
@@ -62,7 +75,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     clearSavedGame();
     set({
       screen: 'playing',
-      ...createFreshState(),
+      ...createIntroState(),
     });
   },
 
@@ -72,7 +85,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!saved) {
       set({
         screen: 'playing',
-        ...createFreshState(),
+        ...createIntroState(),
       });
       return;
     }
