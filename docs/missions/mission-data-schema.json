@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "mission": {
+    "id": "mission1",
+    "title": "Primeros Pasos en Madrona",
+    "city": "madrona",
+    "description": "Intro mission that teaches movement, weapon switching, vehicle entry, navigation, and first combat.",
+    "reward": {
+      "money": 5000,
+      "unlock_missions": ["mission2"]
+    },
+    "flags": {
+      "auto_start_on_new_game": true,
+      "show_beacon": true,
+      "show_minimap_marker": true
+    },
+    "phases": [
+      {
+        "id": "phase_01",
+        "title": "Reach the contact point",
+        "objective_type": "reach",
+        "hint": "Move with WASD. Reach the marked point.",
+        "target_position": [6, 0, 6],
+        "radius": 4,
+        "success_condition": "player_enters_radius",
+        "fail_condition": null
+      },
+      {
+        "id": "phase_02",
+        "title": "Equip the weapon",
+        "objective_type": "switch-weapon",
+        "hint": "Press Q to cycle weapons and equip your sidearm.",
+        "success_condition": "player_weapon_not_fist",
+        "fail_condition": null
+      },
+      {
+        "id": "phase_03",
+        "title": "Enter a nearby vehicle",
+        "objective_type": "enter-vehicle",
+        "hint": "Approach the red car and press F to get in.",
+        "target_vehicle_id": "mad-car1",
+        "success_condition": "player_in_vehicle",
+        "fail_condition": null
+      },
+      {
+        "id": "phase_04",
+        "title": "Drive to the warehouse",
+        "objective_type": "reach",
+        "hint": "Follow the golden marker to the warehouse district.",
+        "target_position": [25, 0, 25],
+        "radius": 5,
+        "success_condition": "player_enters_radius",
+        "fail_condition": null
+      },
+      {
+        "id": "phase_05",
+        "title": "Clear the warehouse exterior",
+        "objective_type": "eliminate-gangs",
+        "hint": "Take down the gang members before they move the cargo.",
+        "enemy_group": "gang_madrona_intro",
+        "success_condition": "enemy_group_eliminated",
+        "fail_condition": "player_dead"
+      },
+      {
+        "id": "phase_06",
+        "title": "Secure the evidence",
+        "objective_type": "reach",
+        "hint": "Move to the evidence marker and secure the scene.",
+        "target_position": [27, 0, 27],
+        "radius": 3,
+        "success_condition": "player_enters_radius",
+        "fail_condition": "player_dead"
+      }
+    ]
+  }
+}
