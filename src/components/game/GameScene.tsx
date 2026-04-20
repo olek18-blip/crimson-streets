@@ -28,21 +28,27 @@ function GameLogic() {
 function Scene() {
   return (
     <>
-      <Sky sunPosition={[100, 20, 100]} turbidity={8} rayleigh={2} />
-      <ambientLight intensity={0.35} />
+      <color attach="background" args={['#08111a']} />
+      <Sky sunPosition={[60, 8, 40]} turbidity={10} rayleigh={0.55} mieCoefficient={0.02} mieDirectionalG={0.95} />
+      <ambientLight intensity={0.24} color="#8fb4d8" />
+      <hemisphereLight args={['#7da0c4', '#132016', 0.42]} />
       <directionalLight
-        position={[100, 80, 50]}
-        intensity={1.2}
+        position={[65, 24, 30]}
+        intensity={0.8}
+        color="#9cb7d3"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-far={500}
-        shadow-camera-left={-200}
-        shadow-camera-right={200}
-        shadow-camera-top={200}
-        shadow-camera-bottom={-200}
+        shadow-camera-left={-220}
+        shadow-camera-right={220}
+        shadow-camera-top={220}
+        shadow-camera-bottom={-220}
       />
-      <fog attach="fog" args={['#0a1520', 60, 200]} />
+      <pointLight position={[0, 9, 0]} color="#d28c45" intensity={1.25} distance={42} />
+      <pointLight position={[18, 6, 12]} color="#ff5dd8" intensity={1.2} distance={24} />
+      <pointLight position={[23, 5, 12]} color="#00cfff" intensity={0.95} distance={18} />
+      <fog attach="fog" args={['#0c1722', 42, 165]} />
 
       <GameCamera />
       <GameLogic />
@@ -94,7 +100,7 @@ export default function GameScene() {
         </>
       )}
 
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} style={{ background: '#0a1520' }}>
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#08111a' }}>
         <Scene />
       </Canvas>
     </div>
