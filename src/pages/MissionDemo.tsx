@@ -2,123 +2,161 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import mapBg from '../assets/map-background.png';
 
-type DemoPhase = {
+type SlicePhase = {
   id: string;
   title: string;
-  objectiveType: 'reach' | 'switch-weapon' | 'enter-vehicle' | 'eliminate-gangs' | 'secure';
+  category: 'briefing' | 'corruption' | 'street-control' | 'pursuit' | 'reveal' | 'hook';
   hint: string;
   location: string;
   actionLabel: string;
+  result: string;
 };
 
-const phases: DemoPhase[] = [
+const phases: SlicePhase[] = [
   {
     id: 'phase-01',
-    title: 'Acércate al punto de encuentro',
-    objectiveType: 'reach',
-    hint: 'Muévete con WASD y alcanza el primer marcador en Madrona.',
-    location: 'Madrona Centro',
-    actionLabel: 'Simular llegada al contacto',
+    title: 'Briefing: Dirty Patrol Order',
+    category: 'briefing',
+    hint: 'Comisario Esteban Roldán te entrega una orden no escrita: patrulla oficial, cobro extraoficial.',
+    location: 'Mandril — Police Access Point',
+    actionLabel: 'Simular briefing corrupto',
+    result: 'Daniel Vega acepta una patrulla sucia bajo cobertura institucional.',
   },
   {
     id: 'phase-02',
-    title: 'Equipa el arma principal',
-    objectiveType: 'switch-weapon',
-    hint: 'Pulsa Q hasta sacar la pistola o el rifle.',
-    location: 'Zona segura',
-    actionLabel: 'Simular cambio de arma',
+    title: 'Collect Protection Money',
+    category: 'corruption',
+    hint: 'Visita un negocio protegido y cobra sin levantar demasiado ruido. Aquí el sistema espera corrupción como rutina.',
+    location: 'Mandril — Street Market Edge',
+    actionLabel: 'Simular cobro de protección',
+    result: 'La ciudad deja claro que la corrupción no es excepción, sino procedimiento.',
   },
   {
     id: 'phase-03',
-    title: 'Entra en un vehículo cercano',
-    objectiveType: 'enter-vehicle',
-    hint: 'Acércate al coche rojo y pulsa F para subir.',
-    location: 'Calle lateral',
-    actionLabel: 'Simular entrada en vehículo',
+    title: 'Respond to Gang Pressure',
+    category: 'street-control',
+    hint: 'Una banda local interpreta tu visita como intrusión. Debes medir fuerza, presencia y control territorial.',
+    location: 'Mandril — Gang Blocks',
+    actionLabel: 'Simular escalada con banda',
+    result: 'La patrulla se convierte en fricción abierta entre policía corrupta y poder callejero.',
   },
   {
     id: 'phase-04',
-    title: 'Llega al almacén de la banda',
-    objectiveType: 'reach',
-    hint: 'Sigue el beacon dorado y usa el minimapa para orientarte.',
-    location: 'Distrito de almacenes',
-    actionLabel: 'Simular llegada al almacén',
+    title: 'Night Chase Through Mandril',
+    category: 'pursuit',
+    hint: 'Un informante huye con datos comprometidos. Sube al coche y persíguelo antes de que entregue el material.',
+    location: 'Mandril — Arterial Road',
+    actionLabel: 'Simular persecución nocturna',
+    result: 'La persecución demuestra conducción, presión, wanted state y urgencia narrativa.',
   },
   {
     id: 'phase-05',
-    title: 'Elimina a los pandilleros del almacén',
-    objectiveType: 'eliminate-gangs',
-    hint: 'Apunta con calma. Los enemigos del tutorial no deberían sentirse injustos.',
-    location: 'Exterior del almacén',
-    actionLabel: 'Simular combate superado',
+    title: 'Secure the Evidence',
+    category: 'reveal',
+    hint: 'Recupera el material antes de que llegue a Asuntos Internos o a manos rivales.',
+    location: 'Mandril — Club Edge / Back Lot',
+    actionLabel: 'Simular recuperación de evidencia',
+    result: 'La prueba conecta a policía, bandas y una capa de poder mucho más alta.',
   },
   {
     id: 'phase-06',
-    title: 'Recoge la evidencia y asegura la zona',
-    objectiveType: 'secure',
-    hint: 'Camina a la segunda marca para cerrar la operación.',
-    location: 'Punto de evidencia',
-    actionLabel: 'Simular cierre de misión',
+    title: 'Final Hook: The System Is Bigger',
+    category: 'hook',
+    hint: 'No era solo un soborno de barrio. La información apunta a una red política-criminal más amplia.',
+    location: 'Mandril — End of Slice',
+    actionLabel: 'Simular hook final',
+    result: 'El slice termina dejando claro que Daniel ya está dentro de una arquitectura de poder más grande que la calle.',
   },
 ];
 
-const typeLabel: Record<DemoPhase['objectiveType'], string> = {
-  reach: 'Reach',
-  'switch-weapon': 'Switch Weapon',
-  'enter-vehicle': 'Enter Vehicle',
-  'eliminate-gangs': 'Combat',
-  secure: 'Secure',
+const categoryLabel: Record<SlicePhase['category'], string> = {
+  briefing: 'Briefing',
+  corruption: 'Corruption',
+  'street-control': 'Street Control',
+  pursuit: 'Pursuit',
+  reveal: 'Reveal',
+  hook: 'Hook',
+};
+
+const categoryColors: Record<SlicePhase['category'], string> = {
+  briefing: 'text-amber-200',
+  corruption: 'text-red-300',
+  'street-control': 'text-orange-300',
+  pursuit: 'text-sky-300',
+  reveal: 'text-violet-300',
+  hook: 'text-emerald-300',
 };
 
 export default function MissionDemo() {
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
-  const [money, setMoney] = useState(500);
+  const [money, setMoney] = useState(1200);
+  const [wanted, setWanted] = useState(0);
   const [statusLog, setStatusLog] = useState<string[]>([
-    'Inicio de demo cargado.',
-    'Misión 01 preparada: Primeros Pasos en Madrona.',
+    'Vertical slice cargada.',
+    'Mandril queda definido como MVP canónico.',
   ]);
 
   const currentPhase = phases[currentPhaseIndex];
   const completedCount = currentPhaseIndex;
-  const missionFinished = currentPhaseIndex >= phases.length;
-  const progressPercent = missionFinished ? 100 : Math.round((completedCount / phases.length) * 100);
+  const sliceFinished = currentPhaseIndex >= phases.length;
+  const progressPercent = sliceFinished ? 100 : Math.round((completedCount / phases.length) * 100);
 
   const activeObjectiveText = useMemo(() => {
-    if (missionFinished) {
-      return 'Operación completada. El siguiente paso sería desbloquear la misión 02.';
+    if (sliceFinished) {
+      return 'Slice completada. El siguiente paso sería convertir este flujo en una misión jugable real dentro del distrito de Mandril.';
     }
     return currentPhase.title;
-  }, [missionFinished, currentPhase]);
+  }, [sliceFinished, currentPhase]);
 
   const completePhase = () => {
-    if (missionFinished) return;
+    if (sliceFinished) return;
 
     const nextIndex = currentPhaseIndex + 1;
-    const nextLog = [`✔ ${currentPhase.title}`, ...statusLog].slice(0, 7);
+    const phase = phases[currentPhaseIndex];
+    const nextLog = [`✔ ${phase.title}`, ...statusLog].slice(0, 8);
+
+    if (phase.category === 'corruption') {
+      setMoney((value) => value + 800);
+    }
+
+    if (phase.category === 'street-control') {
+      setWanted(1);
+    }
+
+    if (phase.category === 'pursuit') {
+      setWanted(2);
+    }
+
+    if (phase.category === 'reveal') {
+      setMoney((value) => value + 1800);
+    }
 
     if (nextIndex >= phases.length) {
       setMoney((value) => value + 5000);
+      setWanted(0);
       setCurrentPhaseIndex(phases.length);
       setStatusLog([
-        '🏁 Misión completada. Recompensa entregada: $5,000.',
+        '🏁 Slice cerrada. Mandril ya prueba tono, corrupción, persecución y hook narrativo.',
         ...nextLog,
-      ].slice(0, 7));
+      ].slice(0, 8));
       return;
     }
 
     setCurrentPhaseIndex(nextIndex);
     setStatusLog([
-      `→ Nuevo objetivo: ${phases[nextIndex].title}`,
+      `→ ${phase.result}`,
+      `→ Nuevo beat: ${phases[nextIndex].title}`,
       ...nextLog,
-    ].slice(0, 7));
+    ].slice(0, 8));
   };
 
   const resetDemo = () => {
     setCurrentPhaseIndex(0);
-    setMoney(500);
+    setMoney(1200);
+    setWanted(0);
     setStatusLog([
-      'Demo reiniciada.',
-      'Misión 01 preparada: Primeros Pasos en Madrona.',
+      'Vertical slice reiniciada.',
+      'Mandril queda definido como MVP canónico.',
     ]);
   };
 
@@ -126,16 +164,16 @@ export default function MissionDemo() {
     <div className="min-h-screen relative overflow-hidden text-white">
       <div className="absolute inset-0">
         <img src={mapBg} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-slate-950/85" />
+        <div className="absolute inset-0 bg-slate-950/88" />
       </div>
 
       <div className="relative z-10 px-6 py-6 md:px-10 md:py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <div className="text-[11px] tracking-[0.35em] uppercase text-amber-300/80 mb-2">Mission Demo</div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Primeros Pasos en Madrona</h1>
-            <p className="text-slate-300 mt-2 max-w-2xl">
-              Demo interactiva del flujo de misión. Sirve para validar ritmo, claridad de objetivos, tutorial hints y progresión antes de llevarlo a Godot.
+            <div className="text-[11px] tracking-[0.35em] uppercase text-amber-300/80 mb-2">Mandril Vertical Slice</div>
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">The Dangerous Spain — MVP Demo</h1>
+            <p className="text-slate-300 mt-2 max-w-3xl">
+              Demo de flujo pensada como vertical slice canónica: corrupción policial, fricción con bandas, persecución y hook político-criminal. Ya no representa solo un tutorial, sino el núcleo del MVP definido por el GDD.
             </p>
           </div>
 
@@ -150,7 +188,7 @@ export default function MissionDemo() {
               onClick={resetDemo}
               className="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors"
             >
-              Reiniciar demo
+              Reiniciar slice
             </button>
           </div>
         </div>
@@ -160,11 +198,11 @@ export default function MissionDemo() {
             <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-2">Objetivo activo</div>
+                  <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-2">Beat activo</div>
                   <div className="text-2xl font-semibold leading-tight">{activeObjectiveText}</div>
-                  {!missionFinished && (
-                    <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-300/10 px-3 py-1 text-sm text-amber-200">
-                      <span className="font-semibold">{typeLabel[currentPhase.objectiveType]}</span>
+                  {!sliceFinished && (
+                    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm ${categoryColors[currentPhase.category]}`}>
+                      <span className="font-semibold">{categoryLabel[currentPhase.category]}</span>
                       <span className="opacity-60">•</span>
                       <span>{currentPhase.location}</span>
                     </div>
@@ -178,13 +216,13 @@ export default function MissionDemo() {
               </div>
 
               <div className="h-2 rounded-full overflow-hidden bg-white/10 mb-4">
-                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                <div className="h-full bg-gradient-to-r from-amber-400 to-red-500 transition-all duration-300" style={{ width: `${progressPercent}%` }} />
               </div>
 
-              {!missionFinished ? (
+              {!sliceFinished ? (
                 <>
                   <div className="rounded-xl border border-white/8 bg-white/5 p-4 mb-4">
-                    <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Hint actual</div>
+                    <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Lectura del beat</div>
                     <p className="text-slate-200">{currentPhase.hint}</p>
                   </div>
 
@@ -198,17 +236,17 @@ export default function MissionDemo() {
               ) : (
                 <div className="rounded-xl border border-emerald-400/20 bg-emerald-300/10 p-4">
                   <div className="text-[11px] tracking-[0.22em] uppercase text-emerald-200/80 mb-2">Resultado</div>
-                  <p className="text-emerald-100">La misión termina con recompensa, limpieza del estado activo y preparación para desbloquear la siguiente operación.</p>
+                  <p className="text-emerald-100">La demo ya deja claro el pitch del juego: Daniel Vega, policía corrupto, opera en Mandril dentro de una red más grande que el crimen callejero.</p>
                 </div>
               )}
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
-              <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Fases de la misión</div>
+              <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Estructura del slice</div>
               <div className="space-y-3">
                 {phases.map((phase, index) => {
                   const isDone = index < currentPhaseIndex;
-                  const isCurrent = index === currentPhaseIndex && !missionFinished;
+                  const isCurrent = index === currentPhaseIndex && !sliceFinished;
                   return (
                     <div
                       key={phase.id}
@@ -222,8 +260,11 @@ export default function MissionDemo() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <div className="text-sm text-slate-300 mb-1">Fase {index + 1}</div>
+                          <div className="text-sm text-slate-300 mb-1">Beat {index + 1}</div>
                           <div className="font-semibold text-lg">{phase.title}</div>
+                          <div className={`text-xs mt-2 uppercase tracking-[0.2em] ${categoryColors[phase.category]}`}>
+                            {categoryLabel[phase.category]}
+                          </div>
                         </div>
                         <div className={`text-xs font-semibold uppercase tracking-[0.2em] ${isCurrent ? 'text-amber-200' : isDone ? 'text-emerald-200' : 'text-slate-500'}`}>
                           {isDone ? 'Done' : isCurrent ? 'Active' : 'Pending'}
@@ -246,27 +287,28 @@ export default function MissionDemo() {
                 </div>
                 <div className="rounded-xl border border-white/8 bg-white/5 p-4">
                   <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Wanted</div>
-                  <div className="text-2xl font-bold text-slate-200">0★</div>
+                  <div className="text-2xl font-bold text-slate-200">{wanted}★</div>
                 </div>
               </div>
               <div className="rounded-xl border border-white/8 bg-white/5 p-4 mb-4">
-                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Beacon + Minimap</div>
-                <p className="text-slate-300 text-sm">
-                  La demo enseña cómo debería cambiar el objetivo activo y cómo el marcador dorado y el minimapa deberían acompañar cada fase.
-                </p>
+                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Prueba del MVP</div>
+                <ul className="space-y-2 text-sm text-slate-300 list-disc pl-5">
+                  <li>Corrupción policial como loop principal.</li>
+                  <li>Persecución significativa en Mandril.</li>
+                  <li>Fricción visible entre policía y gangs.</li>
+                  <li>Hook narrativo que abre la conspiración.</li>
+                </ul>
               </div>
               <div className="rounded-xl border border-white/8 bg-white/5 p-4">
-                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Uso recomendado</div>
-                <ul className="space-y-2 text-sm text-slate-300 list-disc pl-5">
-                  <li>Validar orden de objetivos.</li>
-                  <li>Ajustar hints antes de implementarlos en Godot.</li>
-                  <li>Comprobar si el ritmo del tutorial se siente natural.</li>
-                </ul>
+                <div className="text-[11px] tracking-[0.22em] uppercase text-slate-400 mb-2">Sub-áreas objetivo</div>
+                <p className="text-slate-300 text-sm">
+                  Police access point, street market, gang blocks, arterial road, club edge y un back lot / warehouse corto. Esa es la mezcla ideal para el slice canónico de Mandril.
+                </p>
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md p-5">
-              <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Log de misión</div>
+              <div className="text-[11px] tracking-[0.28em] uppercase text-slate-400 mb-4">Log de slice</div>
               <div className="space-y-2">
                 {statusLog.map((entry, index) => (
                   <div key={`${entry}-${index}`} className="rounded-lg bg-white/5 px-3 py-2 text-sm text-slate-300 border border-white/6">
