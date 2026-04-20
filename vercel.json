@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "outputDirectory": "build/web",
+  "framework": "vite",
+  "outputDirectory": "dist",
   "cleanUrls": false,
   "headers": [
     {
