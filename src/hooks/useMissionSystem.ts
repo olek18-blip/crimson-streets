@@ -3,64 +3,64 @@ import { useGameStore } from '../game/store';
 
 export function useMissionSystem() {
   const { player, missions, activeMission, startMission, completeMissionObjective, completeMission, npcs } = useGameStore();
-  
+
   useEffect(() => {
     if (!activeMission) {
-      // Check if player is near any mission start
-      for (const m of missions) {
-        if (m.status !== 'available') continue;
-        const firstObj = m.objectives[0];
-        if (!firstObj?.targetPosition) continue;
-        const dx = player.position[0] - firstObj.targetPosition[0];
-        const dz = player.position[2] - firstObj.targetPosition[2];
+      for (const mission of missions) {
+        if (mission.status !== 'available') continue;
+        const firstObjective = mission.objectives[0];
+        if (!firstObjective?.targetPosition) continue;
+
+        const dx = player.position[0] - firstObjective.targetPosition[0];
+        const dz = player.position[2] - firstObjective.targetPosition[2];
         if (Math.sqrt(dx * dx + dz * dz) < 5) {
-          startMission(m.id);
+          startMission(mission.id);
           break;
         }
       }
       return;
     }
 
-    const mission = missions.find(m => m.id === activeMission);
+    const mission = missions.find((item) => item.id === activeMission);
     if (!mission) return;
 
-    // Process objectives sequentially
-    for (let i = 0; i < mission.objectives.length; i++) {
-      const obj = mission.objectives[i];
-      if (obj.completed) continue;
+    for (let index = 0; index < mission.objectives.length; index += 1) {
+      const objective = mission.objectives[index];
+      if (objective.completed) continue;
 
-      // Check if previous objectives are done
-      const prevDone = mission.objectives.slice(0, i).every(o => o.completed);
-      if (!prevDone) break;
+      const previousDone = mission.objectives.slice(0, index).every((item) => item.completed);
+      if (!previousDone) break;
 
-      // Position-based objectives
-      if (obj.targetPosition) {
-        const dx = player.position[0] - obj.targetPosition[0];
-        const dz = player.position[2] - obj.targetPosition[2];
+      const objectiveType = objective.objectiveType ?? (objective.text.toLowerCase().includes('eliminar') || objective.text.toLowerCase().includes('eliminate') ? 'eliminate-gangs' : 'reach');
+
+      if (objectiveType === 'reach' && objective.targetPosition) {
+        const dx = player.position[0] - objective.targetPosition[0];
+        const dz = player.position[2] - objective.targetPosition[2];
         if (Math.sqrt(dx * dx + dz * dz) < 4) {
-          // If this is an "eliminate" objective, check NPCs
-          if (obj.text.toLowerCase().includes('eliminar') || obj.text.toLowerCase().includes('eliminate')) {
-            // Don't complete position-based kill objectives by proximity alone
-            break;
-          }
-          completeMissionObjective(mission.id, obj.id);
+          completeMissionObjective(mission.id, objective.id);
         }
       }
 
-      // Kill objectives - check if gang NPCs near mission area are dead
-      if (obj.text.toLowerCase().includes('eliminar') || obj.text.toLowerCase().includes('eliminate')) {
-        const gangAlive = npcs.filter(n => n.type === 'gang' && n.isAlive && n.city === mission.city);
+      if (objectiveType === 'switch-weapon' && player.weapon !== 'fist') {
+        completeMissionObjective(mission.id, objective.id);
+      }
+
+      if (objectiveType === 'enter-vehicle' && player.inVehicle) {
+        completeMissionObjective(mission.id, objective.id);
+      }
+
+      if (objectiveType === 'eliminate-gangs') {
+        const gangAlive = npcs.filter((npc) => npc.type === 'gang' && npc.isAlive && npc.city === mission.city);
         if (gangAlive.length === 0) {
-          completeMissionObjective(mission.id, obj.id);
+          completeMissionObjective(mission.id, objective.id);
         }
       }
 
-      break; // Only process first incomplete objective
+      break;
     }
 
-    // All complete
-    if (mission.objectives.every(o => o.completed)) {
+    if (mission.objectives.every((objective) => objective.completed)) {
       completeMission(mission.id);
     }
-  }, [player.position, npcs, activeMission, missions]);
+  }, [player.position, player.weapon, player.inVehicle, npcs, activeMission, missions, startMission, completeMissionObjective, completeMission]);
 }
