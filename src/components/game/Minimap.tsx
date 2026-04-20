@@ -20,12 +20,10 @@ export default function Minimap() {
   const playerMap = toMap(player.position[0], player.position[2]);
 
   return (
-    <div className="absolute bottom-4 right-4 pointer-events-none" style={{ width: mapSize, height: mapSize + 28 }}>
+    <div className="absolute bottom-4 right-4 pointer-events-none hidden sm:block" style={{ width: mapSize, height: mapSize + 28 }}>
       <div className="mb-2 px-2 flex items-center justify-between text-[9px] font-display tracking-[0.2em] text-muted-foreground">
         <span>MINIMAPA</span>
-        {activeObjective?.targetPosition && (
-          <span className="text-amber-300">OBJETIVO</span>
-        )}
+        {activeObjective?.targetPosition && <span className="text-amber-300">OBJETIVO</span>}
       </div>
 
       <div
