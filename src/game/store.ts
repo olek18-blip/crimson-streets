@@ -6,7 +6,7 @@ import { clearSavedGame, loadGameState } from './save';
 const INTRO_MISSION_ID = 'mission1';
 
 const initialPlayer: PlayerState = {
-  position: [0, 0.5, 0],
+  position: [3, 0.5, -30],
   rotation: 0,
   health: 100,
   armor: 0,
