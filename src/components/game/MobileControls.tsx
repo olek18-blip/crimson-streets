@@ -88,10 +88,10 @@ export default function MobileControls() {
 
   return (
     <div className="fixed inset-0 z-20 pointer-events-none sm:hidden">
-      <div className="absolute left-4 bottom-5 pointer-events-auto">
+      <div className="absolute left-3 bottom-3 pointer-events-auto">
         <div
           ref={padRef}
-          className="relative h-28 w-28 rounded-full border border-white/12 bg-black/20 backdrop-blur-md touch-none"
+          className="relative h-28 w-28 rounded-full border border-white/12 bg-black/18 backdrop-blur-md touch-none"
           onTouchStart={handlePadTouchStart}
           onTouchMove={handlePadTouchMove}
           onTouchEnd={handlePadTouchEnd}
@@ -103,10 +103,10 @@ export default function MobileControls() {
         </div>
       </div>
 
-      <div className="absolute right-4 bottom-6 flex flex-col items-end gap-3 pointer-events-auto">
-        <div className="flex items-end gap-3">
+      <div className="absolute right-3 bottom-4 flex flex-col items-end gap-2.5 pointer-events-auto">
+        <div className="flex items-end gap-2.5">
           <button
-            className="h-12 w-12 rounded-full border border-cyan-300/20 bg-cyan-400/15 text-cyan-100 text-[10px] tracking-[0.12em]"
+            className="h-11 w-11 rounded-full border border-cyan-300/20 bg-cyan-400/15 text-cyan-100 text-[9px] tracking-[0.12em]"
             onTouchStart={() => setSprint(true)}
             onTouchEnd={() => setSprint(false)}
             onTouchCancel={() => setSprint(false)}
@@ -114,7 +114,7 @@ export default function MobileControls() {
             RUN
           </button>
           <button
-            className="h-16 w-16 rounded-full border border-red-300/25 bg-red-500/22 text-red-100 text-[11px] tracking-[0.14em] shadow-[0_0_30px_rgba(127,29,29,0.18)]"
+            className="h-15 w-15 min-h-[60px] min-w-[60px] rounded-full border border-red-300/25 bg-red-500/22 text-red-100 text-[11px] tracking-[0.14em] shadow-[0_0_30px_rgba(127,29,29,0.18)]"
             onTouchStart={() => setShooting(true)}
             onTouchEnd={() => setShooting(false)}
             onTouchCancel={() => setShooting(false)}
@@ -122,16 +122,16 @@ export default function MobileControls() {
             FIRE
           </button>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
-            className="h-11 rounded-full border border-amber-300/20 bg-amber-400/15 px-4 text-amber-100 text-[10px] tracking-[0.14em]"
+            className="h-10 rounded-full border border-amber-300/20 bg-amber-400/15 px-4 text-amber-100 text-[10px] tracking-[0.14em]"
             onClick={() => switchWeapon()}
           >
             ARMA
           </button>
           {playerInVehicle && (
             <button
-              className="h-11 rounded-full border border-white/20 bg-white/10 px-4 text-white text-[10px] tracking-[0.14em]"
+              className="h-10 rounded-full border border-white/20 bg-white/10 px-4 text-white text-[10px] tracking-[0.14em]"
               onClick={() => setPlayerInVehicle(null)}
             >
               SALIR
