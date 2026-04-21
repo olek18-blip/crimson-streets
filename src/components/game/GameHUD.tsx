@@ -165,12 +165,6 @@ export default function GameHUD() {
         </div>
       )}
 
-      <div className="sm:hidden absolute bottom-24 left-3 right-3 flex items-center justify-center">
-        <div className="game-panel rounded-full px-4 py-2 text-[10px] text-slate-300 font-display tracking-[0.16em]">
-          JOYSTICK · RUN · FIRE · ARMA
-        </div>
-      </div>
-
       <div className="hidden sm:block absolute bottom-4 left-4 right-auto">
         <div className="game-panel rounded px-3 py-2 flex gap-3 text-[9px] text-muted-foreground font-display tracking-wider flex-wrap justify-start max-w-[560px]">
           <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHÍCULO</span><span>Q ARMA</span><span>CLICK DISPARAR</span><span>ESC PAUSA</span>
@@ -181,7 +175,7 @@ export default function GameHUD() {
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-14">
           <div className="game-panel rounded px-3 py-1.5 text-center sm:text-left">
             <span className="font-display text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-wider" style={{ color: 'hsl(var(--game-armor))' }}>
-              {window.innerWidth < 640 ? 'VEHÍCULO ACTIVO' : 'EN VEHÍCULO — F PARA SALIR'}
+              {typeof window !== 'undefined' && window.innerWidth < 640 ? 'VEHÍCULO ACTIVO' : 'EN VEHÍCULO — F PARA SALIR'}
             </span>
           </div>
         </div>
