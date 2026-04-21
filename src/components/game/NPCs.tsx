@@ -80,15 +80,25 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
   const accentColor = behavior === 'attack' ? '#ff4d4d' : behavior === 'chase' ? '#ff9f43' : behavior === 'flee' ? '#8fd3ff' : '#d9d9d9';
 
   const civilianVariant = npc.id.length % 3;
-  const gangVariant = npc.id.length % 2;
+  const gangVariant = npc.id.length % 3;
+  const policeVariant = npc.id.length % 2;
 
   const torsoColor =
-    npc.type === 'police' ? '#183a63' : npc.type === 'gang' ? (gangVariant === 0 ? '#3a1414' : '#2b1f38') : civilianVariant === 0 ? '#8d7358' : civilianVariant === 1 ? '#6b7d5e' : '#6f5d88';
+    npc.type === 'police'
+      ? policeVariant === 0 ? '#183a63' : '#24476f'
+      : npc.type === 'gang'
+        ? gangVariant === 0 ? '#3e1616' : gangVariant === 1 ? '#2d223d' : '#2e2a2a'
+        : civilianVariant === 0 ? '#8d7358' : civilianVariant === 1 ? '#5f7652' : '#6a5c88';
 
   const jacketColor =
-    npc.type === 'police' ? '#0f2037' : npc.type === 'gang' ? (gangVariant === 0 ? '#1f1f1f' : '#401818') : civilianVariant === 0 ? '#5a4f43' : civilianVariant === 1 ? '#415244' : '#4f4269';
+    npc.type === 'police'
+      ? policeVariant === 0 ? '#0f2037' : '#152942'
+      : npc.type === 'gang'
+        ? gangVariant === 0 ? '#171717' : gangVariant === 1 ? '#4a1818' : '#26222b'
+        : civilianVariant === 0 ? '#5a4f43' : civilianVariant === 1 ? '#415244' : '#4f4269';
 
-  const pantsColor = npc.type === 'police' ? '#101827' : npc.type === 'gang' ? '#151515' : '#2b2b2b';
+  const pantsColor = npc.type === 'police' ? '#101827' : npc.type === 'gang' ? '#141414' : '#2b2b2b';
+  const headwearColor = npc.type === 'gang' ? (gangVariant === 1 ? '#5f1c1c' : '#111111') : npc.type === 'police' ? '#132641' : '#3a3a3a';
 
   if (!npc.isAlive) {
     return (
@@ -102,19 +112,22 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
   }
 
   return (
-    <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
+    <group position={[0, bob, 0]} rotation={[0, 0, lean]} scale={npc.type === 'gang' ? [1.04, 1.04, 1.04] : [1, 1, 1]}>
+      {npc.type === 'police' && <pointLight position={[0, 1.2, 0.18]} color="#7db2ff" intensity={0.18} distance={2.2} />}
+      {npc.type === 'gang' && <pointLight position={[0, 1.05, 0.18]} color="#ff6b6b" intensity={0.12} distance={1.8} />}
+
       <mesh position={[0, 0.16, 0.02]} castShadow>
-        <boxGeometry args={[0.36, 0.24, 0.22]} />
+        <boxGeometry args={[0.38, 0.24, 0.22]} />
         <meshStandardMaterial color={pantsColor} />
       </mesh>
 
-      <mesh position={[0, 0.6, 0]} castShadow>
-        <capsuleGeometry args={[0.21, 0.46, 8, 16]} />
-        <meshStandardMaterial color={jacketColor} />
+      <mesh position={[0, npc.type === 'gang' ? 0.62 : 0.6, 0]} castShadow>
+        <capsuleGeometry args={[npc.type === 'gang' ? 0.23 : 0.21, npc.type === 'gang' ? 0.5 : 0.46, 8, 16]} />
+        <meshStandardMaterial color={jacketColor} emissive={npc.type === 'gang' ? '#160d0d' : npc.type === 'police' ? '#0d1725' : '#0b0b0b'} emissiveIntensity={0.12} />
       </mesh>
 
-      <mesh position={[0, 0.78, 0.14]} castShadow>
-        <boxGeometry args={[0.28, 0.18, 0.06]} />
+      <mesh position={[0, 0.8, 0.14]} castShadow>
+        <boxGeometry args={[npc.type === 'gang' ? 0.3 : 0.28, 0.18, 0.06]} />
         <meshStandardMaterial color={torsoColor} />
       </mesh>
 
@@ -142,7 +155,7 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
       </mesh>
 
       <mesh position={[0, 0.97, 0.14]} castShadow>
-        <boxGeometry args={[0.2, 0.06, 0.03]} />
+        <boxGeometry args={[0.22, 0.06, 0.03]} />
         <meshStandardMaterial color="#151515" />
       </mesh>
 
@@ -150,11 +163,15 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
         <>
           <mesh position={[0, 1.13, 0]} castShadow>
             <cylinderGeometry args={[0.12, 0.16, 0.08, 8]} />
-            <meshStandardMaterial color="#132641" />
+            <meshStandardMaterial color={headwearColor} />
           </mesh>
           <mesh position={[0, 0.66, -0.16]} castShadow>
             <boxGeometry args={[0.28, 0.24, 0.1]} />
             <meshStandardMaterial color="#15212f" />
+          </mesh>
+          <mesh position={[0, 0.68, 0.18]} castShadow>
+            <boxGeometry args={[0.16, 0.08, 0.03]} />
+            <meshStandardMaterial color="#c8d6e5" emissive="#5c86b3" emissiveIntensity={0.25} />
           </mesh>
         </>
       )}
@@ -162,21 +179,41 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
       {npc.type === 'gang' && (
         <>
           <mesh position={[0, 1.13, 0]} castShadow>
-            <boxGeometry args={[0.26, 0.08, 0.24]} />
-            <meshStandardMaterial color={gangVariant === 0 ? '#111111' : '#471515'} />
+            <boxGeometry args={[0.28, 0.08, 0.24]} />
+            <meshStandardMaterial color={headwearColor} />
           </mesh>
           <mesh position={[0, 0.88, 0.18]} castShadow>
-            <torusGeometry args={[0.07, 0.012, 8, 16]} />
-            <meshStandardMaterial color="#b59652" emissive="#4a3411" />
+            <torusGeometry args={[0.075, 0.012, 8, 16]} />
+            <meshStandardMaterial color="#b59652" emissive="#4a3411" emissiveIntensity={0.3} />
           </mesh>
+          <mesh position={[0, 0.7, -0.16]} castShadow>
+            <boxGeometry args={[0.3, 0.16, 0.08]} />
+            <meshStandardMaterial color="#1a1a1a" />
+          </mesh>
+          {gangVariant === 1 && (
+            <mesh position={[0, 0.76, 0.17]} castShadow>
+              <boxGeometry args={[0.32, 0.03, 0.02]} />
+              <meshStandardMaterial color="#d04a4a" emissive="#652020" emissiveIntensity={0.22} />
+            </mesh>
+          )}
         </>
       )}
 
-      {npc.type === 'civilian' && civilianVariant === 1 && (
-        <mesh position={[0, 0.68, -0.16]} castShadow>
-          <boxGeometry args={[0.24, 0.12, 0.08]} />
-          <meshStandardMaterial color="#6a4f2f" />
-        </mesh>
+      {npc.type === 'civilian' && (
+        <>
+          {civilianVariant === 1 && (
+            <mesh position={[0, 0.68, -0.16]} castShadow>
+              <boxGeometry args={[0.24, 0.12, 0.08]} />
+              <meshStandardMaterial color="#6a4f2f" />
+            </mesh>
+          )}
+          {civilianVariant === 2 && (
+            <mesh position={[0, 1.12, 0]} castShadow>
+              <boxGeometry args={[0.24, 0.05, 0.2]} />
+              <meshStandardMaterial color="#3a2f2f" />
+            </mesh>
+          )}
+        </>
       )}
 
       {(behavior === 'attack' || behavior === 'chase' || behavior === 'flee') && (
