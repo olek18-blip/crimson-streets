@@ -59,10 +59,12 @@ function VehicleMesh({ type, color, isPlayerVehicle }: { type: 'car' | 'motorcyc
 }
 
 export default function Vehicles() {
-  const { vehicles, player } = useGameStore();
+  const vehicles = useGameStore((state) => state.vehicles);
+  const currentVehicle = useGameStore((state) => state.player.currentVehicle);
   const refs = useRef<Record<string, THREE.Group | null>>({});
 
   useFrame(() => {
+    const player = useGameStore.getState().player;
     if (player.inVehicle && player.currentVehicle) {
       const ref = refs.current[player.currentVehicle];
       if (ref) {
@@ -75,9 +77,9 @@ export default function Vehicles() {
   return (
     <group>
       {vehicles.map(v => {
-        const isPlayerVehicle = player.currentVehicle === v.id;
-        const pos = isPlayerVehicle ? player.position : v.position;
-        const rot = isPlayerVehicle ? player.rotation : v.rotation;
+        const isPlayerVehicle = currentVehicle === v.id;
+        const pos = v.position;
+        const rot = v.rotation;
         
         return (
           <group

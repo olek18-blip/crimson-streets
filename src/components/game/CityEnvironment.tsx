@@ -22,11 +22,11 @@ function Building({
 }) {
   return (
     <group position={position}>
-      <mesh position={[0, size[1] / 2, 0]} castShadow receiveShadow>
+      <mesh position={[0, size[1] / 2, 0]} receiveShadow>
         <boxGeometry args={size} />
         <meshStandardMaterial color={color} emissive={emissive || '#000000'} emissiveIntensity={emissive ? 0.18 : 0} />
       </mesh>
-      <mesh position={[0, size[1] + 0.08, 0]} castShadow>
+      <mesh position={[0, size[1] + 0.08, 0]}>
         <boxGeometry args={[size[0] * 0.9, 0.16, size[2] * 0.9]} />
         <meshStandardMaterial color="#171b22" />
       </mesh>
@@ -267,7 +267,6 @@ function StreetLight({ position, color = '#ffcc66' }: { position: [number, numbe
         <sphereGeometry args={[0.12, 10, 10]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
       </mesh>
-      <pointLight position={[0, 3.5, 0]} color={color} intensity={2.2} distance={16} />
     </group>
   );
 }
@@ -309,11 +308,11 @@ function SidewalkGrid({ cityId, cx, cz, radius }: { cityId: string; cx: number; 
 function MarketStall({ position, canopy = '#8c3c2e' }: { position: [number, number, number]; canopy?: string }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.9, 0]} castShadow>
+      <mesh position={[0, 0.9, 0]}>
         <boxGeometry args={[2.8, 1.8, 1.8]} />
         <meshStandardMaterial color="#4b3a2b" />
       </mesh>
-      <mesh position={[0, 2.05, 0]} castShadow>
+      <mesh position={[0, 2.05, 0]}>
         <boxGeometry args={[3.2, 0.22, 2.1]} />
         <meshStandardMaterial color={canopy} emissive={canopy} emissiveIntensity={0.15} />
       </mesh>
@@ -339,11 +338,11 @@ function PoliceBarrier({ position }: { position: [number, number, number] }) {
 function Dumpster({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.8, 0]} castShadow>
+      <mesh position={[0, 0.8, 0]}>
         <boxGeometry args={[2.3, 1.6, 1.2]} />
         <meshStandardMaterial color="#355448" />
       </mesh>
-      <mesh position={[0, 1.7, 0]} castShadow>
+      <mesh position={[0, 1.7, 0]}>
         <boxGeometry args={[2.35, 0.15, 1.25]} />
         <meshStandardMaterial color="#243a32" />
       </mesh>
@@ -488,11 +487,11 @@ function RuralZones() {
     <group>
       {trees.map((pos, i) => (
         <group key={i} position={pos}>
-          <mesh position={[0, 1.5, 0]} castShadow>
+          <mesh position={[0, 1.5, 0]}>
             <cylinderGeometry args={[0.15, 0.2, 3]} />
             <meshStandardMaterial color="#5c3b1f" />
           </mesh>
-          <mesh position={[0, 3.5, 0]} castShadow>
+          <mesh position={[0, 3.5, 0]}>
             <coneGeometry args={[1.6, 3.2, 7]} />
             <meshStandardMaterial color="#214c24" />
           </mesh>

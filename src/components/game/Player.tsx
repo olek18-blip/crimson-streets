@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
+import { shallow } from 'zustand/shallow';
 
 export default function Player() {
   const groupRef = useRef<THREE.Group>(null);
@@ -11,13 +12,22 @@ export default function Player() {
   const rightArmRef = useRef<THREE.Mesh>(null);
   const leftLegRef = useRef<THREE.Mesh>(null);
   const rightLegRef = useRef<THREE.Mesh>(null);
-  const { player } = useGameStore();
+  const playerRenderState = useGameStore(
+    (state) => ({
+      inVehicle: state.player.inVehicle,
+      weapon: state.player.weapon,
+      isShooting: state.player.isShooting,
+      animationState: state.player.animationState,
+    }),
+    shallow,
+  );
 
   useFrame((state) => {
     if (!groupRef.current || !torsoRef.current || !headRef.current || !leftArmRef.current || !rightArmRef.current || !leftLegRef.current || !rightLegRef.current) {
       return;
     }
 
+    const player = useGameStore.getState().player;
     const isMoving = player.animationState === 'walk' || player.animationState === 'run';
     const moveIntensity = player.animationState === 'run' ? 1 : player.animationState === 'walk' ? 0.55 : 0;
     const strideSpeed = player.animationState === 'run' ? 10 : 6;
@@ -59,15 +69,15 @@ export default function Player() {
       player.animationState === 'jump' ? -0.35 : player.animationState === 'death' ? -0.08 : -stride * 0.95;
   });
 
-  if (player.inVehicle) return null;
+  if (playerRenderState.inVehicle) return null;
 
-  const coatColor = player.weapon === 'rifle' ? '#242b38' : '#2b3550';
+  const coatColor = playerRenderState.weapon === 'rifle' ? '#242b38' : '#2b3550';
   const accentColor =
-    player.animationState === 'hit'
+    playerRenderState.animationState === 'hit'
       ? '#ff6b57'
-      : player.animationState === 'run'
+      : playerRenderState.animationState === 'run'
         ? '#e05a46'
-        : player.animationState === 'jump'
+        : playerRenderState.animationState === 'jump'
           ? '#7dc7ff'
           : '#d0a94d';
 
@@ -134,13 +144,13 @@ export default function Player() {
         <meshStandardMaterial color="#f2f2f2" emissive="#7a7a7a" emissiveIntensity={0.28} />
       </mesh>
 
-      {player.weapon !== 'fist' && (
+      {playerRenderState.weapon !== 'fist' && (
         <group position={[0.28, 0.56, -0.22]} rotation={[0.08, 0.12, 0.08]}>
           <mesh castShadow>
-            <boxGeometry args={player.weapon === 'rifle' ? [0.08, 0.08, 0.58] : [0.06, 0.06, 0.32]} />
+            <boxGeometry args={playerRenderState.weapon === 'rifle' ? [0.08, 0.08, 0.58] : [0.06, 0.06, 0.32]} />
             <meshStandardMaterial color="#353942" metalness={0.15} roughness={0.72} />
           </mesh>
-          {player.weapon === 'rifle' && (
+          {playerRenderState.weapon === 'rifle' && (
             <>
               <mesh position={[0, -0.08, 0.02]} castShadow>
                 <boxGeometry args={[0.06, 0.12, 0.12]} />
@@ -155,7 +165,7 @@ export default function Player() {
         </group>
       )}
 
-      {player.isShooting && player.weapon !== 'fist' && (
+      {playerRenderState.isShooting && playerRenderState.weapon !== 'fist' && (
         <>
           <pointLight position={[0.32, 0.58, -0.56]} color="#ff6a00" intensity={3.4} distance={5} />
           <mesh position={[0.32, 0.58, -0.58]}>

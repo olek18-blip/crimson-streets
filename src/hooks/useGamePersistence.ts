@@ -2,12 +2,10 @@ import { useEffect } from 'react';
 import { useGameStore } from '../game/store';
 import { saveGameState, shouldAutosave } from '../game/save';
 
-const SAVE_DEBOUNCE_MS = 250;
+const SAVE_INTERVAL_MS = 4000;
 
 export function useGamePersistence() {
   useEffect(() => {
-    let timeoutId: number | null = null;
-
     const flushSave = () => {
       const state = useGameStore.getState();
       if (shouldAutosave(state.screen)) {
@@ -15,30 +13,25 @@ export function useGamePersistence() {
       }
     };
 
-    const unsubscribe = useGameStore.subscribe((state) => {
-      if (!shouldAutosave(state.screen)) {
-        return;
-      }
+    const intervalId = window.setInterval(flushSave, SAVE_INTERVAL_MS);
+    const unsubscribe = useGameStore.subscribe((state, previousState) => {
+      const enteredStableScreen =
+        shouldAutosave(state.screen) &&
+        (state.screen !== previousState.screen || state.activeMission !== previousState.activeMission || state.lastCompletedMission !== previousState.lastCompletedMission);
 
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
+      if (enteredStableScreen) {
+        flushSave();
       }
-
-      timeoutId = window.setTimeout(() => {
-        saveGameState(useGameStore.getState());
-        timeoutId = null;
-      }, SAVE_DEBOUNCE_MS);
     });
 
     window.addEventListener('beforeunload', flushSave);
+    window.addEventListener('visibilitychange', flushSave);
 
     return () => {
       unsubscribe();
       window.removeEventListener('beforeunload', flushSave);
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
+      window.removeEventListener('visibilitychange', flushSave);
+      window.clearInterval(intervalId);
     };
   }, []);
 }

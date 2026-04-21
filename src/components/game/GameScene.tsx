@@ -39,13 +39,13 @@ function Scene() {
         intensity={0.52}
         color="#8ea4b7"
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={420}
-        shadow-camera-left={-180}
-        shadow-camera-right={180}
-        shadow-camera-top={180}
-        shadow-camera-bottom={-180}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={220}
+        shadow-camera-left={-110}
+        shadow-camera-right={110}
+        shadow-camera-top={110}
+        shadow-camera-bottom={-110}
       />
 
       <pointLight position={[0, 7.5, -16]} color="#f2b25d" intensity={1.15} distance={24} />
@@ -122,7 +122,13 @@ export default function GameScene() {
 
       {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
 
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#07090d' }}>
+      <Canvas
+        dpr={[1, 1.25]}
+        shadows
+        camera={{ fov: 60, near: 0.1, far: 500 }}
+        gl={{ antialias: false, powerPreference: 'high-performance' }}
+        style={{ background: '#07090d' }}
+      >
         <Scene />
       </Canvas>
     </div>

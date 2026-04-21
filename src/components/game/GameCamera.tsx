@@ -5,11 +5,11 @@ import { useGameStore } from '../../game/store';
 
 export default function GameCamera() {
   const { camera, size } = useThree();
-  const { player } = useGameStore();
   const targetPos = useRef(new THREE.Vector3());
   const targetLook = useRef(new THREE.Vector3());
 
   useFrame(() => {
+    const player = useGameStore.getState().player;
     const [px, py, pz] = player.position;
     const rot = player.rotation;
     const isMobile = size.width < 640;
