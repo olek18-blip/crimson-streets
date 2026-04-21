@@ -37,11 +37,11 @@ export const initialVehicles: Vehicle[] = [
 // NPCs across cities
 export const initialNPCs: NPC[] = [
   // Madrona / Mandril prototype zone
-  { id: 'mad-civ1', type: 'civilian', position: [5, 0.5, 3], rotation: 0, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ1', type: 'civilian', position: [12, 0.5, -30], rotation: 0.4, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-civ2', type: 'civilian', position: [-18, 0.5, 8], rotation: 1.5, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-civ3', type: 'civilian', position: [12, 0.5, -5], rotation: 3, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-pol1', type: 'police', position: [0, 0.5, -18], rotation: 0, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-pol2', type: 'police', position: [6, 0.5, -18], rotation: 2, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ3', type: 'civilian', position: [16, 0.5, -10], rotation: 2.7, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-pol1', type: 'police', position: [-2, 0.5, -18], rotation: 0.1, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-pol2', type: 'police', position: [8, 0.5, -18], rotation: 2.8, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-gang1', type: 'gang', position: [24, 0.5, 24], rotation: 2, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-gang2', type: 'gang', position: [28, 0.5, 25], rotation: 1, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
   // Barceloma - nightlife area, more gangs
