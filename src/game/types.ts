@@ -1,3 +1,5 @@
+export type PlayerAnimationState = 'idle' | 'walk' | 'run' | 'jump' | 'shoot' | 'hit' | 'death';
+
 export interface PlayerState {
   position: [number, number, number];
   rotation: number;
@@ -11,6 +13,7 @@ export interface PlayerState {
   isShooting: boolean;
   isRunning: boolean;
   currentCity: string;
+  animationState: PlayerAnimationState;
 }
 
 export interface Vehicle {
@@ -46,6 +49,26 @@ export interface Mission {
 
 export type MissionObjectiveType = 'reach' | 'switch-weapon' | 'enter-vehicle' | 'eliminate-gangs';
 
+export type MissionObjectiveEffect =
+  | {
+      type: 'add-money';
+      amount: number;
+    }
+  | {
+      type: 'set-min-wanted-level';
+      level: number;
+    }
+  | {
+      type: 'set-wanted-level';
+      level: number;
+    }
+  | {
+      type: 'set-npc-hostility';
+      city: string;
+      npcType?: NPC['type'];
+      hostile: boolean;
+    };
+
 export interface MissionObjective {
   id: string;
   text: string;
@@ -53,6 +76,8 @@ export interface MissionObjective {
   targetPosition?: [number, number, number];
   objectiveType?: MissionObjectiveType;
   hint?: string;
+  radius?: number;
+  effects?: MissionObjectiveEffect[];
 }
 
 export type GameScreen = 'menu' | 'playing' | 'paused' | 'mission-complete' | 'game-over';

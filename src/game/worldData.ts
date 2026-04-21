@@ -78,6 +78,7 @@ export const initialMissions: Mission[] = [
         completed: false,
         targetPosition: [3, 0, -18],
         objectiveType: 'reach',
+        radius: 5,
         hint: 'Empieza la patrulla en el acceso policial y recibe la orden sucia.',
       },
       {
@@ -93,6 +94,8 @@ export const initialMissions: Mission[] = [
         completed: false,
         targetPosition: [-18, 0, 8],
         objectiveType: 'reach',
+        radius: 4,
+        effects: [{ type: 'add-money', amount: 800 }],
         hint: 'Llega al mercado y haz notar que la patrulla va en serio.',
       },
       {
@@ -101,6 +104,7 @@ export const initialMissions: Mission[] = [
         completed: false,
         targetPosition: [8, 0, 5],
         objectiveType: 'enter-vehicle',
+        effects: [{ type: 'set-min-wanted-level', level: 1 }],
         hint: 'Cuando la banda se mueva, toma el coche rojo y corta la huida.',
       },
       {
@@ -109,6 +113,11 @@ export const initialMissions: Mission[] = [
         completed: false,
         targetPosition: [26, 0, 24],
         objectiveType: 'reach',
+        radius: 4,
+        effects: [
+          { type: 'set-min-wanted-level', level: 2 },
+          { type: 'set-npc-hostility', city: 'madrona', npcType: 'gang', hostile: true },
+        ],
         hint: 'Sigue el beacon hasta la zona de intercambio.',
       },
       {
@@ -116,6 +125,7 @@ export const initialMissions: Mission[] = [
         text: 'Elimina a la cobertura de la banda',
         completed: false,
         objectiveType: 'eliminate-gangs',
+        effects: [{ type: 'set-min-wanted-level', level: 3 }],
         hint: 'Rompe la protección del handoff y asegura la escena.',
       },
       {
@@ -124,6 +134,8 @@ export const initialMissions: Mission[] = [
         completed: false,
         targetPosition: [28, 0, 25],
         objectiveType: 'reach',
+        radius: 4,
+        effects: [{ type: 'set-wanted-level', level: 1 }],
         hint: 'Muévete hasta la evidencia para cerrar la operación.',
       },
     ],

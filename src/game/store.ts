@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, PlayerState } from './types';
+import type { GameState, MissionObjectiveEffect, NPC, PlayerAnimationState, PlayerState } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
@@ -18,6 +18,7 @@ const initialPlayer: PlayerState = {
   isShooting: false,
   isRunning: false,
   currentCity: 'madrona',
+  animationState: 'idle',
 };
 
 interface GameStore extends GameState {
@@ -34,6 +35,7 @@ interface GameStore extends GameState {
   setWantedLevel: (level: number) => void;
   setShooting: (shooting: boolean) => void;
   setRunning: (running: boolean) => void;
+  setPlayerAnimationState: (animationState: PlayerAnimationState) => void;
   startMission: (id: string) => void;
   completeMissionObjective: (missionId: string, objectiveId: string) => void;
   completeMission: (id: string) => void;
@@ -44,6 +46,55 @@ interface GameStore extends GameState {
 }
 
 const deepCopy = <T,>(arr: T[]): T[] => JSON.parse(JSON.stringify(arr));
+
+function applyObjectiveEffects(
+  player: PlayerState,
+  npcs: NPC[],
+  effects: MissionObjectiveEffect[] | undefined,
+): Pick<GameState, 'player' | 'npcs'> {
+  if (!effects?.length) {
+    return { player, npcs };
+  }
+
+  let nextPlayer = player;
+  let nextNPCs = npcs;
+
+  for (const effect of effects) {
+    if (effect.type === 'add-money') {
+      nextPlayer = { ...nextPlayer, money: nextPlayer.money + effect.amount };
+      continue;
+    }
+
+    if (effect.type === 'set-min-wanted-level') {
+      nextPlayer = {
+        ...nextPlayer,
+        wantedLevel: Math.max(nextPlayer.wantedLevel, effect.level),
+      };
+      continue;
+    }
+
+    if (effect.type === 'set-wanted-level') {
+      nextPlayer = { ...nextPlayer, wantedLevel: effect.level };
+      continue;
+    }
+
+    if (effect.type === 'set-npc-hostility') {
+      nextNPCs = nextNPCs.map((npc) => {
+        if (npc.city !== effect.city) {
+          return npc;
+        }
+
+        if (effect.npcType && npc.type !== effect.npcType) {
+          return npc;
+        }
+
+        return { ...npc, isHostile: effect.hostile };
+      });
+    }
+  }
+
+  return { player: nextPlayer, npcs: nextNPCs };
+}
 
 const createFreshState = (): Omit<GameState, 'screen'> => ({
   player: { ...initialPlayer },
@@ -137,11 +188,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newHealth = Math.max(0, state.player.health - amount);
 
     if (newHealth <= 0) {
-      set({ player: { ...state.player, health: 0 }, screen: 'game-over' });
+      set({
+        player: { ...state.player, health: 0, animationState: 'death' },
+        screen: 'game-over',
+      });
       return;
     }
 
-    set({ player: { ...state.player, health: newHealth } });
+    set({
+      player: {
+        ...state.player,
+        health: newHealth,
+        animationState: 'hit',
+      },
+    });
   },
 
   addMoney: (amount) => set((state) => ({ player: { ...state.player, money: state.player.money + amount } })),
@@ -155,6 +215,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setRunning: (running) => set((state) => ({ player: { ...state.player, isRunning: running } })),
 
+  setPlayerAnimationState: (animationState) =>
+    set((state) => ({
+      player: { ...state.player, animationState },
+    })),
+
   startMission: (id) =>
     set((state) => ({
       activeMission: id,
@@ -165,56 +230,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   completeMissionObjective: (missionId, objectiveId) =>
     set((state) => {
-      const nextMissions = state.missions.map((mission) =>
-        mission.id === missionId
+      const mission = state.missions.find((item) => item.id === missionId);
+      const objective = mission?.objectives.find((item) => item.id === objectiveId);
+
+      const nextMissions = state.missions.map((existingMission) =>
+        existingMission.id === missionId
           ? {
-              ...mission,
-              objectives: mission.objectives.map((objective) =>
-                objective.id === objectiveId ? { ...objective, completed: true } : objective,
+              ...existingMission,
+              objectives: existingMission.objectives.map((existingObjective) =>
+                existingObjective.id === objectiveId ? { ...existingObjective, completed: true } : existingObjective,
               ),
             }
-          : mission,
+          : existingMission,
       );
 
-      if (missionId !== INTRO_MISSION_ID) {
-        return { missions: nextMissions };
-      }
-
-      let nextMoney = state.player.money;
-      let nextWanted = state.player.wantedLevel;
-      let nextNPCs = state.npcs;
-
-      if (objectiveId === 'obj3') {
-        nextMoney += 800;
-      }
-
-      if (objectiveId === 'obj4') {
-        nextWanted = Math.max(nextWanted, 1);
-      }
-
-      if (objectiveId === 'obj5') {
-        nextWanted = Math.max(nextWanted, 2);
-        nextNPCs = state.npcs.map((npc) =>
-          npc.city === 'madrona' && npc.type === 'gang' ? { ...npc, isHostile: true } : npc,
-        );
-      }
-
-      if (objectiveId === 'obj6') {
-        nextWanted = Math.max(nextWanted, 3);
-      }
-
-      if (objectiveId === 'obj7') {
-        nextWanted = 1;
-      }
+      const nextState = applyObjectiveEffects(state.player, state.npcs, objective?.effects);
 
       return {
         missions: nextMissions,
-        npcs: nextNPCs,
-        player: {
-          ...state.player,
-          money: nextMoney,
-          wantedLevel: nextWanted,
-        },
+        ...nextState,
       };
     }),
 

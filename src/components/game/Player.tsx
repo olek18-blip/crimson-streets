@@ -5,24 +5,71 @@ import { useGameStore } from '../../game/store';
 
 export default function Player() {
   const groupRef = useRef<THREE.Group>(null);
+  const torsoRef = useRef<THREE.Mesh>(null);
+  const headRef = useRef<THREE.Mesh>(null);
+  const leftArmRef = useRef<THREE.Mesh>(null);
+  const rightArmRef = useRef<THREE.Mesh>(null);
+  const leftLegRef = useRef<THREE.Mesh>(null);
+  const rightLegRef = useRef<THREE.Mesh>(null);
   const { player } = useGameStore();
 
   useFrame((state) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || !torsoRef.current || !headRef.current || !leftArmRef.current || !rightArmRef.current || !leftLegRef.current || !rightLegRef.current) {
+      return;
+    }
 
-    const motion = player.isRunning ? 1 : 0.45;
-    const bob = player.inVehicle ? 0 : Math.sin(state.clock.elapsedTime * 8 * motion) * 0.035;
-    const sway = player.inVehicle ? 0 : Math.sin(state.clock.elapsedTime * 5 * motion) * 0.03;
+    const isMoving = player.animationState === 'walk' || player.animationState === 'run';
+    const moveIntensity = player.animationState === 'run' ? 1 : player.animationState === 'walk' ? 0.55 : 0;
+    const strideSpeed = player.animationState === 'run' ? 10 : 6;
+    const stride = Math.sin(state.clock.elapsedTime * strideSpeed) * moveIntensity;
+    const bob = isMoving ? Math.abs(Math.sin(state.clock.elapsedTime * strideSpeed)) * 0.045 * moveIntensity : 0;
+    const sway = isMoving ? Math.sin(state.clock.elapsedTime * (strideSpeed * 0.55)) * 0.05 * moveIntensity : 0;
+    const jumpLift = player.animationState === 'jump' ? Math.sin(state.clock.elapsedTime * 10) * 0.01 : 0;
+    const hitRecoil = player.animationState === 'hit' ? Math.sin(state.clock.elapsedTime * 22) * 0.12 : 0;
+    const deathTilt = player.animationState === 'death' ? -1.38 : 0;
 
-    groupRef.current.position.set(player.position[0], player.position[1] + bob, player.position[2]);
+    groupRef.current.position.set(player.position[0], player.position[1] + bob + jumpLift, player.position[2]);
     groupRef.current.rotation.y = player.rotation;
-    groupRef.current.rotation.z = player.isRunning ? sway * 0.35 : 0;
+    groupRef.current.rotation.z = player.animationState === 'death' ? 0.22 : sway * 0.4 - hitRecoil * 0.08;
+    groupRef.current.rotation.x = deathTilt;
+
+    torsoRef.current.rotation.x = player.animationState === 'jump' ? -0.24 : player.animationState === 'shoot' ? -0.08 : hitRecoil * 0.3;
+    torsoRef.current.rotation.z = player.animationState === 'hit' ? -0.1 : 0;
+    headRef.current.rotation.x = player.animationState === 'jump' ? 0.18 : player.animationState === 'shoot' ? -0.04 : 0;
+
+    leftArmRef.current.rotation.x =
+      player.animationState === 'jump' ? 0.8 : player.animationState === 'shoot' ? -0.2 : -stride * 0.9;
+    leftArmRef.current.rotation.z =
+      player.animationState === 'hit' ? -0.45 : player.animationState === 'jump' ? -0.2 : -0.18;
+
+    rightArmRef.current.rotation.x =
+      player.animationState === 'shoot'
+        ? -1.25
+        : player.animationState === 'jump'
+          ? 0.55
+          : player.animationState === 'hit'
+            ? 0.5
+            : stride * 0.9;
+    rightArmRef.current.rotation.z =
+      player.animationState === 'shoot' ? 0.18 : player.animationState === 'hit' ? 0.42 : 0.18;
+
+    leftLegRef.current.rotation.x =
+      player.animationState === 'jump' ? -0.6 : player.animationState === 'death' ? 0.1 : stride * 0.95;
+    rightLegRef.current.rotation.x =
+      player.animationState === 'jump' ? -0.35 : player.animationState === 'death' ? -0.08 : -stride * 0.95;
   });
 
   if (player.inVehicle) return null;
 
   const coatColor = player.weapon === 'rifle' ? '#242b38' : '#2b3550';
-  const accentColor = player.isRunning ? '#e05a46' : '#d0a94d';
+  const accentColor =
+    player.animationState === 'hit'
+      ? '#ff6b57'
+      : player.animationState === 'run'
+        ? '#e05a46'
+        : player.animationState === 'jump'
+          ? '#7dc7ff'
+          : '#d0a94d';
 
   return (
     <group ref={groupRef} scale={[1.08, 1.08, 1.08]}>
@@ -34,7 +81,7 @@ export default function Player() {
         <meshStandardMaterial color="#161a24" emissive="#0b0d12" emissiveIntensity={0.12} />
       </mesh>
 
-      <mesh position={[0, 0.62, 0]} castShadow>
+      <mesh ref={torsoRef} position={[0, 0.62, 0]} castShadow>
         <capsuleGeometry args={[0.24, 0.52, 8, 16]} />
         <meshStandardMaterial color={coatColor} emissive="#0f1420" emissiveIntensity={0.18} metalness={0.08} roughness={0.74} />
       </mesh>
@@ -49,25 +96,25 @@ export default function Player() {
         <meshStandardMaterial color="#39445d" emissive="#111827" emissiveIntensity={0.1} />
       </mesh>
 
-      <mesh position={[-0.22, 0.58, 0]} rotation={[0, 0, -0.25]} castShadow>
+      <mesh ref={leftArmRef} position={[-0.22, 0.58, 0]} rotation={[0, 0, -0.25]} castShadow>
         <capsuleGeometry args={[0.07, 0.34, 6, 12]} />
         <meshStandardMaterial color="#1d2230" />
       </mesh>
-      <mesh position={[0.22, 0.58, 0]} rotation={[0, 0, 0.25]} castShadow>
+      <mesh ref={rightArmRef} position={[0.22, 0.58, 0]} rotation={[0, 0, 0.25]} castShadow>
         <capsuleGeometry args={[0.07, 0.34, 6, 12]} />
         <meshStandardMaterial color="#1d2230" />
       </mesh>
 
-      <mesh position={[-0.1, 0.03, 0]} castShadow>
+      <mesh ref={leftLegRef} position={[-0.1, 0.03, 0]} castShadow>
         <capsuleGeometry args={[0.08, 0.46, 6, 12]} />
         <meshStandardMaterial color="#141414" />
       </mesh>
-      <mesh position={[0.1, 0.03, 0]} castShadow>
+      <mesh ref={rightLegRef} position={[0.1, 0.03, 0]} castShadow>
         <capsuleGeometry args={[0.08, 0.46, 6, 12]} />
         <meshStandardMaterial color="#141414" />
       </mesh>
 
-      <mesh position={[0, 1.12, 0]} castShadow>
+      <mesh ref={headRef} position={[0, 1.12, 0]} castShadow>
         <sphereGeometry args={[0.18, 16, 16]} />
         <meshStandardMaterial color="#d8ad7d" emissive="#3a2419" emissiveIntensity={0.06} />
       </mesh>

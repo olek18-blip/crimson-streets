@@ -10,10 +10,11 @@ export function useMissionSystem() {
         if (mission.status !== 'available') continue;
         const firstObjective = mission.objectives[0];
         if (!firstObjective?.targetPosition) continue;
+        const triggerRadius = firstObjective.radius ?? 5;
 
         const dx = player.position[0] - firstObjective.targetPosition[0];
         const dz = player.position[2] - firstObjective.targetPosition[2];
-        if (Math.sqrt(dx * dx + dz * dz) < 5) {
+        if (Math.sqrt(dx * dx + dz * dz) < triggerRadius) {
           startMission(mission.id);
           break;
         }
@@ -34,9 +35,10 @@ export function useMissionSystem() {
       const objectiveType = objective.objectiveType ?? (objective.text.toLowerCase().includes('eliminar') || objective.text.toLowerCase().includes('eliminate') ? 'eliminate-gangs' : 'reach');
 
       if (objectiveType === 'reach' && objective.targetPosition) {
+        const completionRadius = objective.radius ?? 4;
         const dx = player.position[0] - objective.targetPosition[0];
         const dz = player.position[2] - objective.targetPosition[2];
-        if (Math.sqrt(dx * dx + dz * dz) < 4) {
+        if (Math.sqrt(dx * dx + dz * dz) < completionRadius) {
           completeMissionObjective(mission.id, objective.id);
         }
       }

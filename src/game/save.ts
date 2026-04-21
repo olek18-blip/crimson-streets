@@ -1,13 +1,13 @@
 import type { GameState, GameScreen } from './types';
 
-const SAVE_KEY = 'crimson-streets-save-v2';
-const LEGACY_SAVE_KEYS = ['crimson-streets-save-v1'];
+const SAVE_KEY = 'crimson-streets-save-v3';
+const LEGACY_SAVE_KEYS = ['crimson-streets-save-v1', 'crimson-streets-save-v2'];
 
 type PersistedGameState = Pick<
   GameState,
   'player' | 'vehicles' | 'npcs' | 'missions' | 'activeMission' | 'timeOfDay' | 'lastCompletedMission'
 > & {
-  version: 2;
+  version: 3;
   savedAt: string;
 };
 
@@ -35,7 +35,7 @@ export function saveGameState(state: GameState) {
   clearLegacySaves();
 
   const payload: PersistedGameState = {
-    version: 2,
+    version: 3,
     savedAt: new Date().toISOString(),
     player: state.player,
     vehicles: state.vehicles,
@@ -63,7 +63,7 @@ export function loadGameState(): Partial<GameState> | null {
   try {
     const parsed = JSON.parse(raw) as Partial<PersistedGameState>;
 
-    if (parsed.version !== 2) {
+    if (parsed.version !== 3) {
       clearSavedGame();
       return null;
     }
