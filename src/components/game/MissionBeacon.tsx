@@ -3,7 +3,8 @@ import { Billboard, Text } from '@react-three/drei';
 import { useGameStore } from '../../game/store';
 
 export default function MissionBeacon() {
-  const { missions, activeMission } = useGameStore();
+  const activeMission = useGameStore((state) => state.activeMission);
+  const missions = useGameStore((state) => state.missions);
 
   const objective = useMemo(() => {
     const mission = missions.find((item) => item.id === activeMission);

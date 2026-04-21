@@ -32,11 +32,11 @@ function Scene() {
     <>
       <color attach="background" args={['#07090d']} />
       <Sky sunPosition={[30, 5, 18]} turbidity={16} rayleigh={0.18} mieCoefficient={0.03} mieDirectionalG={0.96} />
-      <ambientLight intensity={0.22} color="#5f7487" />
-      <hemisphereLight args={['#49627d', '#0d120f', 0.34]} />
+      <ambientLight intensity={0.34} color="#677d92" />
+      <hemisphereLight args={['#566f88', '#121712', 0.46]} />
       <directionalLight
         position={[18, 16, 10]}
-        intensity={0.52}
+        intensity={0.62}
         color="#8ea4b7"
         castShadow
         shadow-mapSize-width={1024}
@@ -55,7 +55,7 @@ function Scene() {
       <pointLight position={[8, 3.6, -24]} color="#ffb15a" intensity={1.1} distance={11} />
       <pointLight position={[26, 4.8, 24]} color="#ff8d3b" intensity={1.45} distance={16} />
 
-      <fog attach="fog" args={['#090a0d', 10, 64]} />
+      <fog attach="fog" args={['#0a0c10', 14, 78]} />
 
       <GameCamera />
       <GameLogic />

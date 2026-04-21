@@ -1,29 +1,63 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/store';
 import { cities, WORLD_SIZE } from '../../game/worldData';
+import type { NPC } from '../../game/types';
+
+type MapPoint = {
+  x: number;
+  y: number;
+};
+
+type MinimapSnapshot = {
+  playerPosition: [number, number, number];
+  playerRotation: number;
+  currentCity: string;
+  activeObjective: { targetPosition?: [number, number, number] } | null;
+  visibleNpcs: NPC[];
+  visibleMissions: ReturnType<typeof useGameStore.getState>['missions'];
+  activeMission: string | null;
+};
+
+function readMinimapSnapshot(): MinimapSnapshot {
+  const { player, missions, activeMission, npcs } = useGameStore.getState();
+  const activeObjective =
+    missions.find((item) => item.id === activeMission)?.objectives.find((item) => !item.completed && item.targetPosition) ?? null;
+
+  return {
+    playerPosition: player.position,
+    playerRotation: player.rotation,
+    currentCity: player.currentCity,
+    activeObjective,
+    visibleNpcs: npcs.filter((item) => item.isAlive && item.city === player.currentCity).slice(0, 16),
+    visibleMissions: missions.filter((item) => item.status === 'available' || item.status === 'active'),
+    activeMission,
+  };
+}
 
 export default function Minimap() {
-  const { player, missions, activeMission, npcs } = useGameStore();
+  const [snapshot, setSnapshot] = useState<MinimapSnapshot>(() => readMinimapSnapshot());
   const mapSize = 180;
   const scale = mapSize / (WORLD_SIZE * 2);
 
-  const activeObjective = useMemo(() => {
-    const mission = missions.find((item) => item.id === activeMission);
-    return mission?.objectives.find((item) => !item.completed && item.targetPosition) ?? null;
-  }, [missions, activeMission]);
+  useEffect(() => {
+    const update = () => setSnapshot(readMinimapSnapshot());
+    update();
+    const intervalId = window.setInterval(update, 150);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const toMap = (wx: number, wz: number) => ({
     x: (wx + WORLD_SIZE) * scale,
     y: (wz + WORLD_SIZE) * scale,
   });
 
-  const playerMap = toMap(player.position[0], player.position[2]);
+  const playerMap = toMap(snapshot.playerPosition[0], snapshot.playerPosition[2]);
 
   return (
     <div className="absolute bottom-4 right-4 pointer-events-none hidden sm:block" style={{ width: mapSize, height: mapSize + 28 }}>
       <div className="mb-2 px-2 flex items-center justify-between text-[9px] font-display tracking-[0.2em] text-muted-foreground">
         <span>MINIMAPA</span>
-        {activeObjective?.targetPosition && <span className="text-amber-300">OBJETIVO</span>}
+        {snapshot.activeObjective?.targetPosition && <span className="text-amber-300">OBJETIVO</span>}
       </div>
 
       <div
@@ -95,7 +129,7 @@ export default function Minimap() {
           })}
         </svg>
 
-        {npcs.filter((item) => item.isAlive && item.city === player.currentCity).slice(0, 16).map((npc) => {
+        {snapshot.visibleNpcs.map((npc) => {
           const pos = toMap(npc.position[0], npc.position[2]);
           const color = npc.type === 'police' ? '#60a5fa' : npc.type === 'gang' ? '#f87171' : '#cbd5e1';
           return (
@@ -114,11 +148,11 @@ export default function Minimap() {
           );
         })}
 
-        {missions.filter((item) => item.status === 'available' || item.status === 'active').map((mission) => {
+        {snapshot.visibleMissions.map((mission) => {
           const objective = mission.objectives.find((item) => !item.completed && item.targetPosition);
           if (!objective?.targetPosition) return null;
           const pos = toMap(objective.targetPosition[0], objective.targetPosition[2]);
-          const isActive = mission.id === activeMission;
+          const isActive = mission.id === snapshot.activeMission;
           return (
             <div
               key={mission.id}
@@ -143,7 +177,7 @@ export default function Minimap() {
             top: playerMap.y - 16,
             width: 32,
             height: 32,
-            transform: `rotate(${-player.rotation * (180 / Math.PI)}deg)`,
+            transform: `rotate(${-snapshot.playerRotation * (180 / Math.PI)}deg)`,
           }}
         >
           <div

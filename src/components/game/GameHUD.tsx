@@ -1,27 +1,50 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/store';
 import { cities } from '../../game/worldData';
+import type { Mission, MissionObjective, PlayerState } from '../../game/types';
 
 function formatDistance(distance: number) {
   return distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`;
 }
 
-export default function GameHUD() {
-  const { player, missions, activeMission } = useGameStore();
-  const mission = missions.find((item) => item.id === activeMission);
-  const cityData = cities.find((item) => item.id === player.currentCity);
+type HudSnapshot = {
+  player: PlayerState;
+  mission: Mission | null;
+  currentObjective: MissionObjective | null;
+  objectiveDistance: number | null;
+};
 
-  const currentObjective = useMemo(() => {
-    if (!mission) return null;
-    return mission.objectives.find((item) => !item.completed) ?? null;
-  }, [mission]);
+function readHudSnapshot(): HudSnapshot {
+  const { player, missions, activeMission } = useGameStore.getState();
+  const mission = missions.find((item) => item.id === activeMission) ?? null;
+  const currentObjective = mission?.objectives.find((item) => !item.completed) ?? null;
 
-  const objectiveDistance = useMemo(() => {
-    if (!currentObjective?.targetPosition) return null;
+  let objectiveDistance: number | null = null;
+  if (currentObjective?.targetPosition) {
     const dx = currentObjective.targetPosition[0] - player.position[0];
     const dz = currentObjective.targetPosition[2] - player.position[2];
-    return Math.sqrt(dx * dx + dz * dz);
-  }, [currentObjective, player.position]);
+    objectiveDistance = Math.sqrt(dx * dx + dz * dz);
+  }
+
+  return {
+    player,
+    mission,
+    currentObjective,
+    objectiveDistance,
+  };
+}
+
+export default function GameHUD() {
+  const [snapshot, setSnapshot] = useState<HudSnapshot>(() => readHudSnapshot());
+  const { player, mission, currentObjective, objectiveDistance } = snapshot;
+  const cityData = cities.find((item) => item.id === player.currentCity);
+
+  useEffect(() => {
+    const update = () => setSnapshot(readHudSnapshot());
+    update();
+    const intervalId = window.setInterval(update, 120);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const wantedLabel =
     player.wantedLevel >= 4 ? 'CAZA TOTAL' : player.wantedLevel >= 2 ? 'FUERZAS ACTIVAS' : player.wantedLevel > 0 ? 'SOSPECHOSO' : null;
