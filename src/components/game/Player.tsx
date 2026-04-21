@@ -105,8 +105,8 @@ export default function Player() {
 
   return (
     <group ref={groupRef}>
-      <pointLight position={[0, 1.4, 0.8]} color="#ffe2a8" intensity={0.45} distance={4.4} />
-      <pointLight position={[0, 1.1, -0.9]} color="#7cc7ff" intensity={0.25} distance={3.6} />
+      <pointLight position={[0, 1.6, 0.9]} color="#ffe6ad" intensity={0.9} distance={6.4} />
+      <pointLight position={[0, 1.2, -1]} color="#7cc7ff" intensity={0.4} distance={5.2} />
 
       <group ref={characterRef}>
         <Suspense fallback={<PlayerFallback />}>

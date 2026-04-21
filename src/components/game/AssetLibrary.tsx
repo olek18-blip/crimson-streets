@@ -149,7 +149,7 @@ export function AnimatedPlayerCharacterModel({
 }
 
 export function PoliceCharacterModel(props: ModelTransformProps) {
-  return <StaticModel url="/models/cop-character.glb" {...props} />;
+  return <StaticModel url="/models/male-character.glb" {...props} />;
 }
 
 export function CivilianCharacterModel(props: ModelTransformProps) {

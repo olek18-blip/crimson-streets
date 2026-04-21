@@ -116,11 +116,18 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
   if (npc.type === 'police') {
     return (
       <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
-        <Suspense
-          fallback={<NPCFallback color="#183a63" emissive="#0d1725" />}
-        >
-          <PoliceCharacterModel scale={0.92} rotation={[0, Math.PI, 0]} />
+        <Suspense fallback={<NPCFallback color="#183a63" emissive="#0d1725" />}>
+          <PoliceCharacterModel scale={0.9} rotation={[0, Math.PI, 0]} />
         </Suspense>
+
+        <mesh position={[0, 1.26, 0.02]} castShadow>
+          <boxGeometry args={[0.38, 0.08, 0.24]} />
+          <meshStandardMaterial color="#132641" emissive="#09111d" emissiveIntensity={0.2} />
+        </mesh>
+        <mesh position={[0, 0.84, 0.18]} castShadow>
+          <boxGeometry args={[0.32, 0.1, 0.04]} />
+          <meshStandardMaterial color="#183a63" emissive="#0d1725" emissiveIntensity={0.16} />
+        </mesh>
 
         {(behavior === 'attack' || behavior === 'chase') && (
           <mesh position={[0, 1.32, 0]}>
