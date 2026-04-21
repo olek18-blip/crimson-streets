@@ -91,7 +91,7 @@ export default function GameScene() {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    if (screen === 'menu') {
+    if (screen !== 'playing') {
       setShowLoading(false);
       return;
     }
@@ -116,7 +116,7 @@ export default function GameScene() {
         </>
       )}
 
-      {showLoading && screen !== 'menu' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
+      {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
 
       <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#0a1520' }}>
         <Scene />
