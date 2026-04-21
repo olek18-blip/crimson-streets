@@ -69,9 +69,11 @@ export default function GameHUD() {
             </div>
           </div>
         )}
+      </div>
 
-        {player.wantedLevel > 0 && (
-          <div className="self-center game-panel rounded-full px-3 py-1.5 flex items-center gap-2">
+      {player.wantedLevel > 0 && (
+        <div className="sm:hidden absolute top-[7.6rem] left-1/2 -translate-x-1/2">
+          <div className="game-panel rounded-full px-3 py-1.5 flex items-center gap-2 border border-red-300/12 shadow-[0_0_18px_rgba(127,29,29,0.16)]">
             <div className="flex gap-1 text-sm leading-none">
               {Array.from({ length: 5 }).map((_, index) => (
                 <span key={index} style={{ opacity: index < player.wantedLevel ? 1 : 0.18 }}>★</span>
@@ -79,8 +81,8 @@ export default function GameHUD() {
             </div>
             {wantedLabel && <span className="text-[9px] font-display tracking-[0.18em] text-red-300">{wantedLabel}</span>}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="hidden sm:flex absolute top-2 left-1/2 -translate-x-1/2 text-center flex-col items-center gap-2 w-[92vw] max-w-md sm:top-4 sm:w-auto">
         {player.wantedLevel > 0 && (
