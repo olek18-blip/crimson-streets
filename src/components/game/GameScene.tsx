@@ -30,28 +30,32 @@ function GameLogic() {
 function Scene() {
   return (
     <>
-      <color attach="background" args={['#0a1520']} />
-      <Sky sunPosition={[60, 8, 40]} turbidity={10} rayleigh={0.55} mieCoefficient={0.02} mieDirectionalG={0.95} />
-      <ambientLight intensity={0.34} color="#99bce0" />
-      <hemisphereLight args={['#88add2', '#17231a', 0.6]} />
+      <color attach="background" args={['#07090d']} />
+      <Sky sunPosition={[30, 5, 18]} turbidity={16} rayleigh={0.18} mieCoefficient={0.03} mieDirectionalG={0.96} />
+      <ambientLight intensity={0.22} color="#5f7487" />
+      <hemisphereLight args={['#49627d', '#0d120f', 0.34]} />
       <directionalLight
-        position={[65, 24, 30]}
-        intensity={1.05}
-        color="#adc4de"
+        position={[18, 16, 10]}
+        intensity={0.52}
+        color="#8ea4b7"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-far={500}
-        shadow-camera-left={-220}
-        shadow-camera-right={220}
-        shadow-camera-top={220}
-        shadow-camera-bottom={-220}
+        shadow-camera-far={420}
+        shadow-camera-left={-180}
+        shadow-camera-right={180}
+        shadow-camera-top={180}
+        shadow-camera-bottom={-180}
       />
-      <pointLight position={[0, 9, 0]} color="#d28c45" intensity={1.45} distance={46} />
-      <pointLight position={[18, 6, 12]} color="#ff5dd8" intensity={1.35} distance={24} />
-      <pointLight position={[23, 5, 12]} color="#00cfff" intensity={1.05} distance={18} />
-      <pointLight position={[3, 3.2, -28]} color="#ffe8a3" intensity={1.3} distance={14} />
-      <fog attach="fog" args={['#102030', 58, 210]} />
+
+      <pointLight position={[0, 7.5, -16]} color="#f2b25d" intensity={1.15} distance={24} />
+      <pointLight position={[18, 6, 12]} color="#ff3ca6" intensity={2.05} distance={22} />
+      <pointLight position={[22, 4.8, 11]} color="#00d8ff" intensity={1.65} distance={16} />
+      <pointLight position={[3, 3.1, -18]} color="#62a8ff" intensity={1.5} distance={14} />
+      <pointLight position={[8, 3.6, -24]} color="#ffb15a" intensity={1.1} distance={11} />
+      <pointLight position={[26, 4.8, 24]} color="#ff8d3b" intensity={1.45} distance={16} />
+
+      <fog attach="fog" args={['#090a0d', 10, 64]} />
 
       <GameCamera />
       <GameLogic />
@@ -118,7 +122,7 @@ export default function GameScene() {
 
       {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
 
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#0a1520' }}>
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 500 }} gl={{ antialias: true }} style={{ background: '#07090d' }}>
         <Scene />
       </Canvas>
     </div>
