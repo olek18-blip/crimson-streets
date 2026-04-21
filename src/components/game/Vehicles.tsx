@@ -1,9 +1,24 @@
-import { useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
+import { MalibuCarModel, PontiacCarModel } from './AssetLibrary';
 
-function VehicleMesh({ type, color, isPlayerVehicle }: { type: 'car' | 'motorcycle'; color: string; isPlayerVehicle: boolean }) {
+function carVariantFromId(id: string) {
+  return id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? 'malibu' : 'pontiac';
+}
+
+function VehicleMesh({
+  id,
+  type,
+  color,
+  isPlayerVehicle,
+}: {
+  id: string;
+  type: 'car' | 'motorcycle';
+  color: string;
+  isPlayerVehicle: boolean;
+}) {
   if (type === 'motorcycle') {
     return (
       <group>
@@ -23,31 +38,31 @@ function VehicleMesh({ type, color, isPlayerVehicle }: { type: 'car' | 'motorcyc
     );
   }
 
+  const variant = carVariantFromId(id);
+
   return (
     <group>
-      {/* Body */}
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <boxGeometry args={[1.6, 0.5, 3.5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Cabin */}
-      <mesh position={[0, 0.7, -0.2]} castShadow>
-        <boxGeometry args={[1.4, 0.4, 1.8]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Windshield */}
-      <mesh position={[0, 0.72, 0.6]}>
-        <boxGeometry args={[1.3, 0.35, 0.05]} />
-        <meshStandardMaterial color="#4488aa" transparent opacity={0.6} />
-      </mesh>
-      {/* Wheels */}
-      {[[-0.8, 0.15, 1.1], [0.8, 0.15, 1.1], [-0.8, 0.15, -1.1], [0.8, 0.15, -1.1]].map((p, i) => (
-        <mesh key={i} position={p as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.15, 12]} />
-          <meshStandardMaterial color="#1a1a1a" />
-        </mesh>
-      ))}
-      {/* Headlights */}
+      <Suspense
+        fallback={
+          <>
+            <mesh position={[0, 0.35, 0]} castShadow>
+              <boxGeometry args={[1.6, 0.5, 3.5]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+            <mesh position={[0, 0.7, -0.2]} castShadow>
+              <boxGeometry args={[1.4, 0.4, 1.8]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+          </>
+        }
+      >
+        {variant === 'pontiac' ? (
+          <PontiacCarModel position={[0, 0.46, 0]} scale={0.38} />
+        ) : (
+          <MalibuCarModel position={[0, 0.68, 0]} scale={0.9} />
+        )}
+      </Suspense>
+
       {isPlayerVehicle && (
         <>
           <pointLight position={[0.5, 0.4, 1.8]} color="#ffffcc" intensity={2} distance={15} />
@@ -76,19 +91,24 @@ export default function Vehicles() {
 
   return (
     <group>
-      {vehicles.map(v => {
-        const isPlayerVehicle = currentVehicle === v.id;
-        const pos = v.position;
-        const rot = v.rotation;
-        
+      {vehicles.map((vehicle) => {
+        const isPlayerVehicle = currentVehicle === vehicle.id;
+
         return (
           <group
-            key={v.id}
-            ref={el => { refs.current[v.id] = el; }}
-            position={pos}
-            rotation={[0, rot, 0]}
+            key={vehicle.id}
+            ref={(element) => {
+              refs.current[vehicle.id] = element;
+            }}
+            position={vehicle.position}
+            rotation={[0, vehicle.rotation, 0]}
           >
-            <VehicleMesh type={v.type} color={v.color} isPlayerVehicle={isPlayerVehicle} />
+            <VehicleMesh
+              id={vehicle.id}
+              type={vehicle.type}
+              color={vehicle.color}
+              isPlayerVehicle={isPlayerVehicle}
+            />
           </group>
         );
       })}

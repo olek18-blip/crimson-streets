@@ -305,7 +305,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   switchWeapon: () =>
     set((state) => {
-      const weapons: ('fist' | 'pistol' | 'rifle')[] = ['fist', 'pistol', 'rifle'];
+      const weapons: ('fist' | 'knife' | 'pistol' | 'rifle')[] = ['fist', 'knife', 'pistol', 'rifle'];
       const currentIndex = weapons.indexOf(state.player.weapon);
 
       return {

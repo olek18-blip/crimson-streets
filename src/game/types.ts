@@ -9,7 +9,7 @@ export interface PlayerState {
   wantedLevel: number;
   inVehicle: boolean;
   currentVehicle: string | null;
-  weapon: 'fist' | 'pistol' | 'rifle';
+  weapon: 'fist' | 'knife' | 'pistol' | 'rifle';
   isShooting: boolean;
   isRunning: boolean;
   currentCity: string;

@@ -7,6 +7,19 @@ function formatDistance(distance: number) {
   return distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`;
 }
 
+function getWeaponLabel(weapon: PlayerState['weapon']) {
+  switch (weapon) {
+    case 'knife':
+      return 'CUCHILLO';
+    case 'pistol':
+      return 'PISTOLA';
+    case 'rifle':
+      return 'RIFLE';
+    default:
+      return 'PUÑOS';
+  }
+}
+
 type HudSnapshot = {
   player: PlayerState;
   mission: Mission | null;
@@ -48,10 +61,11 @@ export default function GameHUD() {
 
   const wantedLabel =
     player.wantedLevel >= 4 ? 'CAZA TOTAL' : player.wantedLevel >= 2 ? 'FUERZAS ACTIVAS' : player.wantedLevel > 0 ? 'SOSPECHOSO' : null;
-
-  const missionMood = mission?.id === 'mission1'
-    ? 'Patrulla sucia en Mandril: cobro, presión de banda y handoff.'
-    : mission?.description;
+  const missionMood =
+    mission?.id === 'mission1'
+      ? 'Patrulla sucia en Mandril: cobro, presión de banda y handoff.'
+      : mission?.description;
+  const showCrosshair = player.weapon === 'pistol' || player.weapon === 'rifle';
 
   return (
     <div className="fixed inset-0 pointer-events-none z-10 select-none">
@@ -87,7 +101,7 @@ export default function GameHUD() {
               </div>
               <div className="text-right shrink-0">
                 <div className="text-[9px] tracking-[0.18em] text-slate-400 font-display">ARMA</div>
-                <div className="text-[10px] text-white mt-1">{player.weapon === 'fist' ? 'PUÑOS' : player.weapon === 'pistol' ? 'PISTOLA' : 'RIFLE'}</div>
+                <div className="text-[10px] text-white mt-1">{getWeaponLabel(player.weapon)}</div>
               </div>
             </div>
           </div>
@@ -151,7 +165,7 @@ export default function GameHUD() {
 
         <div className="game-panel rounded px-3 py-2 text-right col-span-2 max-w-[220px] ml-auto">
           <div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground mb-0.5">ARMA ACTIVA</div>
-          <span className="font-display text-xs tracking-[0.2em] text-foreground uppercase">{player.weapon === 'fist' ? 'PUÑOS' : player.weapon === 'pistol' ? 'PISTOLA' : 'RIFLE'}</span>
+          <span className="font-display text-xs tracking-[0.2em] text-foreground uppercase">{getWeaponLabel(player.weapon)}</span>
         </div>
       </div>
 
@@ -192,7 +206,7 @@ export default function GameHUD() {
 
       <div className="hidden sm:block absolute bottom-4 left-4 right-auto">
         <div className="game-panel rounded px-3 py-2 flex gap-3 text-[9px] text-muted-foreground font-display tracking-wider flex-wrap justify-start max-w-[560px]">
-          <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHÍCULO</span><span>Q ARMA</span><span>CLICK DISPARAR</span><span>ESC PAUSA</span>
+          <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHÍCULO</span><span>Q ARMA</span><span>CLICK ACCIÓN</span><span>ESC PAUSA</span>
         </div>
       </div>
 
@@ -200,13 +214,22 @@ export default function GameHUD() {
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-14">
           <div className="game-panel rounded px-3 py-1.5 text-center sm:text-left">
             <span className="font-display text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-wider" style={{ color: 'hsl(var(--game-armor))' }}>
-              {typeof window !== 'undefined' && window.innerWidth < 640 ? 'VEHÍCULO ACTIVO' : 'EN VEHÍCULO — F PARA SALIR'}
+              {typeof window !== 'undefined' && window.innerWidth < 640 ? 'VEHÍCULO ACTIVO' : 'EN VEHÍCULO - F PARA SALIR'}
             </span>
           </div>
         </div>
       )}
 
-      {player.weapon !== 'fist' && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center"><div className="absolute inset-0 rounded-full border" style={{ borderColor: 'hsl(var(--primary) / 0.45)' }} /><div className="absolute w-3 h-px" style={{ background: 'hsl(var(--primary) / 0.7)' }} /><div className="absolute h-3 w-px" style={{ background: 'hsl(var(--primary) / 0.7)' }} /><div className="w-1 h-1 rounded-full" style={{ background: 'hsl(var(--primary))', boxShadow: '0 0 8px hsl(var(--primary))' }} /></div></div>}
+      {showCrosshair && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border" style={{ borderColor: 'hsl(var(--primary) / 0.45)' }} />
+            <div className="absolute w-3 h-px" style={{ background: 'hsl(var(--primary) / 0.7)' }} />
+            <div className="absolute h-3 w-px" style={{ background: 'hsl(var(--primary) / 0.7)' }} />
+            <div className="w-1 h-1 rounded-full" style={{ background: 'hsl(var(--primary))', boxShadow: '0 0 8px hsl(var(--primary))' }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

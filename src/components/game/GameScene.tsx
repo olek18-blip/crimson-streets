@@ -1,24 +1,24 @@
-import { Canvas } from '@react-three/fiber';
 import { Sky } from '@react-three/drei';
-import { useEffect, useCallback, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { useCallback, useEffect, useState } from 'react';
 import { useGameStore } from '../../game/store';
-import { usePlayerController } from '../../hooks/usePlayerController';
-import { useMissionSystem } from '../../hooks/useMissionSystem';
 import { useGamePersistence } from '../../hooks/useGamePersistence';
-import Player from './Player';
+import { useMissionSystem } from '../../hooks/useMissionSystem';
+import { usePlayerController } from '../../hooks/usePlayerController';
 import CityEnvironment from './CityEnvironment';
-import Vehicles from './Vehicles';
-import NPCs from './NPCs';
 import GameCamera from './GameCamera';
 import GameHUD from './GameHUD';
-import Minimap from './Minimap';
-import MainMenu from './MainMenu';
-import PauseMenu from './PauseMenu';
 import GameOverScreen from './GameOverScreen';
-import MissionCompleteScreen from './MissionCompleteScreen';
-import MissionBeacon from './MissionBeacon';
-import MobileControls from './MobileControls';
 import LoadingSplash from './LoadingSplash';
+import MainMenu from './MainMenu';
+import Minimap from './Minimap';
+import MissionBeacon from './MissionBeacon';
+import MissionCompleteScreen from './MissionCompleteScreen';
+import MobileControls from './MobileControls';
+import NPCs from './NPCs';
+import PauseMenu from './PauseMenu';
+import Player from './Player';
+import Vehicles from './Vehicles';
 
 function GameLogic() {
   usePlayerController();
@@ -120,7 +120,7 @@ export default function GameScene() {
         </>
       )}
 
-      {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y misión activa…" />}
+      {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y mision activa..." />}
 
       <Canvas
         dpr={[1, 1.25]}

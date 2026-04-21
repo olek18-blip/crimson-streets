@@ -2,7 +2,7 @@ type LoadingSplashProps = {
   progressText?: string;
 };
 
-export default function LoadingSplash({ progressText = 'Cargando distrito y sistemas…' }: LoadingSplashProps) {
+export default function LoadingSplash({ progressText = 'Cargando distrito y sistemas...' }: LoadingSplashProps) {
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center overflow-hidden bg-[#060a12]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,86,34,0.16),transparent_24%),radial-gradient(circle_at_80%_30%,rgba(0,212,255,0.1),transparent_20%),linear-gradient(180deg,#070b12_0%,#09111a_48%,#04070c_100%)]" />
@@ -18,7 +18,7 @@ export default function LoadingSplash({ progressText = 'Cargando distrito y sist
           PELIGROSO
         </div>
         <div className="font-display mt-2 text-3xl sm:text-5xl tracking-[0.16em] text-amber-300 drop-shadow-[0_0_12px_rgba(245,197,24,0.25)]">
-          ESPAÑA
+          ESPANA
         </div>
 
         <div className="mt-6 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-4 backdrop-blur-md">

@@ -1,17 +1,44 @@
-import { useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useGameStore } from '../../game/store';
 import { shallow } from 'zustand/shallow';
+import { useGameStore } from '../../game/store';
+import { AnimatedPlayerCharacterModel, CombatKnifeModel, GunModel } from './AssetLibrary';
+
+const RANGED_WEAPONS = new Set(['pistol', 'rifle']);
+
+function PlayerFallback() {
+  return (
+    <group>
+      <mesh position={[0, 0.18, 0.02]} castShadow>
+        <boxGeometry args={[0.42, 0.26, 0.24]} />
+        <meshStandardMaterial color="#161a24" emissive="#0b0d12" emissiveIntensity={0.12} />
+      </mesh>
+      <mesh position={[0, 0.62, 0]} castShadow>
+        <capsuleGeometry args={[0.24, 0.52, 8, 16]} />
+        <meshStandardMaterial color="#2b3550" emissive="#0f1420" emissiveIntensity={0.18} metalness={0.08} roughness={0.74} />
+      </mesh>
+      <mesh position={[0, 1.12, 0]} castShadow>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <meshStandardMaterial color="#d8ad7d" emissive="#3a2419" emissiveIntensity={0.06} />
+      </mesh>
+    </group>
+  );
+}
+
+function WeaponFallback({ weapon }: { weapon: 'fist' | 'knife' | 'pistol' | 'rifle' }) {
+  return (
+    <mesh castShadow>
+      <boxGeometry args={weapon === 'rifle' ? [0.08, 0.08, 0.58] : weapon === 'knife' ? [0.04, 0.02, 0.28] : [0.06, 0.06, 0.32]} />
+      <meshStandardMaterial color="#353942" metalness={0.15} roughness={0.72} />
+    </mesh>
+  );
+}
 
 export default function Player() {
   const groupRef = useRef<THREE.Group>(null);
-  const torsoRef = useRef<THREE.Mesh>(null);
-  const headRef = useRef<THREE.Mesh>(null);
-  const leftArmRef = useRef<THREE.Mesh>(null);
-  const rightArmRef = useRef<THREE.Mesh>(null);
-  const leftLegRef = useRef<THREE.Mesh>(null);
-  const rightLegRef = useRef<THREE.Mesh>(null);
+  const characterRef = useRef<THREE.Group>(null);
+  const weaponRef = useRef<THREE.Group>(null);
   const playerRenderState = useGameStore(
     (state) => ({
       inVehicle: state.player.inVehicle,
@@ -23,152 +50,90 @@ export default function Player() {
   );
 
   useFrame((state) => {
-    if (!groupRef.current || !torsoRef.current || !headRef.current || !leftArmRef.current || !rightArmRef.current || !leftLegRef.current || !rightLegRef.current) {
+    if (!groupRef.current || !characterRef.current) {
       return;
     }
 
     const player = useGameStore.getState().player;
-    const isMoving = player.animationState === 'walk' || player.animationState === 'run';
-    const moveIntensity = player.animationState === 'run' ? 1 : player.animationState === 'walk' ? 0.55 : 0;
-    const strideSpeed = player.animationState === 'run' ? 10 : 6;
-    const stride = Math.sin(state.clock.elapsedTime * strideSpeed) * moveIntensity;
-    const bob = isMoving ? Math.abs(Math.sin(state.clock.elapsedTime * strideSpeed)) * 0.045 * moveIntensity : 0;
-    const sway = isMoving ? Math.sin(state.clock.elapsedTime * (strideSpeed * 0.55)) * 0.05 * moveIntensity : 0;
-    const jumpLift = player.animationState === 'jump' ? Math.sin(state.clock.elapsedTime * 10) * 0.01 : 0;
-    const hitRecoil = player.animationState === 'hit' ? Math.sin(state.clock.elapsedTime * 22) * 0.12 : 0;
-    const deathTilt = player.animationState === 'death' ? -1.38 : 0;
+    const elapsed = state.clock.elapsedTime;
+    const runLean = player.animationState === 'run' ? 0.08 : player.animationState === 'walk' ? 0.04 : 0;
+    const jumpLift = player.animationState === 'jump' ? Math.max(0, Math.sin(elapsed * 9.5)) * 0.08 : 0;
+    const hitRecoil = player.animationState === 'hit' ? Math.sin(elapsed * 22) * 0.08 : 0;
+    const deathTilt = player.animationState === 'death' ? -1.2 : 0;
+    const rangedWeapon = RANGED_WEAPONS.has(player.weapon);
 
-    groupRef.current.position.set(player.position[0], player.position[1] + bob + jumpLift, player.position[2]);
+    groupRef.current.position.set(player.position[0], player.position[1] + jumpLift, player.position[2]);
     groupRef.current.rotation.y = player.rotation;
-    groupRef.current.rotation.z = player.animationState === 'death' ? 0.22 : sway * 0.4 - hitRecoil * 0.08;
-    groupRef.current.rotation.x = deathTilt;
+    groupRef.current.rotation.z = player.animationState === 'death' ? 0.26 : hitRecoil * -0.08;
 
-    torsoRef.current.rotation.x = player.animationState === 'jump' ? -0.24 : player.animationState === 'shoot' ? -0.08 : hitRecoil * 0.3;
-    torsoRef.current.rotation.z = player.animationState === 'hit' ? -0.1 : 0;
-    headRef.current.rotation.x = player.animationState === 'jump' ? 0.18 : player.animationState === 'shoot' ? -0.04 : 0;
+    characterRef.current.rotation.x = deathTilt - runLean + (player.animationState === 'jump' ? -0.1 : 0);
+    characterRef.current.rotation.z = player.animationState === 'run' ? 0.04 : player.animationState === 'hit' ? -0.05 : 0;
+    characterRef.current.position.y = player.animationState === 'death' ? 0.08 : 0;
 
-    leftArmRef.current.rotation.x =
-      player.animationState === 'jump' ? 0.8 : player.animationState === 'shoot' ? -0.2 : -stride * 0.9;
-    leftArmRef.current.rotation.z =
-      player.animationState === 'hit' ? -0.45 : player.animationState === 'jump' ? -0.2 : -0.18;
+    if (weaponRef.current) {
+      if (player.weapon === 'knife') {
+        weaponRef.current.position.set(0.24, 0.88, -0.04);
+        weaponRef.current.rotation.set(
+          player.animationState === 'shoot' ? -0.48 : -0.12,
+          Math.PI / 2,
+          player.animationState === 'shoot' ? 0.38 : 0.16,
+        );
+      } else if (player.weapon === 'rifle') {
+        weaponRef.current.position.set(0.28, 0.92, -0.12);
+        weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.2 : -0.04, Math.PI, 0);
+      } else {
+        weaponRef.current.position.set(0.24, 0.92, -0.06);
+        weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.12 : 0.02, Math.PI, 0);
+      }
 
-    rightArmRef.current.rotation.x =
-      player.animationState === 'shoot'
-        ? -1.25
-        : player.animationState === 'jump'
-          ? 0.55
-          : player.animationState === 'hit'
-            ? 0.5
-            : stride * 0.9;
-    rightArmRef.current.rotation.z =
-      player.animationState === 'shoot' ? 0.18 : player.animationState === 'hit' ? 0.42 : 0.18;
+      if (player.animationState === 'hit') {
+        weaponRef.current.rotation.z += 0.22;
+      }
 
-    leftLegRef.current.rotation.x =
-      player.animationState === 'jump' ? -0.6 : player.animationState === 'death' ? 0.1 : stride * 0.95;
-    rightLegRef.current.rotation.x =
-      player.animationState === 'jump' ? -0.35 : player.animationState === 'death' ? -0.08 : -stride * 0.95;
+      if (player.animationState === 'jump') {
+        weaponRef.current.rotation.x += rangedWeapon ? 0.1 : 0.16;
+      }
+    }
   });
 
-  if (playerRenderState.inVehicle) return null;
+  if (playerRenderState.inVehicle) {
+    return null;
+  }
 
-  const coatColor = playerRenderState.weapon === 'rifle' ? '#242b38' : '#2b3550';
-  const accentColor =
-    playerRenderState.animationState === 'hit'
-      ? '#ff6b57'
-      : playerRenderState.animationState === 'run'
-        ? '#e05a46'
-        : playerRenderState.animationState === 'jump'
-          ? '#7dc7ff'
-          : '#d0a94d';
+  const hasWeaponModel = playerRenderState.weapon !== 'fist';
+  const hasRangedWeapon = RANGED_WEAPONS.has(playerRenderState.weapon);
 
   return (
-    <group ref={groupRef} scale={[1.08, 1.08, 1.08]}>
-      <pointLight position={[0, 1.2, 0.8]} color="#ffe2a8" intensity={0.55} distance={4.2} />
-      <pointLight position={[0, 1.0, -0.9]} color="#7cc7ff" intensity={0.35} distance={3.4} />
+    <group ref={groupRef}>
+      <pointLight position={[0, 1.4, 0.8]} color="#ffe2a8" intensity={0.45} distance={4.4} />
+      <pointLight position={[0, 1.1, -0.9]} color="#7cc7ff" intensity={0.25} distance={3.6} />
 
-      <mesh position={[0, 0.18, 0.02]} castShadow>
-        <boxGeometry args={[0.42, 0.26, 0.24]} />
-        <meshStandardMaterial color="#161a24" emissive="#0b0d12" emissiveIntensity={0.12} />
-      </mesh>
+      <group ref={characterRef}>
+        <Suspense fallback={<PlayerFallback />}>
+          <AnimatedPlayerCharacterModel animationState={playerRenderState.animationState} scale={0.56} rotation={[0, Math.PI, 0]} />
+        </Suspense>
+      </group>
 
-      <mesh ref={torsoRef} position={[0, 0.62, 0]} castShadow>
-        <capsuleGeometry args={[0.24, 0.52, 8, 16]} />
-        <meshStandardMaterial color={coatColor} emissive="#0f1420" emissiveIntensity={0.18} metalness={0.08} roughness={0.74} />
-      </mesh>
-
-      <mesh position={[0, 0.82, 0.16]} castShadow>
-        <boxGeometry args={[0.34, 0.22, 0.08]} />
-        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.2} />
-      </mesh>
-
-      <mesh position={[0, 0.52, -0.16]} castShadow>
-        <boxGeometry args={[0.3, 0.3, 0.1]} />
-        <meshStandardMaterial color="#39445d" emissive="#111827" emissiveIntensity={0.1} />
-      </mesh>
-
-      <mesh ref={leftArmRef} position={[-0.22, 0.58, 0]} rotation={[0, 0, -0.25]} castShadow>
-        <capsuleGeometry args={[0.07, 0.34, 6, 12]} />
-        <meshStandardMaterial color="#1d2230" />
-      </mesh>
-      <mesh ref={rightArmRef} position={[0.22, 0.58, 0]} rotation={[0, 0, 0.25]} castShadow>
-        <capsuleGeometry args={[0.07, 0.34, 6, 12]} />
-        <meshStandardMaterial color="#1d2230" />
-      </mesh>
-
-      <mesh ref={leftLegRef} position={[-0.1, 0.03, 0]} castShadow>
-        <capsuleGeometry args={[0.08, 0.46, 6, 12]} />
-        <meshStandardMaterial color="#141414" />
-      </mesh>
-      <mesh ref={rightLegRef} position={[0.1, 0.03, 0]} castShadow>
-        <capsuleGeometry args={[0.08, 0.46, 6, 12]} />
-        <meshStandardMaterial color="#141414" />
-      </mesh>
-
-      <mesh ref={headRef} position={[0, 1.12, 0]} castShadow>
-        <sphereGeometry args={[0.18, 16, 16]} />
-        <meshStandardMaterial color="#d8ad7d" emissive="#3a2419" emissiveIntensity={0.06} />
-      </mesh>
-
-      <mesh position={[0, 1.22, 0.01]} castShadow>
-        <boxGeometry args={[0.34, 0.12, 0.3]} />
-        <meshStandardMaterial color="#1d1d1d" />
-      </mesh>
-
-      <mesh position={[0, 1.02, 0.16]} castShadow>
-        <boxGeometry args={[0.28, 0.08, 0.03]} />
-        <meshStandardMaterial color="#121212" />
-      </mesh>
-
-      <mesh position={[0, 1.09, 0.18]}>
-        <boxGeometry args={[0.16, 0.025, 0.02]} />
-        <meshStandardMaterial color="#f2f2f2" emissive="#7a7a7a" emissiveIntensity={0.28} />
-      </mesh>
-
-      {playerRenderState.weapon !== 'fist' && (
-        <group position={[0.28, 0.56, -0.22]} rotation={[0.08, 0.12, 0.08]}>
-          <mesh castShadow>
-            <boxGeometry args={playerRenderState.weapon === 'rifle' ? [0.08, 0.08, 0.58] : [0.06, 0.06, 0.32]} />
-            <meshStandardMaterial color="#353942" metalness={0.15} roughness={0.72} />
-          </mesh>
-          {playerRenderState.weapon === 'rifle' && (
-            <>
-              <mesh position={[0, -0.08, 0.02]} castShadow>
-                <boxGeometry args={[0.06, 0.12, 0.12]} />
-                <meshStandardMaterial color="#242832" />
-              </mesh>
-              <mesh position={[0, 0.04, 0.18]} castShadow>
-                <boxGeometry args={[0.05, 0.05, 0.16]} />
-                <meshStandardMaterial color="#1c1f27" />
-              </mesh>
-            </>
-          )}
+      {hasWeaponModel && (
+        <group ref={weaponRef}>
+          <Suspense fallback={<WeaponFallback weapon={playerRenderState.weapon} />}>
+            {playerRenderState.weapon === 'knife' ? (
+              <CombatKnifeModel scale={0.02} rotation={[0, Math.PI / 2, 0]} />
+            ) : (
+              <GunModel
+                scale={playerRenderState.weapon === 'rifle' ? 0.12 : 0.08}
+                rotation={[0, Math.PI, 0]}
+                position={[0, playerRenderState.weapon === 'rifle' ? -0.05 : 0, playerRenderState.weapon === 'rifle' ? -0.08 : 0]}
+              />
+            )}
+          </Suspense>
         </group>
       )}
 
-      {playerRenderState.isShooting && playerRenderState.weapon !== 'fist' && (
+      {playerRenderState.isShooting && hasRangedWeapon && (
         <>
-          <pointLight position={[0.32, 0.58, -0.56]} color="#ff6a00" intensity={3.4} distance={5} />
-          <mesh position={[0.32, 0.58, -0.58]}>
+          <pointLight position={[0.32, 0.92, -0.42]} color="#ff6a00" intensity={3.4} distance={5} />
+          <mesh position={[0.32, 0.92, -0.44]}>
             <sphereGeometry args={[0.06, 10, 10]} />
             <meshStandardMaterial emissive="#ff7b00" color="#ffcf66" />
           </mesh>

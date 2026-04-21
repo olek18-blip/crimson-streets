@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { cities, WORLD_SIZE } from '../../game/worldData';
+import { BuildingsBlockModel, DumpsterSetModel, StreetLightSingleModel, TreeClusterModel, TruckModel } from './AssetLibrary';
 
 function rand(seed: number) {
   const x = Math.sin(seed) * 43758.5453123;
@@ -164,6 +166,7 @@ function CityLandmarks({ cityId, cx, cz }: { cityId: string; cx: number; cz: num
     case 'barceloma':
       return (
         <group>
+          <BuildingsBlock position={[cx + 6, 0, cz - 2]} rotation={[0, -Math.PI / 2, 0]} scale={0.2} />
           <mesh position={[cx + 28, 0.35, cz]} receiveShadow>
             <boxGeometry args={[4, 0.7, 34]} />
             <meshStandardMaterial color="#8f7558" />
@@ -259,10 +262,16 @@ function Road({ start, end, width = 5 }: { start: [number, number]; end: [number
 function StreetLight({ position, color = '#ffcc66' }: { position: [number, number, number]; color?: string }) {
   return (
     <group position={position}>
-      <mesh position={[0, 2, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 4]} />
-        <meshStandardMaterial color="#565b63" />
-      </mesh>
+      <Suspense
+        fallback={
+          <mesh position={[0, 2, 0]}>
+            <cylinderGeometry args={[0.05, 0.05, 4]} />
+            <meshStandardMaterial color="#565b63" />
+          </mesh>
+        }
+      >
+        <StreetLightSingleModel scale={0.17} rotation={[0, Math.PI / 4, 0]} />
+      </Suspense>
       <mesh position={[0, 3.7, 0]}>
         <sphereGeometry args={[0.12, 10, 10]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
@@ -338,13 +347,61 @@ function PoliceBarrier({ position }: { position: [number, number, number] }) {
 function Dumpster({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.8, 0]}>
-        <boxGeometry args={[2.3, 1.6, 1.2]} />
-        <meshStandardMaterial color="#355448" />
+      <Suspense
+        fallback={
+          <>
+            <mesh position={[0, 0.8, 0]}>
+              <boxGeometry args={[2.3, 1.6, 1.2]} />
+              <meshStandardMaterial color="#355448" />
+            </mesh>
+            <mesh position={[0, 1.7, 0]}>
+              <boxGeometry args={[2.35, 0.15, 1.25]} />
+              <meshStandardMaterial color="#243a32" />
+            </mesh>
+          </>
+        }
+      >
+        <DumpsterSetModel scale={0.46} rotation={[0, Math.PI / 2, 0]} />
+      </Suspense>
+    </group>
+  );
+}
+
+function BuildingsBlock({
+  position,
+  rotation = [0, 0, 0],
+  scale = 0.22,
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      <Suspense
+        fallback={
+          <>
+            <Building position={[0, 0, 0]} size={[14, 10, 14]} color="#3a404a" emissive="#ff61d2" />
+            <Building position={[7, 0, -5]} size={[8, 16, 8]} color="#2a3040" emissive="#00d4ff" />
+          </>
+        }
+      >
+        <BuildingsBlockModel scale={scale} />
+      </Suspense>
+    </group>
+  );
+}
+
+function TreeFallback() {
+  return (
+    <group>
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.15, 0.2, 3]} />
+        <meshStandardMaterial color="#5c3b1f" />
       </mesh>
-      <mesh position={[0, 1.7, 0]}>
-        <boxGeometry args={[2.35, 0.15, 1.25]} />
-        <meshStandardMaterial color="#243a32" />
+      <mesh position={[0, 3.5, 0]}>
+        <coneGeometry args={[1.6, 3.2, 7]} />
+        <meshStandardMaterial color="#214c24" />
       </mesh>
     </group>
   );
@@ -393,6 +450,18 @@ function MandrilDistrictPass() {
         <boxGeometry args={[7, 0.22, 0.05]} />
         <meshStandardMaterial color="#ff9d3a" emissive="#ff9d3a" emissiveIntensity={0.9} />
       </mesh>
+      <group position={[32, 0, 20]} rotation={[0, Math.PI / 2, 0]}>
+        <Suspense
+          fallback={
+            <mesh position={[0, 0.8, 0]}>
+              <boxGeometry args={[3.8, 1.4, 1.2]} />
+              <meshStandardMaterial color="#d6d9e0" />
+            </mesh>
+          }
+        >
+          <TruckModel scale={0.4} />
+        </Suspense>
+      </group>
 
       <Building position={[10, 0, -10]} size={[7, 12, 7]} color="#39425b" emissive="#d6a258" />
       <Building position={[15, 0, -12]} size={[5, 15, 5]} color="#2d3550" emissive="#d6a258" />
@@ -487,14 +556,13 @@ function RuralZones() {
     <group>
       {trees.map((pos, i) => (
         <group key={i} position={pos}>
-          <mesh position={[0, 1.5, 0]}>
-            <cylinderGeometry args={[0.15, 0.2, 3]} />
-            <meshStandardMaterial color="#5c3b1f" />
-          </mesh>
-          <mesh position={[0, 3.5, 0]}>
-            <coneGeometry args={[1.6, 3.2, 7]} />
-            <meshStandardMaterial color="#214c24" />
-          </mesh>
+          {i % 5 === 0 ? (
+            <Suspense fallback={<TreeFallback />}>
+              <TreeClusterModel scale={0.72} rotation={[0, ((i % 6) * Math.PI) / 3, 0]} />
+            </Suspense>
+          ) : (
+            <TreeFallback />
+          )}
         </group>
       ))}
     </group>

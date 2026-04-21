@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
 import type { NPC } from '../../game/types';
+import { CivilianAltCharacterModel, CivilianCharacterModel, GangCharacterModel, PoliceCharacterModel } from './AssetLibrary';
 
 type BehaviorState = 'idle' | 'patrol' | 'flee' | 'chase' | 'attack';
 
@@ -76,31 +77,30 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
   return 'patrol' as const;
 }
 
+function NPCFallback({
+  color,
+  emissive,
+  position,
+}: {
+  color: string;
+  emissive?: string;
+  position?: [number, number, number];
+}) {
+  return (
+    <mesh position={position ?? [0, 0.9, 0]} castShadow>
+      <capsuleGeometry args={[0.21, 0.46, 8, 16]} />
+      <meshStandardMaterial color={color} emissive={emissive ?? '#0f1014'} emissiveIntensity={0.12} />
+    </mesh>
+  );
+}
+
 function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; phase: number }) {
   const bob = npc.isAlive ? Math.sin(phase) * 0.025 : 0;
   const lean = behavior === 'chase' || behavior === 'attack' ? 0.08 : behavior === 'flee' ? -0.1 : 0;
   const accentColor = behavior === 'attack' ? '#ff4d4d' : behavior === 'chase' ? '#ff9f43' : behavior === 'flee' ? '#8fd3ff' : '#d9d9d9';
 
-  const civilianVariant = npc.id.length % 3;
-  const gangVariant = npc.id.length % 3;
-  const policeVariant = npc.id.length % 2;
-
-  const torsoColor =
-    npc.type === 'police'
-      ? policeVariant === 0 ? '#183a63' : '#24476f'
-      : npc.type === 'gang'
-        ? gangVariant === 0 ? '#3e1616' : gangVariant === 1 ? '#2d223d' : '#2e2a2a'
-        : civilianVariant === 0 ? '#8d7358' : civilianVariant === 1 ? '#5f7652' : '#6a5c88';
-
-  const jacketColor =
-    npc.type === 'police'
-      ? policeVariant === 0 ? '#0f2037' : '#152942'
-      : npc.type === 'gang'
-        ? gangVariant === 0 ? '#171717' : gangVariant === 1 ? '#4a1818' : '#26222b'
-        : civilianVariant === 0 ? '#5a4f43' : civilianVariant === 1 ? '#415244' : '#4f4269';
-
-  const pantsColor = npc.type === 'police' ? '#101827' : npc.type === 'gang' ? '#141414' : '#2b2b2b';
-  const headwearColor = npc.type === 'gang' ? (gangVariant === 1 ? '#5f1c1c' : '#111111') : npc.type === 'police' ? '#132641' : '#3a3a3a';
+  const civilianVariant = npc.id.length % 2;
+  const gangVariant = npc.id.length % 2;
 
   if (!npc.isAlive) {
     return (
@@ -113,110 +113,54 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
     );
   }
 
+  if (npc.type === 'police') {
+    return (
+      <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
+        <Suspense
+          fallback={<NPCFallback color="#183a63" emissive="#0d1725" />}
+        >
+          <PoliceCharacterModel scale={0.92} rotation={[0, Math.PI, 0]} />
+        </Suspense>
+
+        {(behavior === 'attack' || behavior === 'chase') && (
+          <mesh position={[0, 1.32, 0]}>
+            <sphereGeometry args={[0.05, 10, 10]} />
+            <meshStandardMaterial color={accentColor} emissive={accentColor} />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+
+  if (npc.type === 'civilian') {
+    return (
+      <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
+        {civilianVariant === 0 ? (
+          <Suspense fallback={<NPCFallback color="#6a5c88" position={[0, 0.88, 0]} />}>
+            <CivilianCharacterModel scale={0.92} rotation={[0, Math.PI, 0]} />
+          </Suspense>
+        ) : (
+          <Suspense fallback={<NPCFallback color="#5f7652" position={[0, 0.88, 0]} />}>
+            <CivilianAltCharacterModel scale={0.56} rotation={[0, Math.PI, 0]} />
+          </Suspense>
+        )}
+
+        {behavior === 'flee' && (
+          <mesh position={[0, 1.25, 0]}>
+            <sphereGeometry args={[0.05, 10, 10]} />
+            <meshStandardMaterial color={accentColor} emissive={accentColor} />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+
   return (
-    <group position={[0, bob, 0]} rotation={[0, 0, lean]} scale={npc.type === 'gang' ? [1.04, 1.04, 1.04] : [1, 1, 1]}>
-      {npc.type === 'police' && <pointLight position={[0, 1.2, 0.18]} color="#7db2ff" intensity={0.18} distance={2.2} />}
+    <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
       {npc.type === 'gang' && <pointLight position={[0, 1.05, 0.18]} color="#ff6b6b" intensity={0.12} distance={1.8} />}
-
-      <mesh position={[0, 0.16, 0.02]} castShadow>
-        <boxGeometry args={[0.38, 0.24, 0.22]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-
-      <mesh position={[0, npc.type === 'gang' ? 0.62 : 0.6, 0]} castShadow>
-        <capsuleGeometry args={[npc.type === 'gang' ? 0.23 : 0.21, npc.type === 'gang' ? 0.5 : 0.46, 8, 16]} />
-        <meshStandardMaterial color={jacketColor} emissive={npc.type === 'gang' ? '#160d0d' : npc.type === 'police' ? '#0d1725' : '#0b0b0b'} emissiveIntensity={0.12} />
-      </mesh>
-
-      <mesh position={[0, 0.8, 0.14]} castShadow>
-        <boxGeometry args={[npc.type === 'gang' ? 0.3 : 0.28, 0.18, 0.06]} />
-        <meshStandardMaterial color={torsoColor} />
-      </mesh>
-
-      <mesh position={[-0.2, 0.56, 0]} rotation={[0, 0, -0.22]} castShadow>
-        <capsuleGeometry args={[0.06, 0.28, 6, 12]} />
-        <meshStandardMaterial color={jacketColor} />
-      </mesh>
-      <mesh position={[0.2, 0.56, 0]} rotation={[0, 0, 0.22]} castShadow>
-        <capsuleGeometry args={[0.06, 0.28, 6, 12]} />
-        <meshStandardMaterial color={jacketColor} />
-      </mesh>
-
-      <mesh position={[-0.08, 0.02, 0]} castShadow>
-        <capsuleGeometry args={[0.07, 0.42, 6, 12]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-      <mesh position={[0.08, 0.02, 0]} castShadow>
-        <capsuleGeometry args={[0.07, 0.42, 6, 12]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-
-      <mesh position={[0, 1.02, 0]} castShadow>
-        <sphereGeometry args={[0.15, 12, 12]} />
-        <meshStandardMaterial color="#d4a574" />
-      </mesh>
-
-      <mesh position={[0, 0.97, 0.14]} castShadow>
-        <boxGeometry args={[0.22, 0.06, 0.03]} />
-        <meshStandardMaterial color="#151515" />
-      </mesh>
-
-      {npc.type === 'police' && (
-        <>
-          <mesh position={[0, 1.13, 0]} castShadow>
-            <cylinderGeometry args={[0.12, 0.16, 0.08, 8]} />
-            <meshStandardMaterial color={headwearColor} />
-          </mesh>
-          <mesh position={[0, 0.66, -0.16]} castShadow>
-            <boxGeometry args={[0.28, 0.24, 0.1]} />
-            <meshStandardMaterial color="#15212f" />
-          </mesh>
-          <mesh position={[0, 0.68, 0.18]} castShadow>
-            <boxGeometry args={[0.16, 0.08, 0.03]} />
-            <meshStandardMaterial color="#c8d6e5" emissive="#5c86b3" emissiveIntensity={0.25} />
-          </mesh>
-        </>
-      )}
-
-      {npc.type === 'gang' && (
-        <>
-          <mesh position={[0, 1.13, 0]} castShadow>
-            <boxGeometry args={[0.28, 0.08, 0.24]} />
-            <meshStandardMaterial color={headwearColor} />
-          </mesh>
-          <mesh position={[0, 0.88, 0.18]} castShadow>
-            <torusGeometry args={[0.075, 0.012, 8, 16]} />
-            <meshStandardMaterial color="#b59652" emissive="#4a3411" emissiveIntensity={0.3} />
-          </mesh>
-          <mesh position={[0, 0.7, -0.16]} castShadow>
-            <boxGeometry args={[0.3, 0.16, 0.08]} />
-            <meshStandardMaterial color="#1a1a1a" />
-          </mesh>
-          {gangVariant === 1 && (
-            <mesh position={[0, 0.76, 0.17]} castShadow>
-              <boxGeometry args={[0.32, 0.03, 0.02]} />
-              <meshStandardMaterial color="#d04a4a" emissive="#652020" emissiveIntensity={0.22} />
-            </mesh>
-          )}
-        </>
-      )}
-
-      {npc.type === 'civilian' && (
-        <>
-          {civilianVariant === 1 && (
-            <mesh position={[0, 0.68, -0.16]} castShadow>
-              <boxGeometry args={[0.24, 0.12, 0.08]} />
-              <meshStandardMaterial color="#6a4f2f" />
-            </mesh>
-          )}
-          {civilianVariant === 2 && (
-            <mesh position={[0, 1.12, 0]} castShadow>
-              <boxGeometry args={[0.24, 0.05, 0.2]} />
-              <meshStandardMaterial color="#3a2f2f" />
-            </mesh>
-          )}
-        </>
-      )}
+      <Suspense fallback={<NPCFallback color={gangVariant === 0 ? '#4a1818' : '#26222b'} emissive="#160d0d" />}>
+        <GangCharacterModel scale={gangVariant === 0 ? 0.9 : 0.86} rotation={[0, Math.PI, 0]} />
+      </Suspense>
 
       {(behavior === 'attack' || behavior === 'chase' || behavior === 'flee') && (
         <mesh position={[0, 1.28, 0]}>
@@ -366,7 +310,7 @@ export default function NPCs() {
 
     if (player.isShooting && player.weapon !== 'fist' && shotCooldownRef.current <= 0) {
       let wantedIncrease = 0;
-      shotCooldownRef.current = SHOOT_INTERVAL;
+      shotCooldownRef.current = player.weapon === 'knife' ? 0.42 : SHOOT_INTERVAL;
 
       npcs.forEach((npc) => {
         if (!npc.isAlive) {
@@ -380,11 +324,12 @@ export default function NPCs() {
         const dx = simulatedTransform.position[0] - player.position[0];
         const dz = simulatedTransform.position[2] - player.position[2];
         const distance = Math.sqrt(dx * dx + dz * dz);
-        const range = player.weapon === 'rifle' ? 20 : 12;
+        const range = player.weapon === 'rifle' ? 20 : player.weapon === 'knife' ? 2.4 : 12;
         const aimDiff = getAimDiff(player.rotation, player.position, simulatedTransform.position);
+        const withinStrikeCone = player.weapon === 'knife' ? aimDiff < 1.25 : aimDiff < 0.42;
 
-        if (distance < range && aimDiff < 0.42) {
-          const damage = player.weapon === 'rifle' ? 35 : 20;
+        if (distance < range && withinStrikeCone) {
+          const damage = player.weapon === 'rifle' ? 35 : player.weapon === 'knife' ? 22 : 20;
           damageNPC(npc.id, damage);
 
           if (npc.type === 'civilian') {

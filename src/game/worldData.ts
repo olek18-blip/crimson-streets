@@ -1,15 +1,15 @@
-import type { CityZone, Vehicle, NPC, Mission } from './types';
+import type { CityZone, Mission, NPC, Vehicle } from './types';
 
 // City layout - spread across a large world
 // World is ~600x600 units
 export const WORLD_SIZE = 300; // half-extent
 
 export const cities: CityZone[] = [
-  { id: 'madrona', name: 'MADRONA', subtitle: 'Capital — Centro Financiero', center: [0, 0, 0], radius: 45, color: '#c4a035' },
-  { id: 'barceloma', name: 'BARCELOMA', subtitle: 'Costa — Crimen & Vida Nocturna', center: [180, 0, -120], radius: 40, color: '#e05555' },
-  { id: 'valentia', name: 'VALENTIA', subtitle: 'Puerto — Contrabando & Carreras', center: [140, 0, 150], radius: 35, color: '#3588cc' },
-  { id: 'sevira', name: 'SEVIRA', subtitle: 'Histórica — Territorio de Bandas', center: [-160, 0, 130], radius: 38, color: '#cc7733' },
-  { id: 'costadelsol', name: 'COSTA DEL SOL', subtitle: 'Lujo — Atracos & Casinos', center: [-120, 0, -160], radius: 35, color: '#44bb88' },
+  { id: 'madrona', name: 'MADRONA', subtitle: 'Capital - Centro Financiero', center: [0, 0, 0], radius: 45, color: '#c4a035' },
+  { id: 'barceloma', name: 'BARCELOMA', subtitle: 'Costa - Crimen y Vida Nocturna', center: [180, 0, -120], radius: 40, color: '#e05555' },
+  { id: 'valentia', name: 'VALENTIA', subtitle: 'Puerto - Contrabando y Carreras', center: [140, 0, 150], radius: 35, color: '#3588cc' },
+  { id: 'sevira', name: 'SEVIRA', subtitle: 'Historica - Territorio de Bandas', center: [-160, 0, 130], radius: 38, color: '#cc7733' },
+  { id: 'costadelsol', name: 'COSTA DEL SOL', subtitle: 'Lujo - Atracos y Casinos', center: [-120, 0, -160], radius: 35, color: '#44bb88' },
 ];
 
 // Vehicles spread across cities
@@ -70,7 +70,7 @@ export const initialMissions: Mission[] = [
   {
     id: 'mission1',
     title: 'Dirty Patrol',
-    description: 'Roldán te manda a una patrulla sucia en Mandril. Cobra en la zona del mercado, mide la presión de la banda local y corta el handoff antes de que desaparezca la evidencia.',
+    description: 'Roldan te manda a una patrulla sucia en Mandril. Cobra en la zona del mercado, mide la presion de la banda local y corta el handoff antes de que desaparezca la evidencia.',
     objectives: [
       {
         id: 'obj1',
@@ -86,7 +86,7 @@ export const initialMissions: Mission[] = [
         text: 'Equipa el arma reglamentaria',
         completed: false,
         objectiveType: 'switch-weapon',
-        hint: 'Pulsa Q y prepárate antes de entrar en la zona de cobro.',
+        hint: 'Pulsa Q y preparate antes de entrar en la zona de cobro.',
       },
       {
         id: 'obj3',
@@ -100,7 +100,7 @@ export const initialMissions: Mission[] = [
       },
       {
         id: 'obj4',
-        text: 'Entra en el vehículo para perseguir al corredor',
+        text: 'Entra en el vehiculo para perseguir al corredor',
         completed: false,
         targetPosition: [8, 0, 5],
         objectiveType: 'enter-vehicle',
@@ -126,7 +126,7 @@ export const initialMissions: Mission[] = [
         completed: false,
         objectiveType: 'eliminate-gangs',
         effects: [{ type: 'set-min-wanted-level', level: 3 }],
-        hint: 'Rompe la protección del handoff y asegura la escena.',
+        hint: 'Rompe la proteccion del handoff y asegura la escena.',
       },
       {
         id: 'obj7',
@@ -136,7 +136,7 @@ export const initialMissions: Mission[] = [
         objectiveType: 'reach',
         radius: 4,
         effects: [{ type: 'set-wanted-level', level: 1 }],
-        hint: 'Muévete hasta la evidencia para cerrar la operación.',
+        hint: 'Muevete hasta la evidencia para cerrar la operacion.',
       },
     ],
     status: 'available',
@@ -158,7 +158,7 @@ export const initialMissions: Mission[] = [
   {
     id: 'mission3',
     title: 'Contrabando en el Puerto',
-    description: 'Intercepta un envío ilegal en los almacenes de Valentia.',
+    description: 'Intercepta un envio ilegal en los almacenes de Valentia.',
     objectives: [
       { id: 'obj3-1', text: 'Ir al puerto de Valentia', completed: false, targetPosition: [150, 0, 160], objectiveType: 'reach' },
       { id: 'obj3-2', text: 'Eliminar a los contrabandistas', completed: false, objectiveType: 'eliminate-gangs' },
@@ -170,10 +170,10 @@ export const initialMissions: Mission[] = [
   {
     id: 'mission4',
     title: 'Guerra de Bandas',
-    description: 'Las bandas de Sevira están fuera de control. Limpia las calles.',
+    description: 'Las bandas de Sevira estan fuera de control. Limpia las calles.',
     objectives: [
       { id: 'obj4-1', text: 'Ir al territorio de las bandas', completed: false, targetPosition: [-150, 0, 140], objectiveType: 'reach' },
-      { id: 'obj4-2', text: 'Eliminar a los líderes', completed: false, objectiveType: 'eliminate-gangs' },
+      { id: 'obj4-2', text: 'Eliminar a los lideres', completed: false, objectiveType: 'eliminate-gangs' },
     ],
     status: 'available',
     reward: 12000,
