@@ -18,6 +18,7 @@ export function usePlayerController() {
   const keys = useRef<Set<string>>(new Set());
   const jumpVelocity = useRef(0);
   const hitReactionTimer = useRef(0);
+  const isTouchDeviceRef = useRef(false);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
@@ -92,6 +93,11 @@ export function usePlayerController() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    isTouchDeviceRef.current = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  }, []);
+
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('mousedown', handleMouseDown);
@@ -122,7 +128,10 @@ export function usePlayerController() {
       return;
     }
 
-    setShooting(shooting);
+    // Don't let "mobile controls" zero-state override desktop mouse shooting.
+    if (isTouchDeviceRef.current) {
+      setShooting(shooting);
+    }
 
     const dt = Math.min(delta, MAX_DELTA);
     const playerIsDead = player.health <= 0 || player.animationState === 'death';

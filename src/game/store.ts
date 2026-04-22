@@ -42,6 +42,7 @@ interface GameStore extends GameState {
   completeMission: (id: string) => void;
   damageNPC: (id: string, amount: number) => void;
   switchWeapon: () => void;
+  registerShot: (weapon: PlayerState['weapon']) => void;
   gameOver: () => void;
   resetGame: () => void;
 }
@@ -106,6 +107,8 @@ const createFreshState = (): Omit<GameState, 'screen'> => ({
   activeMission: null,
   timeOfDay: 12,
   lastCompletedMission: null,
+  shotTick: 0,
+  lastShotWeapon: null,
 });
 
 const createIntroState = (): Omit<GameState, 'screen'> => {
@@ -315,6 +318,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
       };
     }),
+
+  registerShot: (weapon) =>
+    set((state) => ({
+      shotTick: state.shotTick + 1,
+      lastShotWeapon: weapon,
+    })),
 
   gameOver: () => set({ screen: 'game-over' }),
 

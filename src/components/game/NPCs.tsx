@@ -185,6 +185,7 @@ export default function NPCs() {
   const damageNPC = useGameStore((state) => state.damageNPC);
   const setWantedLevel = useGameStore((state) => state.setWantedLevel);
   const takeDamage = useGameStore((state) => state.takeDamage);
+  const registerShot = useGameStore((state) => state.registerShot);
 
   const homePositionsRef = useRef<Record<string, [number, number, number]>>({});
   const npcRefs = useRef<Record<string, THREE.Group | null>>({});
@@ -316,6 +317,7 @@ export default function NPCs() {
     }
 
     if (player.isShooting && player.weapon !== 'fist' && shotCooldownRef.current <= 0) {
+      registerShot(player.weapon);
       let wantedIncrease = 0;
       shotCooldownRef.current = player.weapon === 'knife' ? 0.42 : SHOOT_INTERVAL;
 

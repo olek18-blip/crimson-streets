@@ -101,4 +101,6 @@ export interface GameState {
   timeOfDay: number;
   cities: CityZone[];
   lastCompletedMission: string | null;
+  shotTick: number;
+  lastShotWeapon: PlayerState['weapon'] | null;
 }

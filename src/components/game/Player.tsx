@@ -1,11 +1,41 @@
-import { Suspense, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../../game/store';
-import { AnimatedPlayerCharacterModel, CombatKnifeModel, GunModel } from './AssetLibrary';
+import { AnimatedPlayerCharacterModel, CombatKnifeModel, GunModel, PistolFireModel } from './AssetLibrary';
 
 const RANGED_WEAPONS = new Set(['pistol', 'rifle']);
+const HAND_SOCKET_CANDIDATES = [
+  'mixamorigRightHand',
+  'RightHand',
+  'rightHand',
+  'Hand_R',
+  'hand_r',
+  'hand.R',
+  'r_hand',
+  'R_Hand',
+  'Bip01_R_Hand',
+];
+
+function findRightHandSocket(root: THREE.Object3D) {
+  for (const name of HAND_SOCKET_CANDIDATES) {
+    const found = root.getObjectByName(name);
+    if (found) return found;
+  }
+
+  // Heuristic fallback: best-effort "right hand" bone.
+  let candidate: THREE.Object3D | null = null;
+  root.traverse((node) => {
+    if (candidate) return;
+    if (!(node instanceof THREE.Bone)) return;
+    const name = node.name.toLowerCase();
+    if (name.includes('hand') && (name.includes('right') || name.includes('_r') || name.endsWith('r') || name.includes('.r'))) {
+      candidate = node;
+    }
+  });
+  return candidate;
+}
 
 function PlayerFallback() {
   return (
@@ -35,19 +65,55 @@ function WeaponFallback({ weapon }: { weapon: 'fist' | 'knife' | 'pistol' | 'rif
   );
 }
 
+function WeaponModel({ weapon }: { weapon: 'knife' | 'pistol' | 'rifle' }) {
+  if (weapon === 'knife') return <CombatKnifeModel />;
+  if (weapon === 'pistol') return <PistolFireModel />;
+  return <GunModel />;
+}
+
 export default function Player() {
   const groupRef = useRef<THREE.Group>(null);
   const characterRef = useRef<THREE.Group>(null);
   const weaponRef = useRef<THREE.Group>(null);
+  const muzzleLightRef = useRef<THREE.PointLight>(null);
+  const muzzleMeshRef = useRef<THREE.Mesh>(null);
+  const shotFlashTimerRef = useRef(0);
+  const [weaponSocket, setWeaponSocket] = useState<THREE.Object3D | null>(null);
+
   const playerRenderState = useGameStore(
     (state) => ({
       inVehicle: state.player.inVehicle,
       weapon: state.player.weapon,
       isShooting: state.player.isShooting,
       animationState: state.player.animationState,
+      shotTick: state.shotTick,
+      lastShotWeapon: state.lastShotWeapon,
     }),
     shallow,
   );
+
+  const hasWeaponModel = playerRenderState.weapon !== 'fist';
+  const hasRangedWeapon = RANGED_WEAPONS.has(playerRenderState.weapon);
+  const usingBoneSocket = Boolean(weaponSocket);
+
+  const weaponModel = useMemo(() => {
+    if (!hasWeaponModel) return null;
+    return (
+      <Suspense fallback={<WeaponFallback weapon={playerRenderState.weapon} />}>
+        <WeaponModel weapon={playerRenderState.weapon === 'knife' ? 'knife' : playerRenderState.weapon === 'pistol' ? 'pistol' : 'rifle'} />
+      </Suspense>
+    );
+  }, [hasWeaponModel, playerRenderState.weapon]);
+
+  useEffect(() => {
+    // Trigger a short muzzle flash on each "registered" shot.
+    if (!playerRenderState.lastShotWeapon) return;
+    if (!(playerRenderState.lastShotWeapon === 'pistol' || playerRenderState.lastShotWeapon === 'rifle')) return;
+
+    shotFlashTimerRef.current = 0.07;
+    if (muzzleLightRef.current) muzzleLightRef.current.visible = true;
+    if (muzzleMeshRef.current) muzzleMeshRef.current.visible = true;
+  }, [playerRenderState.shotTick, playerRenderState.lastShotWeapon]);
 
   useFrame((state) => {
     if (!groupRef.current || !characterRef.current) {
@@ -70,20 +136,46 @@ export default function Player() {
     characterRef.current.rotation.z = player.animationState === 'run' ? 0.04 : player.animationState === 'hit' ? -0.05 : 0;
     characterRef.current.position.y = player.animationState === 'death' ? 0.08 : 0;
 
+    if (!weaponSocket && characterRef.current) {
+      const socket = findRightHandSocket(characterRef.current);
+      if (socket) setWeaponSocket(socket);
+    }
+
     if (weaponRef.current) {
-      if (player.weapon === 'knife') {
-        weaponRef.current.position.set(0.24, 0.88, -0.04);
-        weaponRef.current.rotation.set(
-          player.animationState === 'shoot' ? -0.48 : -0.12,
-          Math.PI / 2,
-          player.animationState === 'shoot' ? 0.38 : 0.16,
-        );
-      } else if (player.weapon === 'rifle') {
-        weaponRef.current.position.set(0.28, 0.92, -0.12);
-        weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.2 : -0.04, Math.PI, 0);
+      if (usingBoneSocket) {
+        // Tuned for a typical right-hand socket; adjust later if the rig changes.
+        if (player.weapon === 'knife') {
+          weaponRef.current.position.set(0.04, 0.02, 0.03);
+          weaponRef.current.rotation.set(-0.2, Math.PI / 2, 1.25);
+          weaponRef.current.scale.setScalar(0.02);
+        } else if (player.weapon === 'rifle') {
+          weaponRef.current.position.set(0.06, 0.03, 0.02);
+          weaponRef.current.rotation.set(-Math.PI / 2 + 0.15, 0.12, Math.PI);
+          weaponRef.current.scale.setScalar(0.12);
+        } else if (player.weapon === 'pistol') {
+          weaponRef.current.position.set(0.055, 0.03, 0.015);
+          weaponRef.current.rotation.set(-Math.PI / 2 + 0.1, 0.08, Math.PI);
+          weaponRef.current.scale.setScalar(0.085);
+        }
       } else {
-        weaponRef.current.position.set(0.24, 0.92, -0.06);
-        weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.12 : 0.02, Math.PI, 0);
+        // Fallback placement (when no hand socket exists on the model).
+        if (player.weapon === 'knife') {
+          weaponRef.current.position.set(0.24, 0.88, -0.04);
+          weaponRef.current.rotation.set(
+            player.animationState === 'shoot' ? -0.48 : -0.12,
+            Math.PI / 2,
+            player.animationState === 'shoot' ? 0.38 : 0.16,
+          );
+          weaponRef.current.scale.setScalar(1);
+        } else if (player.weapon === 'rifle') {
+          weaponRef.current.position.set(0.28, 0.92, -0.12);
+          weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.2 : -0.04, Math.PI, 0);
+          weaponRef.current.scale.setScalar(1);
+        } else {
+          weaponRef.current.position.set(0.24, 0.92, -0.06);
+          weaponRef.current.rotation.set(player.animationState === 'shoot' ? -0.12 : 0.02, Math.PI, 0);
+          weaponRef.current.scale.setScalar(1);
+        }
       }
 
       if (player.animationState === 'hit') {
@@ -94,14 +186,33 @@ export default function Player() {
         weaponRef.current.rotation.x += rangedWeapon ? 0.1 : 0.16;
       }
     }
+
+    if (shotFlashTimerRef.current > 0) {
+      shotFlashTimerRef.current = Math.max(0, shotFlashTimerRef.current - state.clock.getDelta());
+      if (shotFlashTimerRef.current <= 0) {
+        if (muzzleLightRef.current) muzzleLightRef.current.visible = false;
+        if (muzzleMeshRef.current) muzzleMeshRef.current.visible = false;
+      }
+    }
   });
 
   if (playerRenderState.inVehicle) {
     return null;
   }
 
-  const hasWeaponModel = playerRenderState.weapon !== 'fist';
-  const hasRangedWeapon = RANGED_WEAPONS.has(playerRenderState.weapon);
+  const weaponGroup = hasWeaponModel ? (
+    <group ref={weaponRef}>
+      {/* Keep model transforms at the group level so we can re-parent to a hand socket. */}
+      <group rotation={[0, Math.PI, 0]}>{weaponModel}</group>
+
+      {/* Muzzle flash (visibility toggled imperatively via refs). */}
+      <pointLight ref={muzzleLightRef} visible={false} position={[0.02, 0.02, -0.34]} color="#ff6a00" intensity={3.2} distance={5} />
+      <mesh ref={muzzleMeshRef} visible={false} position={[0.02, 0.02, -0.36]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
+        <meshStandardMaterial emissive="#ff7b00" color="#ffcf66" />
+      </mesh>
+    </group>
+  ) : null;
 
   return (
     <group ref={groupRef}>
@@ -114,31 +225,7 @@ export default function Player() {
         </Suspense>
       </group>
 
-      {hasWeaponModel && (
-        <group ref={weaponRef}>
-          <Suspense fallback={<WeaponFallback weapon={playerRenderState.weapon} />}>
-            {playerRenderState.weapon === 'knife' ? (
-              <CombatKnifeModel scale={0.02} rotation={[0, Math.PI / 2, 0]} />
-            ) : (
-              <GunModel
-                scale={playerRenderState.weapon === 'rifle' ? 0.12 : 0.08}
-                rotation={[0, Math.PI, 0]}
-                position={[0, playerRenderState.weapon === 'rifle' ? -0.05 : 0, playerRenderState.weapon === 'rifle' ? -0.08 : 0]}
-              />
-            )}
-          </Suspense>
-        </group>
-      )}
-
-      {playerRenderState.isShooting && hasRangedWeapon && (
-        <>
-          <pointLight position={[0.32, 0.92, -0.42]} color="#ff6a00" intensity={3.4} distance={5} />
-          <mesh position={[0.32, 0.92, -0.44]}>
-            <sphereGeometry args={[0.06, 10, 10]} />
-            <meshStandardMaterial emissive="#ff7b00" color="#ffcf66" />
-          </mesh>
-        </>
-      )}
+      {weaponGroup && (weaponSocket ? createPortal(weaponGroup, weaponSocket) : weaponGroup)}
     </group>
   );
 }

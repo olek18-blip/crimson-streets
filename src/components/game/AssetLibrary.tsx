@@ -168,6 +168,10 @@ export function GunModel(props: ModelTransformProps) {
   return <StaticModel url="/models/gun.glb" {...props} />;
 }
 
+export function PistolFireModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/pistol-fire.glb" {...props} />;
+}
+
 export function CombatKnifeModel(props: ModelTransformProps) {
   return <StaticModel url="/models/combat-knife.glb" {...props} />;
 }
@@ -206,6 +210,7 @@ useGLTF.preload('/models/male-character.glb');
 useGLTF.preload('/models/lowpoly-male-npc.glb');
 useGLTF.preload('/models/male-base-v2.glb');
 useGLTF.preload('/models/gun.glb');
+useGLTF.preload('/models/pistol-fire.glb');
 useGLTF.preload('/models/combat-knife.glb');
 useGLTF.preload('/models/malibu-car.glb');
 useGLTF.preload('/models/pontiac-ventura.glb');
