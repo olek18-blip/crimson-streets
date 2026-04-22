@@ -25,13 +25,13 @@ export default function MainMenu() {
             PELIGROSO
           </h1>
           <h2 className="font-display mt-2 text-3xl sm:text-5xl md:text-6xl tracking-[0.14em] sm:tracking-widest leading-none" style={{ color: 'hsl(var(--secondary))' }}>
-            ESPAÑA
+            ESPANA
           </h2>
         </div>
 
         <div className="w-full max-w-[310px] sm:max-w-md rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md px-4 py-3 sm:px-5 sm:py-4 text-center">
           <p className="text-slate-300 text-sm sm:text-base leading-snug">
-            Un policía corrupto. Una red criminal. Una ciudad que nunca duerme.
+            Un policia corrupto. Una red criminal. Una ciudad que nunca duerme.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export default function MainMenu() {
               background: 'rgba(3,7,18,0.28)',
             }}
           >
-            DEMOSTRACIÓN DE LA MISIÓN
+            DEMOSTRACION DE LA MISION
           </Link>
           <Link
             to="/world-map"
@@ -86,7 +86,7 @@ export default function MainMenu() {
         </div>
 
         <div className="mt-3 text-[11px] sm:text-xs text-slate-400 font-display tracking-[0.16em] sm:tracking-wider text-center px-3">
-          PROTOTIPO v0.2 — GUARDADO AUTOMÁTICO ACTIVADO
+          PROTOTIPO v0.2 - GUARDADO AUTOMATICO ACTIVADO
         </div>
       </div>
     </div>

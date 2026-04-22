@@ -1,32 +1,36 @@
 import { useMemo } from 'react';
 import { Billboard, Text } from '@react-three/drei';
+import { getMissionTarget } from '../../game/missionSelectors';
 import { useGameStore } from '../../game/store';
 
 export default function MissionBeacon() {
+  const player = useGameStore((state) => state.player);
   const activeMission = useGameStore((state) => state.activeMission);
   const missions = useGameStore((state) => state.missions);
 
-  const objective = useMemo(() => {
-    const mission = missions.find((item) => item.id === activeMission);
-    return mission?.objectives.find((item) => !item.completed && item.targetPosition) ?? null;
-  }, [missions, activeMission]);
+  const missionTarget = useMemo(
+    () => getMissionTarget({ player, missions, activeMission }),
+    [player, missions, activeMission],
+  );
 
-  if (!objective?.targetPosition) {
+  if (!missionTarget?.objective.targetPosition) {
     return null;
   }
 
-  const [x, , z] = objective.targetPosition;
+  const [x, , z] = missionTarget.objective.targetPosition;
+  const accentColor = missionTarget.kind === 'active-objective' ? '#f59e0b' : '#22d3ee';
+  const label = missionTarget.kind === 'active-objective' ? 'OBJETIVO' : 'OPERACION';
 
   return (
     <group position={[x, 0, z]}>
       <mesh position={[0, 2.4, 0]}>
         <cylinderGeometry args={[0.2, 0.2, 5.2, 16, 1, true]} />
-        <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={0.6} transparent opacity={0.22} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.6} transparent opacity={0.22} />
       </mesh>
 
       <mesh position={[0, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.4, 1.9, 32]} />
-        <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.9} transparent opacity={0.9} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.9} transparent opacity={0.9} />
       </mesh>
 
       <Billboard position={[0, 5.4, 0]} follow>
@@ -43,7 +47,7 @@ export default function MissionBeacon() {
             anchorY="middle"
             maxWidth={3.6}
           >
-            OBJETIVO
+            {label}
           </Text>
         </group>
       </Billboard>

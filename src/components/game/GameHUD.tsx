@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getMissionProgress, getMissionTarget, getNextObjective } from '../../game/missionSelectors';
 import { useGameStore } from '../../game/store';
 import { cities } from '../../game/worldData';
 import type { Mission, MissionObjective, PlayerState } from '../../game/types';
@@ -16,7 +17,7 @@ function getWeaponLabel(weapon: PlayerState['weapon']) {
     case 'rifle':
       return 'RIFLE';
     default:
-      return 'PUÑOS';
+      return 'PUNOS';
   }
 }
 
@@ -24,30 +25,27 @@ type HudSnapshot = {
   player: PlayerState;
   mission: Mission | null;
   currentObjective: MissionObjective | null;
-  objectiveDistance: number | null;
+  availableMission: Mission | null;
+  targetDistance: number | null;
+  missionProgress: ReturnType<typeof getMissionProgress>;
   nearVehicleDistance: number | null;
 };
 
 function readHudSnapshot(): HudSnapshot {
   const { player, missions, activeMission, vehicles } = useGameStore.getState();
   const mission = missions.find((item) => item.id === activeMission) ?? null;
-  const currentObjective = mission?.objectives.find((item) => !item.completed) ?? null;
-
-  let objectiveDistance: number | null = null;
-  if (currentObjective?.targetPosition) {
-    const dx = currentObjective.targetPosition[0] - player.position[0];
-    const dz = currentObjective.targetPosition[2] - player.position[2];
-    objectiveDistance = Math.sqrt(dx * dx + dz * dz);
-  }
+  const currentObjective = getNextObjective(mission);
+  const missionTarget = getMissionTarget({ player, missions, activeMission });
 
   let nearVehicleDistance: number | null = null;
   if (!player.inVehicle) {
     for (const vehicle of vehicles) {
       const dx = vehicle.position[0] - player.position[0];
       const dz = vehicle.position[2] - player.position[2];
-      const d = Math.sqrt(dx * dx + dz * dz);
-      if (d < 4 && (nearVehicleDistance === null || d < nearVehicleDistance)) {
-        nearVehicleDistance = d;
+      const distance = Math.sqrt(dx * dx + dz * dz);
+
+      if (distance < 4 && (nearVehicleDistance === null || distance < nearVehicleDistance)) {
+        nearVehicleDistance = distance;
       }
     }
   }
@@ -56,14 +54,16 @@ function readHudSnapshot(): HudSnapshot {
     player,
     mission,
     currentObjective,
-    objectiveDistance,
+    availableMission: missionTarget?.kind === 'available-mission' ? missionTarget.mission : null,
+    targetDistance: missionTarget?.distance ?? null,
+    missionProgress: getMissionProgress(mission),
     nearVehicleDistance,
   };
 }
 
 export default function GameHUD() {
   const [snapshot, setSnapshot] = useState<HudSnapshot>(() => readHudSnapshot());
-  const { player, mission, currentObjective, objectiveDistance, nearVehicleDistance } = snapshot;
+  const { player, mission, currentObjective, availableMission, targetDistance, missionProgress, nearVehicleDistance } = snapshot;
   const editor = useGameStore((state) => state.editor);
   const cityData = cities.find((item) => item.id === player.currentCity);
 
@@ -78,9 +78,15 @@ export default function GameHUD() {
     player.wantedLevel >= 4 ? 'CAZA TOTAL' : player.wantedLevel >= 2 ? 'FUERZAS ACTIVAS' : player.wantedLevel > 0 ? 'SOSPECHOSO' : null;
   const missionMood =
     mission?.id === 'mission1'
-      ? 'Patrulla sucia en Mandril: cobro, presión de banda y handoff.'
+      ? 'Patrulla sucia en Mandril: cobro, presion de banda y handoff.'
       : mission?.description;
   const showCrosshair = player.weapon === 'pistol' || player.weapon === 'rifle';
+  const leadMission = mission ?? availableMission;
+  const leadTitle = mission ? 'MISION ACTIVA' : availableMission ? 'OPERACION DISPONIBLE' : null;
+  const leadObjective = mission ? currentObjective : availableMission?.objectives[0] ?? null;
+  const leadHint = mission ? currentObjective?.hint : 'Acercate al marcador para iniciar la operacion.';
+  const targetAccentClass = mission ? 'text-amber-200' : 'text-cyan-100';
+  const targetAccentBorder = mission ? 'border border-amber-400/20' : 'border border-cyan-300/20';
 
   return (
     <div className="fixed inset-0 pointer-events-none z-10 select-none">
@@ -106,16 +112,17 @@ export default function GameHUD() {
           </div>
         </div>
 
-        {mission && currentObjective && (
-          <div className="game-panel rounded-xl px-3 py-2 border border-amber-400/15">
+        {leadMission && leadObjective && leadTitle && (
+          <div className={`game-panel rounded-xl px-3 py-2 ${targetAccentBorder}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[9px] tracking-[0.2em] text-amber-300 font-display">MISIÓN</div>
-                <div className="text-[12px] text-white leading-snug mt-1">{currentObjective.text}</div>
-                {objectiveDistance !== null && <div className="text-[10px] text-slate-400 mt-1">{formatDistance(objectiveDistance)}</div>}
+                <div className={`text-[9px] tracking-[0.2em] font-display ${mission ? 'text-amber-300' : 'text-cyan-200'}`}>{leadTitle}</div>
+                <div className="text-[12px] text-white leading-snug mt-1">{leadObjective.text}</div>
+                {leadHint && <div className="text-[10px] text-slate-400 mt-1 leading-snug">{leadHint}</div>}
               </div>
               <div className="text-right shrink-0">
-                <div className="text-[9px] tracking-[0.18em] text-slate-400 font-display">ARMA</div>
+                {targetDistance !== null && <div className={`text-[10px] ${targetAccentClass}`}>{formatDistance(targetDistance)}</div>}
+                <div className="text-[9px] tracking-[0.18em] text-slate-400 font-display mt-1">ARMA</div>
                 <div className="text-[10px] text-white mt-1">{getWeaponLabel(player.weapon)}</div>
               </div>
             </div>
@@ -128,7 +135,7 @@ export default function GameHUD() {
           <div className="game-panel rounded-full px-3 py-1.5 flex items-center gap-2 border border-red-300/12 shadow-[0_0_18px_rgba(127,29,29,0.16)]">
             <div className="flex gap-1 text-sm leading-none">
               {Array.from({ length: 5 }).map((_, index) => (
-                <span key={index} style={{ opacity: index < player.wantedLevel ? 1 : 0.18 }}>★</span>
+                <span key={index} style={{ opacity: index < player.wantedLevel ? 1 : 0.18 }}>*</span>
               ))}
             </div>
             {wantedLabel && <span className="text-[9px] font-display tracking-[0.18em] text-red-300">{wantedLabel}</span>}
@@ -141,7 +148,7 @@ export default function GameHUD() {
           <div className="game-panel rounded px-3 py-1.5 flex flex-col items-center min-w-[180px]">
             <div className="flex gap-1 justify-center text-lg leading-none">
               {Array.from({ length: 5 }).map((_, index) => (
-                <span key={index} style={{ opacity: index < player.wantedLevel ? 1 : 0.22 }}>★</span>
+                <span key={index} style={{ opacity: index < player.wantedLevel ? 1 : 0.22 }}>*</span>
               ))}
             </div>
             {wantedLabel && <span className="text-[10px] font-display tracking-[0.22em] text-red-300 mt-1">{wantedLabel}</span>}
@@ -170,7 +177,7 @@ export default function GameHUD() {
         <div className="game-panel rounded px-3 py-2">
           <div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground mb-1">ESTADO</div>
           <div className="flex items-center justify-between text-[11px]"><span className="text-foreground">Ciudad</span><span style={{ color: cityData?.color || 'hsl(var(--foreground))' }}>{cityData?.name || 'RURAL'}</span></div>
-          <div className="flex items-center justify-between text-[11px] mt-1"><span className="text-foreground">Vehículo</span><span className="text-muted-foreground">{player.inVehicle ? 'OCUPADO' : 'A PIE'}</span></div>
+          <div className="flex items-center justify-between text-[11px] mt-1"><span className="text-foreground">Vehiculo</span><span className="text-muted-foreground">{player.inVehicle ? 'OCUPADO' : 'A PIE'}</span></div>
         </div>
 
         <div className="game-panel rounded px-3 py-2 text-right">
@@ -184,51 +191,71 @@ export default function GameHUD() {
         </div>
       </div>
 
-      {mission && (
+      {leadMission && leadObjective && leadTitle && (
         <div className="hidden sm:block absolute left-4 right-auto bottom-24 max-w-sm">
-          <div className="game-panel rounded-xl p-4 border border-amber-400/20 max-h-[46vh] overflow-auto">
+          <div className={`game-panel rounded-xl p-4 max-h-[46vh] overflow-auto ${targetAccentBorder}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[10px] font-display tracking-[0.22em] text-amber-300 mb-1">MISIÓN ACTIVA</div>
-                <h3 className="font-display text-base tracking-[0.08em] text-foreground leading-tight">{mission.title}</h3>
-                {missionMood && <div className="text-[11px] text-slate-400 mt-1 leading-snug">{missionMood}</div>}
+                <div className={`text-[10px] font-display tracking-[0.22em] mb-1 ${mission ? 'text-amber-300' : 'text-cyan-200'}`}>{leadTitle}</div>
+                <h3 className="font-display text-base tracking-[0.08em] text-foreground leading-tight">{leadMission.title}</h3>
+                <div className="text-[11px] text-slate-400 mt-1 leading-snug">{mission ? missionMood : leadMission.description}</div>
               </div>
-              {objectiveDistance !== null && <div className="text-right shrink-0"><div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground">DISTANCIA</div><div className="text-sm font-semibold text-amber-200">{formatDistance(objectiveDistance)}</div></div>}
+              {targetDistance !== null && (
+                <div className="text-right shrink-0">
+                  <div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground">DISTANCIA</div>
+                  <div className={`text-sm font-semibold ${targetAccentClass}`}>{formatDistance(targetDistance)}</div>
+                </div>
+              )}
             </div>
 
-            {currentObjective && (
-              <div className="mt-3 rounded-lg px-3 py-2 bg-black/20 border border-white/5">
-                <div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground mb-1">OBJETIVO ACTUAL</div>
-                <div className="text-[12px] text-foreground leading-snug">{currentObjective.text}</div>
-                {currentObjective.hint && <div className="text-[11px] text-slate-400 mt-1 leading-snug">{currentObjective.hint}</div>}
-              </div>
-            )}
+            <div className="mt-3 rounded-lg px-3 py-2 bg-black/20 border border-white/5">
+              <div className="text-[10px] font-display tracking-[0.2em] text-muted-foreground mb-1">{mission ? 'OBJETIVO ACTUAL' : 'PRIMER CONTACTO'}</div>
+              <div className="text-[12px] text-foreground leading-snug">{leadObjective.text}</div>
+              {leadHint && <div className="text-[11px] text-slate-400 mt-1 leading-snug">{leadHint}</div>}
+            </div>
 
-            <div className="mt-3 flex flex-col gap-1.5">
-              {mission.objectives.map((objective, index) => {
-                const currentIndex = mission.objectives.findIndex((item) => !item.completed);
-                return (
-                  <div key={objective.id} className="flex items-start gap-2 text-[11px] leading-snug">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 mt-0.5" style={{ background: objective.completed ? 'rgba(34,197,94,0.18)' : index === currentIndex ? 'rgba(245,158,11,0.16)' : 'rgba(255,255,255,0.08)', color: objective.completed ? '#86efac' : index === currentIndex ? '#fbbf24' : '#cbd5e1' }}>{objective.completed ? '✓' : index + 1}</span>
-                    <span className={objective.completed ? 'line-through opacity-45' : 'text-foreground'}>{objective.text}</span>
+            {mission && (
+              <>
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-[10px] font-display tracking-[0.18em] text-muted-foreground">
+                    <span>PROGRESO</span>
+                    <span>{missionProgress.completed}/{missionProgress.total}</span>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="mt-1 h-1.5 rounded-full overflow-hidden bg-white/10">
+                    <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-orange-400 to-orange-500" style={{ width: `${missionProgress.ratio * 100}%` }} />
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-1.5">
+                  {mission.objectives.map((objective, index) => {
+                    const currentIndex = mission.objectives.findIndex((item) => !item.completed);
+
+                    return (
+                      <div key={objective.id} className="flex items-start gap-2 text-[11px] leading-snug">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 mt-0.5" style={{ background: objective.completed ? 'rgba(34,197,94,0.18)' : index === currentIndex ? 'rgba(245,158,11,0.16)' : 'rgba(255,255,255,0.08)', color: objective.completed ? '#86efac' : index === currentIndex ? '#fbbf24' : '#cbd5e1' }}>
+                          {objective.completed ? 'OK' : index + 1}
+                        </span>
+                        <span className={objective.completed ? 'line-through opacity-45' : 'text-foreground'}>{objective.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
       <div className="hidden sm:block absolute bottom-4 left-4 right-auto">
         <div className="game-panel rounded px-3 py-2 flex gap-3 text-[9px] text-muted-foreground font-display tracking-wider flex-wrap justify-start max-w-[560px]">
-          <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHÍCULO</span><span>Q ARMA</span><span>CLICK ACCIÓN</span><span>ESC PAUSA</span>
+          <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHICULO</span><span>Q ARMA</span><span>CLICK ACCION</span><span>ESC PAUSA</span>
         </div>
       </div>
 
       {nearVehicleDistance !== null && (
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-16">
           <div className="game-panel rounded px-3 py-2 text-center sm:text-left border border-cyan-300/15">
-            <span className="font-display text-[10px] tracking-[0.16em] text-cyan-200">F PARA ENTRAR AL VEHÃCULO</span>
+            <span className="font-display text-[10px] tracking-[0.16em] text-cyan-200">F PARA ENTRAR AL VEHICULO</span>
           </div>
         </div>
       )}
@@ -247,7 +274,7 @@ export default function GameHUD() {
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-14">
           <div className="game-panel rounded px-3 py-1.5 text-center sm:text-left">
             <span className="font-display text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-wider" style={{ color: 'hsl(var(--game-armor))' }}>
-              {typeof window !== 'undefined' && window.innerWidth < 640 ? 'VEHÍCULO ACTIVO' : 'EN VEHÍCULO - F PARA SALIR'}
+              {typeof window !== 'undefined' && window.innerWidth < 640 ? 'VEHICULO ACTIVO' : 'EN VEHICULO - F PARA SALIR'}
             </span>
           </div>
         </div>

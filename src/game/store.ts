@@ -3,7 +3,7 @@ import type { GameState, MapEditorState, MissionObjectiveEffect, NPC, PlacedProp
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
-// const INTRO_MISSION_ID = 'mission1';
+const INTRO_MISSION_ID = 'mission1';
 const EXPLORATION_MODE = true;
 const MAP_EDITOR_STORAGE_KEY = 'crimson_map_editor_v1';
 
