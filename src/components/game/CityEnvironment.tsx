@@ -1,6 +1,23 @@
 import { Suspense } from 'react';
 import { cities, WORLD_SIZE } from '../../game/worldData';
-import { BuildingsBlockModel, DumpsterSetModel, StreetLightSingleModel, TreeClusterModel, TruckModel } from './AssetLibrary';
+import {
+  BuildingsBlockModel,
+  CityBarModel,
+  CityBillboardModel,
+  CityBuildingModel,
+  CityCarModel,
+  CityHotelBuildingModel,
+  CityManModel,
+  CityPoliceCarModel,
+  CityStopSignModel,
+  CitySuvModel,
+  CityTrafficLightModel,
+  CityWomanModel,
+  DumpsterSetModel,
+  StreetLightSingleModel,
+  TreeClusterModel,
+  TruckModel,
+} from './AssetLibrary';
 
 function rand(seed: number) {
   const x = Math.sin(seed) * 43758.5453123;
@@ -277,6 +294,64 @@ function StreetLight({ position, color = '#ffcc66' }: { position: [number, numbe
         <sphereGeometry args={[0.12, 10, 10]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
       </mesh>
+    </group>
+  );
+}
+
+function CityPackLandmarks({ cx, cz, cityId }: { cx: number; cz: number; cityId: string }) {
+  // Curated "city pack" props to reduce the procedural look without tanking performance.
+  const hotelTint = cityId === 'barceloma' ? '#00d4ff' : cityId === 'costadelsol' ? '#ffd27a' : '#c4a035';
+  const neonTint = cityId === 'barceloma' ? '#ff0066' : cityId === 'valentia' ? '#00ffff' : '#ffd27a';
+
+  return (
+    <group>
+      <Suspense fallback={null}>
+        <group position={[cx + 8, 0, cz + 12]} rotation={[0, 0.6, 0]} scale={0.72}>
+          <CityBuildingModel />
+        </group>
+        <group position={[cx - 14, 0, cz + 16]} rotation={[0, -0.35, 0]} scale={0.78}>
+          <CityHotelBuildingModel />
+          <pointLight position={[2, 6, 0]} color={hotelTint} intensity={1.1} distance={18} />
+        </group>
+        <group position={[cx + 18, 0, cz - 10]} rotation={[0, 2.2, 0]} scale={0.7}>
+          <CityBarModel />
+          <pointLight position={[0, 3.2, 0]} color={neonTint} intensity={1.3} distance={14} />
+        </group>
+
+        <group position={[cx + 10, 0, cz - 20]} rotation={[0, 1.2, 0]} scale={0.9}>
+          <CityBillboardModel />
+          <pointLight position={[0, 4.2, 0]} color="#ff4fd8" intensity={0.9} distance={16} />
+        </group>
+
+        <group position={[cx + 2.2, 0, cz - 4.8]} rotation={[0, 0, 0]} scale={0.9}>
+          <CityTrafficLightModel />
+        </group>
+        <group position={[cx - 2.2, 0, cz - 4.6]} rotation={[0, Math.PI, 0]} scale={0.9}>
+          <CityTrafficLightModel />
+        </group>
+        <group position={[cx + 4.3, 0, cz + 3.1]} rotation={[0, Math.PI / 2, 0]} scale={1}>
+          <CityStopSignModel />
+        </group>
+
+        <group position={[cx + 6, 0, cz + 4]} rotation={[0, -0.8, 0]} scale={0.65}>
+          <CityCarModel />
+        </group>
+        <group position={[cx - 8, 0, cz - 6]} rotation={[0, 0.9, 0]} scale={0.65}>
+          <CitySuvModel />
+        </group>
+        {cityId === 'madrona' && (
+          <group position={[cx - 2, 0, cz - 14]} rotation={[0, 0.15, 0]} scale={0.7}>
+            <CityPoliceCarModel />
+          </group>
+        )}
+
+        <group position={[cx + 12, 0, cz + 6]} rotation={[0, -1.6, 0]} scale={0.72}>
+          <CityWomanModel />
+        </group>
+        <group position={[cx - 12, 0, cz + 2]} rotation={[0, 1.1, 0]} scale={0.72}>
+          <CityManModel />
+        </group>
+      </Suspense>
     </group>
   );
 }
@@ -624,6 +699,9 @@ export default function CityEnvironment() {
       ))}
       {cities.map((city) => (
         <CityLandmarks key={`lm-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
+      ))}
+      {cities.map((city) => (
+        <CityPackLandmarks key={`pack-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
       {cities.map((city) => (
         <DistrictProps key={`props-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />

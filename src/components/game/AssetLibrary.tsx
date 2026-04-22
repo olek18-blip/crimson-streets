@@ -204,6 +204,59 @@ export function StreetLightSingleModel(props: ModelTransformProps) {
   return <StaticModel url="/models/street-light-kit.glb" objectName="StreetLightSingle" {...props} />;
 }
 
+// City pack props (static)
+export function CityBuildingModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/building.glb" {...props} />;
+}
+
+export function CityHotelBuildingModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/hotel-building.glb" {...props} />;
+}
+
+export function CityBarModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/bar.glb" {...props} />;
+}
+
+export function CityBillboardModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/billboard.glb" {...props} />;
+}
+
+export function CityTrafficLightModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/traffic-light.glb" {...props} />;
+}
+
+export function CityStopSignModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/stop-sign.glb" {...props} />;
+}
+
+export function CityPoliceCarModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/police-car.glb" {...props} />;
+}
+
+export function CitySuvModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/suv.glb" {...props} />;
+}
+
+export function CityCarModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/car.glb" {...props} />;
+}
+
+export function CityRoadBitsModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/road-bits.glb" {...props} />;
+}
+
+export function CityPathStraightModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/path-straight.glb" {...props} />;
+}
+
+export function CityManModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/man.glb" {...props} />;
+}
+
+export function CityWomanModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/city/woman.glb" {...props} />;
+}
+
 useGLTF.preload('/models/ps1-character.glb');
 useGLTF.preload('/models/cop-character.glb');
 useGLTF.preload('/models/male-character.glb');
@@ -219,3 +272,16 @@ useGLTF.preload('/models/buildings.glb');
 useGLTF.preload('/models/trees.glb');
 useGLTF.preload('/models/dumpster-set.glb');
 useGLTF.preload('/models/street-light-kit.glb');
+useGLTF.preload('/models/city/building.glb');
+useGLTF.preload('/models/city/hotel-building.glb');
+useGLTF.preload('/models/city/bar.glb');
+useGLTF.preload('/models/city/billboard.glb');
+useGLTF.preload('/models/city/traffic-light.glb');
+useGLTF.preload('/models/city/stop-sign.glb');
+useGLTF.preload('/models/city/police-car.glb');
+useGLTF.preload('/models/city/suv.glb');
+useGLTF.preload('/models/city/car.glb');
+useGLTF.preload('/models/city/road-bits.glb');
+useGLTF.preload('/models/city/path-straight.glb');
+useGLTF.preload('/models/city/man.glb');
+useGLTF.preload('/models/city/woman.glb');
