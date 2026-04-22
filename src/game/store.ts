@@ -307,6 +307,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         player: {
           ...state.player,
           weapon: weapons[(currentIndex + 1) % weapons.length] ?? 'fist',
+          isShooting: false,
         },
       };
     }),
