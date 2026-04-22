@@ -1,4 +1,5 @@
 import { Suspense, useMemo } from 'react';
+import { isFastDev } from '../../game/env';
 import { cities, WORLD_SIZE } from '../../game/worldData';
 import { useGameStore } from '../../game/store';
 import {
@@ -267,6 +268,17 @@ function Road({ start, end, width = 5 }: { start: [number, number]; end: [number
 }
 
 function StreetLight({ position, color = '#ffcc66' }: { position: [number, number, number]; color?: string }) {
+  if (isFastDev) {
+    return (
+      <group position={position}>
+        <mesh position={[0, 2, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 4]} />
+          <meshStandardMaterial color="#565b63" />
+        </mesh>
+      </group>
+    );
+  }
+
   return (
     <group position={position}>
       <pointLight position={[0, 3, 0]} color={color} intensity={1.15} distance={14} />
@@ -570,7 +582,7 @@ function Waterfront() {
 function RuralZones({ playerPosition }: { playerPosition: [number, number, number] }) {
   const trees = useMemo(() => {
     const nextTrees: [number, number, number][] = [];
-    for (let i = 0; i < 140; i++) {
+    for (let i = 0; i < (isFastDev ? 64 : 140); i++) {
       const angle = (i / 140) * Math.PI * 2 * 5 + i * 0.71;
       const dist = 65 + Math.sin(i * 0.27) * 82;
       const x = Math.cos(angle) * dist;
@@ -592,7 +604,7 @@ function RuralZones({ playerPosition }: { playerPosition: [number, number, numbe
       trees.filter((tree) => {
         const dx = tree[0] - playerPosition[0];
         const dz = tree[2] - playerPosition[2];
-        return dx * dx + dz * dz < 170 * 170;
+        return dx * dx + dz * dz < (isFastDev ? 110 * 110 : 170 * 170);
       }),
     [playerPosition, trees],
   );
@@ -638,7 +650,7 @@ function PlacedProps() {
   const visiblePlaced = placed.filter((prop) => {
     const dx = prop.position[0] - playerPosition[0];
     const dz = prop.position[2] - playerPosition[2];
-    return dx * dx + dz * dz < 220 * 220;
+    return dx * dx + dz * dz < (isFastDev ? 120 * 120 : 220 * 220);
   });
 
   return (
@@ -736,7 +748,7 @@ export default function CityEnvironment() {
       cities.filter((city) => {
         const dx = city.center[0] - playerPosition[0];
         const dz = city.center[2] - playerPosition[2];
-        return dx * dx + dz * dz < 230 * 230;
+        return dx * dx + dz * dz < (isFastDev ? 120 * 120 : 230 * 230);
       }),
     [playerPosition],
   );
@@ -801,7 +813,7 @@ export default function CityEnvironment() {
       <Road start={[-40, 0]} end={[40, 0]} width={5} />
       <Road start={[0, -40]} end={[0, 40]} width={5} />
 
-      {lights.slice(0, 34).map((pos, i) => (
+      {lights.slice(0, isFastDev ? 10 : 34).map((pos, i) => (
         <StreetLight key={i} position={pos} />
       ))}
 

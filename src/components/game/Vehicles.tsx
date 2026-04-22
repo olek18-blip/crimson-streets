@@ -2,6 +2,7 @@ import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
+import { isFastDev } from '../../game/env';
 import { MalibuCarModel, PontiacCarModel } from './AssetLibrary';
 
 const VEHICLE_INTERACT_RANGE = 4;
@@ -113,7 +114,7 @@ export default function Vehicles() {
       {vehicles.map((vehicle) => {
         const playerDx = vehicle.position[0] - playerPosition[0];
         const playerDz = vehicle.position[2] - playerPosition[2];
-        if (playerDx * playerDx + playerDz * playerDz > 170 * 170) {
+        if (playerDx * playerDx + playerDz * playerDz > (isFastDev ? 90 * 90 : 170 * 170)) {
           return null;
         }
 

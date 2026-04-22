@@ -54,7 +54,7 @@ export default function MainMenu() {
             <div className="font-display text-[11px] tracking-[0.28em] text-cyan-200/80">MODO CONSTRUCCION</div>
             <div className="mt-3 font-display text-3xl tracking-[0.12em] text-white">CONSTRUIR</div>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">
-              Diseña la ciudad en planta 2D, cambia a vista 3D para revisar volumen y recoloca elementos sin salir del juego.
+              Disena la ciudad en planta 2D, cambia a vista 3D para revisar volumen y recoloca elementos sin salir del juego.
             </p>
           </button>
         </div>

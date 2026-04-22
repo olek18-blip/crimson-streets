@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
+import { isFastDev } from '../../game/env';
 import { useGamePersistence } from '../../hooks/useGamePersistence';
 import { useMissionSystem } from '../../hooks/useMissionSystem';
 import { usePlayerController } from '../../hooks/usePlayerController';
@@ -131,7 +132,9 @@ export default function GameScene() {
       {showLoading && screen === 'playing' && (
         <LoadingSplash
           progressText={
-            gameMode === 'build'
+            isFastDev
+              ? 'Arranque rapido activado para desarrollo...'
+              : gameMode === 'build'
               ? 'Cargando editor, mapa y vista de construccion...'
               : 'Preparando Mandril, IA y mision activa...'
           }
@@ -140,7 +143,7 @@ export default function GameScene() {
 
       {screen !== 'menu' && (
         <Canvas
-          dpr={[0.75, 1]}
+          dpr={isFastDev ? [0.6, 0.85] : [0.75, 1]}
           shadows
           camera={{ fov: 60, near: 0.1, far: 500 }}
           performance={{ min: 0.5 }}

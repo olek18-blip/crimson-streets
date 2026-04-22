@@ -2,6 +2,7 @@ import { Suspense, useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
+import { isFastDev } from '../../game/env';
 import type { NPC } from '../../game/types';
 import { CivilianAltCharacterModel, CivilianCharacterModel, GangCharacterModel, PoliceCharacterModel } from './AssetLibrary';
 
@@ -358,7 +359,7 @@ export default function NPCs() {
       {npcs.map((npc, index) => {
         const dxToPlayer = npc.position[0] - playerPosition[0];
         const dzToPlayer = npc.position[2] - playerPosition[2];
-        if (dxToPlayer * dxToPlayer + dzToPlayer * dzToPlayer > 150 * 150) {
+        if (dxToPlayer * dxToPlayer + dzToPlayer * dzToPlayer > (isFastDev ? 80 * 80 : 150 * 150)) {
           return null;
         }
 

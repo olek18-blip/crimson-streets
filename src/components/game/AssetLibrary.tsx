@@ -2,6 +2,7 @@ import { Clone, useAnimations, useGLTF } from '@react-three/drei';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { isFastDev } from '../../game/env';
 import type { PlayerAnimationState } from '../../game/types';
 
 type ModelTransformProps = {
@@ -319,14 +320,16 @@ export function CityWomanModel(props: ModelTransformProps) {
   return <StaticModel url="/models/city/woman.glb" {...props} />;
 }
 
-useGLTF.preload('/models/ps1-character.glb');
-useGLTF.preload('/models/male-character.glb');
-useGLTF.preload('/models/lowpoly-male-npc.glb');
-useGLTF.preload('/models/male-base-v2.glb');
-useGLTF.preload('/models/gun.glb');
-useGLTF.preload('/models/malibu-car.glb');
-useGLTF.preload('/models/pontiac-ventura.glb');
-useGLTF.preload('/models/buildings.glb');
-useGLTF.preload('/models/trees.glb');
-useGLTF.preload('/models/dumpster-set.glb');
-useGLTF.preload('/models/street-light-kit.glb');
+if (!isFastDev) {
+  useGLTF.preload('/models/ps1-character.glb');
+  useGLTF.preload('/models/male-character.glb');
+  useGLTF.preload('/models/lowpoly-male-npc.glb');
+  useGLTF.preload('/models/male-base-v2.glb');
+  useGLTF.preload('/models/gun.glb');
+  useGLTF.preload('/models/malibu-car.glb');
+  useGLTF.preload('/models/pontiac-ventura.glb');
+  useGLTF.preload('/models/buildings.glb');
+  useGLTF.preload('/models/trees.glb');
+  useGLTF.preload('/models/dumpster-set.glb');
+  useGLTF.preload('/models/street-light-kit.glb');
+}
