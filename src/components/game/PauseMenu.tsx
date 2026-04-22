@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../game/store';
 
 export default function PauseMenu() {
-  const { editor, resumeGame, resetGame, openEditor } = useGameStore();
+  const navigate = useNavigate();
+  const { resumeGame, resetGame } = useGameStore();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'hsl(var(--background) / 0.85)' }}>
@@ -16,13 +18,12 @@ export default function PauseMenu() {
         </button>
         <button
           onClick={() => {
-            resumeGame();
-            openEditor(editor.view);
+            navigate('/builder');
           }}
           className="font-display text-sm tracking-[0.18em] px-8 py-3 rounded border transition-all"
           style={{ borderColor: 'rgba(34,211,238,0.35)', color: '#b6f3ff' }}
         >
-          {editor.enabled ? 'SEGUIR CONSTRUYENDO' : 'ABRIR CONSTRUCCION'}
+          ABRIR CONSTRUCCION
         </button>
         <button
           onClick={resetGame}

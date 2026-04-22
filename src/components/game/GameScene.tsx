@@ -8,7 +8,6 @@ import { useGamePersistence } from '../../hooks/useGamePersistence';
 import { useMissionSystem } from '../../hooks/useMissionSystem';
 import { usePlayerController } from '../../hooks/usePlayerController';
 import CityEnvironment from './CityEnvironment';
-import BuildModePanel from './BuildModePanel';
 import GameCamera from './GameCamera';
 import GameHUD from './GameHUD';
 import GameOverScreen from './GameOverScreen';
@@ -18,7 +17,6 @@ import Minimap from './Minimap';
 import MissionBeacon from './MissionBeacon';
 import MissionCompleteScreen from './MissionCompleteScreen';
 import MobileControls from './MobileControls';
-import MapEditor from './MapEditor';
 import NPCs from './NPCs';
 import PauseMenu from './PauseMenu';
 import Player from './Player';
@@ -66,7 +64,6 @@ function Scene() {
       <MissionBeacon />
       <Player />
       <CityEnvironment />
-      <MapEditor />
       <Vehicles />
       <NPCs />
     </>
@@ -75,7 +72,6 @@ function Scene() {
 
 export default function GameScene() {
   const screen = useGameStore((state) => state.screen);
-  const editorEnabled = useGameStore((state) => state.editor.enabled);
   const gameMode = useGameStore((state) => state.gameMode);
   const [showLoading, setShowLoading] = useState(false);
 
@@ -119,15 +115,13 @@ export default function GameScene() {
       {screen === 'game-over' && <GameOverScreen />}
       {screen === 'mission-complete' && <MissionCompleteScreen />}
 
-      {screen !== 'menu' && !editorEnabled && (
+      {screen !== 'menu' && (
         <>
           <GameHUD />
           <Minimap />
           <MobileControls />
         </>
       )}
-
-      {editorEnabled && <BuildModePanel />}
 
       {showLoading && screen === 'playing' && (
         <LoadingSplash

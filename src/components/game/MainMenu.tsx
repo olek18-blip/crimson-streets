@@ -3,7 +3,7 @@ import { hasSavedGame } from '../../game/save';
 import { useGameStore } from '../../game/store';
 
 export default function MainMenu() {
-  const { startGame, startBuildMode, continueGame } = useGameStore();
+  const { startGame, continueGame } = useGameStore();
   const canContinue = hasSavedGame();
 
   return (
@@ -47,8 +47,8 @@ export default function MainMenu() {
             </p>
           </button>
 
-          <button
-            onClick={startBuildMode}
+          <Link
+            to="/builder"
             className="rounded-3xl border border-cyan-300/20 bg-black/25 p-6 text-left transition-all hover:-translate-y-1 hover:border-cyan-200/40 hover:bg-black/35"
           >
             <div className="font-display text-[11px] tracking-[0.28em] text-cyan-200/80">MODO CONSTRUCCION</div>
@@ -56,7 +56,7 @@ export default function MainMenu() {
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">
               Disena la ciudad en planta 2D, cambia a vista 3D para revisar volumen y recoloca elementos sin salir del juego.
             </p>
-          </button>
+          </Link>
         </div>
 
         <div className="flex w-full max-w-xl flex-col gap-3 px-1">

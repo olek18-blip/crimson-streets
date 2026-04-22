@@ -1,5 +1,6 @@
 import { Suspense, useMemo } from 'react';
 import { isFastDev } from '../../game/env';
+import { loadBuilderLayout, type BuilderLayout } from '../../game/builderLayout';
 import { cities, WORLD_SIZE } from '../../game/worldData';
 import { useGameStore } from '../../game/store';
 import {
@@ -741,6 +742,101 @@ function PlacedProps() {
   );
 }
 
+function BuilderRuntimeLayout({ playerPosition }: { playerPosition: [number, number, number] }) {
+  const layout = useMemo(() => loadBuilderLayout(), []);
+
+  const visibleRoads = layout.roads.filter((road) => {
+    const dx = road.x - playerPosition[0];
+    const dz = road.z - playerPosition[2];
+    return dx * dx + dz * dz < (isFastDev ? 90 * 90 : 180 * 180);
+  });
+
+  const visibleBuildings = layout.buildings.filter((building) => {
+    const dx = building.x - playerPosition[0];
+    const dz = building.z - playerPosition[2];
+    return dx * dx + dz * dz < (isFastDev ? 120 * 120 : 220 * 220);
+  });
+
+  const visibleProps = layout.props.filter((prop) => {
+    const dx = prop.x - playerPosition[0];
+    const dz = prop.z - playerPosition[2];
+    return dx * dx + dz * dz < (isFastDev ? 100 * 100 : 180 * 180);
+  });
+
+  if (visibleRoads.length === 0 && visibleBuildings.length === 0 && visibleProps.length === 0) {
+    return null;
+  }
+
+  return (
+    <group>
+      {visibleRoads.map((road) => (
+        <group key={road.id} position={[road.x, 0, road.z]} rotation={[0, road.rotationY, 0]}>
+          <mesh position={[0, 0.04, 0]} receiveShadow>
+            <boxGeometry args={[2.6, 0.08, 6.2]} />
+            <meshStandardMaterial color="#262b31" />
+          </mesh>
+          <mesh position={[0, 0.09, 0]}>
+            <boxGeometry args={[0.1, 0.01, 5.1]} />
+            <meshStandardMaterial color="#d4b46b" emissive="#d4b46b" emissiveIntensity={0.08} />
+          </mesh>
+        </group>
+      ))}
+
+      {visibleBuildings.map((building) => (
+        <group key={building.id} position={[building.x, 0, building.z]}>
+          <mesh position={[0, building.height / 2, 0]} castShadow receiveShadow>
+            <boxGeometry args={[building.width, building.height, building.depth]} />
+            <meshStandardMaterial color="#4b5563" emissive="#111827" emissiveIntensity={0.1} />
+          </mesh>
+          <mesh position={[0, building.height + 0.08, 0]}>
+            <boxGeometry args={[building.width * 0.88, 0.16, building.depth * 0.88]} />
+            <meshStandardMaterial color="#111827" />
+          </mesh>
+        </group>
+      ))}
+
+      {visibleProps.map((prop) => {
+        if (prop.type === 'streetlight') {
+          return (
+            <group key={prop.id} position={[prop.x, 0, prop.z]} rotation={[0, prop.rotationY, 0]}>
+              <mesh position={[0, 2, 0]} castShadow>
+                <cylinderGeometry args={[0.05, 0.05, 4, 10]} />
+                <meshStandardMaterial color="#94a3b8" />
+              </mesh>
+              <mesh position={[0, 4.1, 0]}>
+                <sphereGeometry args={[0.12, 10, 10]} />
+                <meshStandardMaterial color="#fde68a" emissive="#fde68a" emissiveIntensity={0.6} />
+              </mesh>
+            </group>
+          );
+        }
+
+        if (prop.type === 'dumpster') {
+          return (
+            <mesh key={prop.id} position={[prop.x, 0.8, prop.z]} rotation={[0, prop.rotationY, 0]} castShadow receiveShadow>
+              <boxGeometry args={[2.2, 1.6, 1.2]} />
+              <meshStandardMaterial color="#355448" />
+            </mesh>
+          );
+        }
+
+        return (
+          <group key={prop.id} position={[prop.x, 0, prop.z]} rotation={[0, prop.rotationY, 0]}>
+            <mesh position={[0, 1.2, 0]} castShadow>
+              <cylinderGeometry args={[0.16, 0.22, 2.2, 8]} />
+              <meshStandardMaterial color="#5b3b22" />
+            </mesh>
+            <mesh position={[0, 3.1, 0]} castShadow>
+              <coneGeometry args={[1.4, 3.4, 8]} />
+              <meshStandardMaterial color="#2f6b3b" />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 export default function CityEnvironment() {
   const playerPosition = useGameStore((s) => s.player.position);
   const visibleCities = useMemo(
@@ -799,7 +895,7 @@ export default function CityEnvironment() {
       ))}
 
       <MandrilDistrictPass />
-      <PlacedProps />
+      <BuilderRuntimeLayout playerPosition={playerPosition} />
 
       <Road start={[40, 0]} end={[140, -120]} width={6} />
       <Road start={[40, 40]} end={[100, 150]} width={6} />
