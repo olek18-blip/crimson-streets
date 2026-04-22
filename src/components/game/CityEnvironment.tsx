@@ -6,10 +6,8 @@ import {
   CityBillboardModel,
   CityBuildingModel,
   CityHotelBuildingModel,
-  CityManModel,
   CityStopSignModel,
   CityTrafficLightModel,
-  CityWomanModel,
   DumpsterSetModel,
   StreetLightSingleModel,
   TreeClusterModel,
@@ -202,12 +200,6 @@ function CityLandmarks({ cityId, cx, cz }: { cityId: string; cx: number; cz: num
             <meshStandardMaterial color="#cf6d2b" />
           </mesh>
           <Building position={[cx + 18, 0, cz + 16]} size={[16, 5, 10]} color="#3a342f" />
-          {[0, 3.2, 6.4, 9.6].map((i, idx) => (
-            <mesh key={idx} position={[cx + 18 + i, 1.05, cz + 28]} castShadow>
-              <boxGeometry args={[2.8, 2.1, 5.3]} />
-              <meshStandardMaterial color={['#c14545', '#3564cc', '#3ca35b', '#d28f2f'][idx]} />
-            </mesh>
-          ))}
         </group>
       );
     case 'sevira':
@@ -331,13 +323,6 @@ function CityPackLandmarks({ cx, cz, cityId }: { cx: number; cz: number; cityId:
         </group>
 
         {/* Cars from this pack are currently inconsistent in scale. We'll reintroduce them once normalized. */}
-
-        <group position={[cx + 12, 0, cz + 6]} rotation={[0, -1.6, 0]} scale={0.72}>
-          <CityWomanModel />
-        </group>
-        <group position={[cx - 12, 0, cz + 2]} rotation={[0, 1.1, 0]} scale={0.72}>
-          <CityManModel />
-        </group>
       </Suspense>
     </group>
   );

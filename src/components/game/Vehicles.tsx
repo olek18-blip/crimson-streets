@@ -4,8 +4,26 @@ import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
 import { MalibuCarModel, PontiacCarModel } from './AssetLibrary';
 
+const VEHICLE_INTERACT_RANGE = 4;
+
 function carVariantFromId(id: string) {
   return id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? 'malibu' : 'pontiac';
+}
+
+function VehiclePrompt({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <group position={[0, 1.7, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.22, 0.3, 24]} />
+        <meshStandardMaterial color="#8fd3ff" emissive="#8fd3ff" emissiveIntensity={0.9} transparent opacity={0.65} />
+      </mesh>
+      <mesh position={[0, 0.2, 0]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
+        <meshStandardMaterial color="#ffffff" emissive="#8fd3ff" emissiveIntensity={0.8} />
+      </mesh>
+    </group>
+  );
 }
 
 function VehicleMesh({
@@ -93,6 +111,10 @@ export default function Vehicles() {
     <group>
       {vehicles.map((vehicle) => {
         const isPlayerVehicle = currentVehicle === vehicle.id;
+        const player = useGameStore.getState().player;
+        const dx = vehicle.position[0] - player.position[0];
+        const dz = vehicle.position[2] - player.position[2];
+        const near = !player.inVehicle && Math.sqrt(dx * dx + dz * dz) < VEHICLE_INTERACT_RANGE;
 
         return (
           <group
@@ -109,6 +131,7 @@ export default function Vehicles() {
               color={vehicle.color}
               isPlayerVehicle={isPlayerVehicle}
             />
+            <VehiclePrompt visible={near} />
           </group>
         );
       })}

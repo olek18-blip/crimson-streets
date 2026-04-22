@@ -37,7 +37,10 @@ export function usePlayerController() {
     }
 
     if (key === 'q') {
-      useGameStore.getState().switchWeapon();
+      const { player } = useGameStore.getState();
+      if (!player.inVehicle) {
+        useGameStore.getState().switchWeapon();
+      }
       return;
     }
 
@@ -72,7 +75,8 @@ export function usePlayerController() {
 
   const handleMouseDown = useCallback(() => {
     const { screen, setShooting } = useGameStore.getState();
-    if (screen === 'playing') {
+    const player = useGameStore.getState().player;
+    if (screen === 'playing' && !player.inVehicle) {
       setShooting(true);
     }
   }, []);
@@ -119,6 +123,7 @@ export function usePlayerController() {
       player,
       updatePlayerPosition,
       updatePlayerRotation,
+      updateVehicleTransform,
       setShooting,
       setPlayerAnimationState,
     } = useGameStore.getState();
@@ -218,6 +223,10 @@ export function usePlayerController() {
     if (hasChanged) {
       updatePlayerPosition(position);
       updatePlayerRotation(rotation);
+
+      if (player.inVehicle && player.currentVehicle) {
+        updateVehicleTransform(player.currentVehicle, position, rotation);
+      }
     }
 
     const isMoving = movingForward || movingBackward;

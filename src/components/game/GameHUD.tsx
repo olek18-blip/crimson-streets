@@ -25,10 +25,11 @@ type HudSnapshot = {
   mission: Mission | null;
   currentObjective: MissionObjective | null;
   objectiveDistance: number | null;
+  nearVehicleDistance: number | null;
 };
 
 function readHudSnapshot(): HudSnapshot {
-  const { player, missions, activeMission } = useGameStore.getState();
+  const { player, missions, activeMission, vehicles } = useGameStore.getState();
   const mission = missions.find((item) => item.id === activeMission) ?? null;
   const currentObjective = mission?.objectives.find((item) => !item.completed) ?? null;
 
@@ -39,17 +40,30 @@ function readHudSnapshot(): HudSnapshot {
     objectiveDistance = Math.sqrt(dx * dx + dz * dz);
   }
 
+  let nearVehicleDistance: number | null = null;
+  if (!player.inVehicle) {
+    for (const vehicle of vehicles) {
+      const dx = vehicle.position[0] - player.position[0];
+      const dz = vehicle.position[2] - player.position[2];
+      const d = Math.sqrt(dx * dx + dz * dz);
+      if (d < 4 && (nearVehicleDistance === null || d < nearVehicleDistance)) {
+        nearVehicleDistance = d;
+      }
+    }
+  }
+
   return {
     player,
     mission,
     currentObjective,
     objectiveDistance,
+    nearVehicleDistance,
   };
 }
 
 export default function GameHUD() {
   const [snapshot, setSnapshot] = useState<HudSnapshot>(() => readHudSnapshot());
-  const { player, mission, currentObjective, objectiveDistance } = snapshot;
+  const { player, mission, currentObjective, objectiveDistance, nearVehicleDistance } = snapshot;
   const cityData = cities.find((item) => item.id === player.currentCity);
 
   useEffect(() => {
@@ -209,6 +223,14 @@ export default function GameHUD() {
           <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHÍCULO</span><span>Q ARMA</span><span>CLICK ACCIÓN</span><span>ESC PAUSA</span>
         </div>
       </div>
+
+      {nearVehicleDistance !== null && (
+        <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-16">
+          <div className="game-panel rounded px-3 py-2 text-center sm:text-left border border-cyan-300/15">
+            <span className="font-display text-[10px] tracking-[0.16em] text-cyan-200">F PARA ENTRAR AL VEHÃCULO</span>
+          </div>
+        </div>
+      )}
 
       {player.inVehicle && (
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-14">

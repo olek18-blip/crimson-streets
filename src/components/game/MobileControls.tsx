@@ -9,6 +9,8 @@ function clamp(value: number, min: number, max: number) {
 export default function MobileControls() {
   const screen = useGameStore((state) => state.screen);
   const playerInVehicle = useGameStore((state) => state.player.inVehicle);
+  const vehicles = useGameStore((state) => state.vehicles);
+  const playerPos = useGameStore((state) => state.player.position);
   const switchWeapon = useGameStore((state) => state.switchWeapon);
   const setPlayerInVehicle = useGameStore((state) => state.setPlayerInVehicle);
   const setAxis = useMobileControlsStore((state) => state.setAxis);
@@ -41,6 +43,20 @@ export default function MobileControls() {
   if (!isTouchDevice || screen === 'menu') {
     return null;
   }
+
+  const nearVehicleId = useMemo(() => {
+    if (playerInVehicle) return null;
+    let best: { id: string; d: number } | null = null;
+    for (const vehicle of vehicles) {
+      const dx = vehicle.position[0] - playerPos[0];
+      const dz = vehicle.position[2] - playerPos[2];
+      const d = Math.sqrt(dx * dx + dz * dz);
+      if (d < 4 && (!best || d < best.d)) {
+        best = { id: vehicle.id, d };
+      }
+    }
+    return best?.id ?? null;
+  }, [playerInVehicle, playerPos, vehicles]);
 
   const updateFromTouch = (clientX: number, clientY: number) => {
     const pad = padRef.current;
@@ -129,6 +145,14 @@ export default function MobileControls() {
           >
             ARMA
           </button>
+          {nearVehicleId && (
+            <button
+              className="h-10 rounded-full border border-cyan-300/20 bg-cyan-400/15 px-4 text-cyan-100 text-[10px] tracking-[0.14em]"
+              onClick={() => setPlayerInVehicle(nearVehicleId)}
+            >
+              ENTRAR
+            </button>
+          )}
           {playerInVehicle && (
             <button
               className="h-10 rounded-full border border-white/20 bg-white/10 px-4 text-white text-[10px] tracking-[0.14em]"

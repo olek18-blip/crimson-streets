@@ -224,6 +224,12 @@ export function GunModel(props: ModelTransformProps) {
   return <NormalizedStaticModel url="/models/gun.glb" targetMaxSize={0.56} {...props} />;
 }
 
+// Legacy pistol: this was the original gun model that looked "right" in the scene.
+// Keep it un-normalized and let the Player socket offsets handle scale.
+export function LegacyPistolModel(props: ModelTransformProps) {
+  return <StaticModel url="/models/gun.glb" {...props} />;
+}
+
 export function PistolFireModel(props: ModelTransformProps) {
   return <NormalizedStaticModel url="/models/pistol-fire.glb" targetMaxSize={0.32} {...props} />;
 }

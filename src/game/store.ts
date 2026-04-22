@@ -28,6 +28,7 @@ interface GameStore extends GameState {
   resumeGame: () => void;
   updatePlayerPosition: (pos: [number, number, number]) => void;
   updatePlayerRotation: (rot: number) => void;
+  updateVehicleTransform: (id: string, position: [number, number, number], rotation: number) => void;
   updateNPCTransform: (id: string, position: [number, number, number], rotation: number) => void;
   updateNPCTransforms: (updates: Array<{ id: string; position: [number, number, number]; rotation: number }>) => void;
   setPlayerInVehicle: (vehicleId: string | null) => void;
@@ -168,6 +169,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   updatePlayerRotation: (rot) => set((state) => ({ player: { ...state.player, rotation: rot } })),
 
+  updateVehicleTransform: (id, position, rotation) =>
+    set((state) => ({
+      vehicles: state.vehicles.map((vehicle) => (vehicle.id === id ? { ...vehicle, position, rotation } : vehicle)),
+    })),
+
   updateNPCTransform: (id, position, rotation) =>
     set((state) => ({
       npcs: state.npcs.map((npc) => (npc.id === id ? { ...npc, position, rotation } : npc)),
@@ -190,9 +196,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }),
 
   setPlayerInVehicle: (vehicleId) =>
-    set((state) => ({
-      player: { ...state.player, inVehicle: !!vehicleId, currentVehicle: vehicleId },
-    })),
+    set((state) => {
+      if (!vehicleId) {
+        // Exit vehicle: place player next to the car.
+        const exitOffset: [number, number, number] = [
+          Math.cos(state.player.rotation + Math.PI / 2) * 1.2,
+          0,
+          Math.sin(state.player.rotation + Math.PI / 2) * 1.2,
+        ];
+
+        return {
+          player: {
+            ...state.player,
+            inVehicle: false,
+            currentVehicle: null,
+            position: [state.player.position[0] + exitOffset[0], state.player.position[1], state.player.position[2] + exitOffset[2]],
+            isShooting: false,
+          },
+        };
+      }
+
+      const vehicle = state.vehicles.find((v) => v.id === vehicleId);
+      if (!vehicle) return state;
+
+      return {
+        player: {
+          ...state.player,
+          inVehicle: true,
+          currentVehicle: vehicleId,
+          position: [...vehicle.position] as [number, number, number],
+          rotation: vehicle.rotation,
+          isShooting: false,
+        },
+      };
+    }),
 
   takeDamage: (amount) => {
     const state = get();
@@ -300,8 +337,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   switchWeapon: () =>
     set((state) => {
       // Exploration mode: keep weapons simple until attachments/animations are solid.
-      const weapons: ('fist' | 'knife')[] = ['fist', 'knife'];
+      const weapons: ('fist' | 'knife' | 'pistol')[] = ['fist', 'knife', 'pistol'];
       const currentIndex = weapons.indexOf(state.player.weapon);
+
+      if (state.player.inVehicle) {
+        return state;
+      }
 
       return {
         player: {
