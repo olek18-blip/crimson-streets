@@ -5,12 +5,9 @@ import {
   CityBarModel,
   CityBillboardModel,
   CityBuildingModel,
-  CityCarModel,
   CityHotelBuildingModel,
   CityManModel,
-  CityPoliceCarModel,
   CityStopSignModel,
-  CitySuvModel,
   CityTrafficLightModel,
   CityWomanModel,
   DumpsterSetModel,
@@ -333,17 +330,7 @@ function CityPackLandmarks({ cx, cz, cityId }: { cx: number; cz: number; cityId:
           <CityStopSignModel />
         </group>
 
-        <group position={[cx + 6, 0, cz + 4]} rotation={[0, -0.8, 0]} scale={0.65}>
-          <CityCarModel />
-        </group>
-        <group position={[cx - 8, 0, cz - 6]} rotation={[0, 0.9, 0]} scale={0.65}>
-          <CitySuvModel />
-        </group>
-        {cityId === 'madrona' && (
-          <group position={[cx - 2, 0, cz - 14]} rotation={[0, 0.15, 0]} scale={0.7}>
-            <CityPoliceCarModel />
-          </group>
-        )}
+        {/* Cars from this pack are currently inconsistent in scale. We'll reintroduce them once normalized. */}
 
         <group position={[cx + 12, 0, cz + 6]} rotation={[0, -1.6, 0]} scale={0.72}>
           <CityWomanModel />

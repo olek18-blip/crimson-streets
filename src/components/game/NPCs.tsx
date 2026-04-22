@@ -59,13 +59,8 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
   }
 
   if (npc.type === 'police') {
-    if (distanceToPlayer < ATTACK_RANGE && crimeDetected) {
-      return 'attack' as const;
-    }
-    if (crimeDetected && distanceToPlayer < POLICE_NOTICE_RANGE) {
-      return 'chase' as const;
-    }
-    return 'patrol' as const;
+    // Exploration mode: police are non-hostile for now.
+    return distanceToPlayer < 8 ? ('idle' as const) : ('patrol' as const);
   }
 
   if (distanceToPlayer < ATTACK_RANGE && (activeMissionCity === npc.city || violenceNearby)) {

@@ -3,7 +3,7 @@ import type { GameState, MissionObjectiveEffect, NPC, PlayerAnimationState, Play
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
-const INTRO_MISSION_ID = 'mission1';
+// const INTRO_MISSION_ID = 'mission1';
 
 const initialPlayer: PlayerState = {
   position: [6, 0.5, -36],
@@ -14,7 +14,7 @@ const initialPlayer: PlayerState = {
   wantedLevel: 0,
   inVehicle: false,
   currentVehicle: null,
-  weapon: 'pistol',
+  weapon: 'fist',
   isShooting: false,
   isRunning: false,
   currentCity: 'madrona',
@@ -111,16 +111,7 @@ const createFreshState = (): Omit<GameState, 'screen'> => ({
   lastShotWeapon: null,
 });
 
-const createIntroState = (): Omit<GameState, 'screen'> => {
-  const state = createFreshState();
-  return {
-    ...state,
-    activeMission: INTRO_MISSION_ID,
-    missions: state.missions.map((mission) =>
-      mission.id === INTRO_MISSION_ID ? { ...mission, status: 'active' as const } : mission,
-    ),
-  };
-};
+// We keep the intro mission data, but we don't auto-activate it on start anymore.
 
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'menu',
@@ -130,7 +121,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     clearSavedGame();
     set({
       screen: 'playing',
-      ...createIntroState(),
+      ...createFreshState(),
     });
   },
 
@@ -140,7 +131,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!saved) {
       set({
         screen: 'playing',
-        ...createIntroState(),
+        ...createFreshState(),
       });
       return;
     }
@@ -308,13 +299,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   switchWeapon: () =>
     set((state) => {
-      const weapons: ('fist' | 'knife' | 'pistol' | 'rifle')[] = ['fist', 'knife', 'pistol', 'rifle'];
+      // Exploration mode: keep weapons simple until attachments/animations are solid.
+      const weapons: ('fist' | 'knife')[] = ['fist', 'knife'];
       const currentIndex = weapons.indexOf(state.player.weapon);
 
       return {
         player: {
           ...state.player,
-          weapon: weapons[(currentIndex + 1) % weapons.length],
+          weapon: weapons[(currentIndex + 1) % weapons.length] ?? 'fist',
         },
       };
     }),
