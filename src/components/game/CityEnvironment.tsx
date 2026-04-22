@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { cities, WORLD_SIZE } from '../../game/worldData';
+import { useGameStore } from '../../game/store';
 import {
   BuildingsBlockModel,
   CityBarModel,
@@ -472,9 +473,7 @@ function MandrilDistrictPass() {
         <boxGeometry args={[18, 0.08, 10]} />
         <meshStandardMaterial color="#69655f" />
       </mesh>
-      {[-24, -19, -14, -9].map((x, i) => (
-        <MarketStall key={`stall-${i}`} position={[x, 0, 7 + (i % 2) * 2.4]} canopy={i % 2 === 0 ? '#8c3c2e' : '#70542d'} />
-      ))}
+      {/* Removed market stalls: they read as oversized red/orange boxes. */}
 
       <PoliceBarrier position={[0, 0, -18]} />
       <PoliceBarrier position={[6, 0, -18]} />
@@ -524,13 +523,7 @@ function MandrilDistrictPass() {
 function DistrictProps({ cityId, cx, cz }: { cityId: string; cx: number; cz: number }) {
   switch (cityId) {
     case 'madrona':
-      return (
-        <group>
-          {[-14, -8, -2, 4].map((z, i) => (
-            <MarketStall key={i} position={[cx - 18, 0, cz + z]} canopy={i % 2 === 0 ? '#8c3c2e' : '#70542d'} />
-          ))}
-        </group>
-      );
+      return null;
     case 'barceloma':
       return (
         <group>
@@ -623,6 +616,85 @@ function DistrictMarker({ x, z, color }: { x: number; z: number; color: string }
   );
 }
 
+function PlacedProps() {
+  const placed = useGameStore((s) => s.editor.placed);
+
+  if (placed.length === 0) return null;
+
+  return (
+    <group>
+      {placed.map((p) => {
+        if (p.type === 'streetlight') {
+          return (
+            <group key={p.id} position={p.position} rotation={[0, p.rotationY, 0]}>
+              <pointLight position={[0, 3, 0]} color="#ffcc66" intensity={1.1} distance={14} />
+              <mesh position={[0, 2, 0]} castShadow>
+                <cylinderGeometry args={[0.05, 0.05, 4, 10]} />
+                <meshStandardMaterial color="#565b63" />
+              </mesh>
+            </group>
+          );
+        }
+        if (p.type === 'dumpster') {
+          return (
+            <mesh
+              key={p.id}
+              position={[p.position[0], p.position[1] + 0.8, p.position[2]]}
+              rotation={[0, p.rotationY, 0]}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry args={[2.3, 1.6, 1.2]} />
+              <meshStandardMaterial color="#355448" />
+            </mesh>
+          );
+        }
+        if (p.type === 'tree') {
+          return (
+            <group key={p.id} position={p.position} rotation={[0, p.rotationY, 0]}>
+              <mesh position={[0, 1.6, 0]} castShadow>
+                <cylinderGeometry args={[0.18, 0.22, 1.8, 8]} />
+                <meshStandardMaterial color="#4a3c2a" />
+              </mesh>
+              <mesh position={[0, 3.2, 0]} castShadow>
+                <coneGeometry args={[1.2, 3.2, 8]} />
+                <meshStandardMaterial color="#2d5d3a" />
+              </mesh>
+            </group>
+          );
+        }
+        if (p.type === 'block') {
+          return (
+            <mesh
+              key={p.id}
+              position={[p.position[0], p.position[1] + 1, p.position[2]]}
+              rotation={[0, p.rotationY, 0]}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry args={[2, 2, 2]} />
+              <meshStandardMaterial color="#3a3f4a" />
+            </mesh>
+          );
+        }
+        // building
+        return (
+          <mesh
+            key={p.id}
+            position={[p.position[0], p.position[1] + 5, p.position[2]]}
+            rotation={[0, p.rotationY, 0]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[10, 10, 10]} />
+            <meshStandardMaterial color="#444b57" emissive="#111820" emissiveIntensity={0.12} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 export default function CityEnvironment() {
   const lights: [number, number, number][] = [];
   for (let i = -WORLD_SIZE; i < WORLD_SIZE; i += 24) {
@@ -671,6 +743,7 @@ export default function CityEnvironment() {
       ))}
 
       <MandrilDistrictPass />
+      <PlacedProps />
 
       <Road start={[40, 0]} end={[140, -120]} width={6} />
       <Road start={[40, 40]} end={[100, 150]} width={6} />

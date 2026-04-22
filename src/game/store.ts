@@ -1,10 +1,34 @@
 import { create } from 'zustand';
-import type { GameState, MissionObjectiveEffect, NPC, PlayerAnimationState, PlayerState } from './types';
+import type { GameState, MapEditorState, MissionObjectiveEffect, NPC, PlacedProp, PlayerAnimationState, PlayerState, PlaceableType } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
 // const INTRO_MISSION_ID = 'mission1';
 const EXPLORATION_MODE = true;
+const MAP_EDITOR_STORAGE_KEY = 'crimson_map_editor_v1';
+
+function safeLoadEditorState(): MapEditorState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(MAP_EDITOR_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as MapEditorState;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!Array.isArray(parsed.placed)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function safeSaveEditorState(editor: MapEditorState) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(MAP_EDITOR_STORAGE_KEY, JSON.stringify(editor));
+  } catch {
+    // ignore
+  }
+}
 
 const initialPlayer: PlayerState = {
   position: [6, 0.5, -36],
@@ -45,6 +69,11 @@ interface GameStore extends GameState {
   damageNPC: (id: string, amount: number) => void;
   switchWeapon: () => void;
   registerShot: (weapon: PlayerState['weapon']) => void;
+  toggleEditor: () => void;
+  setEditorSelected: (selected: PlaceableType) => void;
+  rotateEditor: () => void;
+  placeEditorProp: (prop: Omit<PlacedProp, 'id'>) => void;
+  removeEditorPropNear: (position: [number, number, number], radius: number) => void;
   gameOver: () => void;
   resetGame: () => void;
 }
@@ -111,6 +140,13 @@ const createFreshState = (): Omit<GameState, 'screen'> => ({
   lastCompletedMission: null,
   shotTick: 0,
   lastShotWeapon: null,
+  editor:
+    safeLoadEditorState() ?? ({
+      enabled: false,
+      selected: 'building',
+      rotationY: 0,
+      placed: [],
+    } satisfies MapEditorState),
 });
 
 // We keep the intro mission data, but we don't auto-activate it on start anymore.
@@ -363,6 +399,51 @@ export const useGameStore = create<GameStore>((set, get) => ({
       shotTick: state.shotTick + 1,
       lastShotWeapon: weapon,
     })),
+
+  toggleEditor: () =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, enabled: !state.editor.enabled };
+      safeSaveEditorState(next);
+      return { editor: next };
+    }),
+
+  setEditorSelected: (selected) =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, selected };
+      safeSaveEditorState(next);
+      return { editor: next };
+    }),
+
+  rotateEditor: () =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, rotationY: (state.editor.rotationY + Math.PI / 2) % (Math.PI * 2) };
+      safeSaveEditorState(next);
+      return { editor: next };
+    }),
+
+  placeEditorProp: (prop) =>
+    set((state) => {
+      const nextProp: PlacedProp = {
+        id: `${Date.now().toString(36)}-${Math.random().toString(16).slice(2)}`,
+        ...prop,
+      };
+      const next: MapEditorState = { ...state.editor, placed: [...state.editor.placed, nextProp] };
+      safeSaveEditorState(next);
+      return { editor: next };
+    }),
+
+  removeEditorPropNear: (position, radius) =>
+    set((state) => {
+      const r2 = radius * radius;
+      const nextPlaced = state.editor.placed.filter((p) => {
+        const dx = p.position[0] - position[0];
+        const dz = p.position[2] - position[2];
+        return dx * dx + dz * dz > r2;
+      });
+      const next: MapEditorState = { ...state.editor, placed: nextPlaced };
+      safeSaveEditorState(next);
+      return { editor: next };
+    }),
 
   gameOver: () => set({ screen: 'game-over' }),
 

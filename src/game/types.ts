@@ -103,4 +103,21 @@ export interface GameState {
   lastCompletedMission: string | null;
   shotTick: number;
   lastShotWeapon: PlayerState['weapon'] | null;
+  editor: MapEditorState;
 }
+
+export type PlaceableType = 'block' | 'building' | 'streetlight' | 'dumpster' | 'tree';
+
+export type PlacedProp = {
+  id: string;
+  type: PlaceableType;
+  position: [number, number, number];
+  rotationY: number;
+};
+
+export type MapEditorState = {
+  enabled: boolean;
+  selected: PlaceableType;
+  rotationY: number;
+  placed: PlacedProp[];
+};
