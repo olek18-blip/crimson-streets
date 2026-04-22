@@ -1,21 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
 import type { PlaceableType } from '../../game/types';
 
 const GRID = 2;
-const PLACE_Y = 0.5; // ground is around 0.5 in this game
+const PLACE_Y = 0.5;
 
 function snap(n: number, step: number) {
   return Math.round(n / step) * step;
 }
 
-function intersectRayWithGround(rayOrigin: THREE.Vector3, rayDir: THREE.Vector3, y = PLACE_Y) {
-  if (Math.abs(rayDir.y) < 1e-5) return null;
-  const t = (y - rayOrigin.y) / rayDir.y;
-  if (t <= 0) return null;
-  return rayOrigin.clone().add(rayDir.clone().multiplyScalar(t));
+function makePreviewGeometry(type: PlaceableType) {
+  if (type === 'streetlight') return new THREE.CylinderGeometry(0.05, 0.05, 4, 10);
+  if (type === 'dumpster') return new THREE.BoxGeometry(2.3, 1.6, 1.2);
+  if (type === 'tree') return new THREE.ConeGeometry(1.2, 3.2, 8);
+  if (type === 'block') return new THREE.BoxGeometry(2, 2, 2);
+  return new THREE.BoxGeometry(10, 10, 10);
+}
+
+function getCursorBasePosition(playerPos: [number, number, number], rotation: number): [number, number, number] {
+  const ahead = 6;
+  const x = snap(playerPos[0] - Math.sin(rotation) * ahead, GRID);
+  const z = snap(playerPos[2] - Math.cos(rotation) * ahead, GRID);
+  return [x, PLACE_Y, z];
 }
 
 function PlacePreview({
@@ -27,14 +34,7 @@ function PlacePreview({
   position: [number, number, number];
   rotationY: number;
 }) {
-  const geom = useMemo(() => {
-    if (type === 'streetlight') return new THREE.CylinderGeometry(0.05, 0.05, 4, 10);
-    if (type === 'dumpster') return new THREE.BoxGeometry(2.3, 1.6, 1.2);
-    if (type === 'tree') return new THREE.ConeGeometry(1.2, 3.2, 8);
-    if (type === 'block') return new THREE.BoxGeometry(2, 2, 2);
-    return new THREE.BoxGeometry(10, 10, 10);
-  }, [type]);
-
+  const geom = useMemo(() => makePreviewGeometry(type), [type]);
   const mat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -48,42 +48,72 @@ function PlacePreview({
   );
 
   return (
-    <mesh geometry={geom} material={mat} position={position} rotation={[0, rotationY, 0]}>
-      {/* disposed by three on unmount */}
-    </mesh>
+    <group>
+      <mesh position={[position[0], 0.03, position[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.75, 1.05, 24]} />
+        <meshStandardMaterial color="#8fd3ff" emissive="#8fd3ff" emissiveIntensity={0.8} transparent opacity={0.55} />
+      </mesh>
+      <mesh geometry={geom} material={mat} position={position} rotation={[0, rotationY, 0]} />
+    </group>
   );
 }
 
 export default function MapEditor() {
-  const { camera } = useThree();
-  const raycaster = useRef(new THREE.Raycaster());
-  const [previewPos, setPreviewPos] = useState<[number, number, number] | null>(null);
-
   const editor = useGameStore((s) => s.editor);
+  const player = useGameStore((s) => s.player);
   const toggleEditor = useGameStore((s) => s.toggleEditor);
   const rotateEditor = useGameStore((s) => s.rotateEditor);
   const setEditorSelected = useGameStore((s) => s.setEditorSelected);
   const placeEditorProp = useGameStore((s) => s.placeEditorProp);
   const removeEditorPropNear = useGameStore((s) => s.removeEditorPropNear);
+  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(null);
+
+  useEffect(() => {
+    if (!editor.enabled) {
+      setCursorPos(null);
+      return;
+    }
+
+    setCursorPos((current) => current ?? getCursorBasePosition(player.position, player.rotation));
+  }, [editor.enabled, player.position, player.rotation]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
       const key = e.key.toLowerCase();
+
       if (key === 'b') {
         toggleEditor();
         return;
       }
+
       if (!useGameStore.getState().editor.enabled) return;
 
       if (key === 'r') {
         rotateEditor();
         return;
       }
-      if (key === 'x') {
-        if (previewPos) removeEditorPropNear(previewPos, 1.6);
+
+      if (key === 'enter' || key === ' ') {
+        e.preventDefault();
+        const pos = cursorPos ?? getCursorBasePosition(useGameStore.getState().player.position, useGameStore.getState().player.rotation);
+        placeEditorProp({
+          type: useGameStore.getState().editor.selected,
+          position: pos,
+          rotationY: useGameStore.getState().editor.rotationY,
+        });
         return;
       }
+
+      if (key === 'x' || key === 'delete' || key === 'backspace') {
+        e.preventDefault();
+        const pos = cursorPos;
+        if (pos) {
+          removeEditorPropNear(pos, 1.6);
+        }
+        return;
+      }
+
       const mapping: Record<string, PlaceableType> = {
         '1': 'building',
         '2': 'streetlight',
@@ -92,43 +122,33 @@ export default function MapEditor() {
         '5': 'block',
       };
       const selected = mapping[key];
-      if (selected) setEditorSelected(selected);
+      if (selected) {
+        setEditorSelected(selected);
+        return;
+      }
+
+      const deltaByKey: Record<string, [number, number]> = {
+        i: [0, -GRID],
+        k: [0, GRID],
+        j: [-GRID, 0],
+        l: [GRID, 0],
+      };
+      const delta = deltaByKey[key];
+      if (delta) {
+        e.preventDefault();
+        setCursorPos((current) => {
+          const base = current ?? getCursorBasePosition(useGameStore.getState().player.position, useGameStore.getState().player.rotation);
+          return [base[0] + delta[0], PLACE_Y, base[2] + delta[1]];
+        });
+      }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [previewPos, removeEditorPropNear, rotateEditor, setEditorSelected, toggleEditor]);
+  }, [cursorPos, placeEditorProp, removeEditorPropNear, rotateEditor, setEditorSelected, toggleEditor]);
 
-  useEffect(() => {
-    const onPointerDown = (e: PointerEvent) => {
-      if (!useGameStore.getState().editor.enabled) return;
-      if (e.button !== 0) return;
-      const pos = previewPos;
-      if (!pos) return;
-      placeEditorProp({ type: useGameStore.getState().editor.selected, position: pos, rotationY: useGameStore.getState().editor.rotationY });
-    };
-    window.addEventListener('pointerdown', onPointerDown);
-    return () => window.removeEventListener('pointerdown', onPointerDown);
-  }, [placeEditorProp, previewPos]);
+  if (!editor.enabled || !cursorPos) return null;
 
-  useFrame(() => {
-    if (!editor.enabled) {
-      if (previewPos !== null) setPreviewPos(null);
-      return;
-    }
-
-    // Ray from camera center.
-    raycaster.current.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const ray = raycaster.current.ray;
-    const hit = intersectRayWithGround(ray.origin, ray.direction, PLACE_Y);
-    if (!hit) return;
-    const x = snap(hit.x, GRID);
-    const z = snap(hit.z, GRID);
-    setPreviewPos([x, PLACE_Y, z]);
-  });
-
-  if (!editor.enabled || !previewPos) return null;
-
-  return <PlacePreview type={editor.selected} position={previewPos} rotationY={editor.rotationY} />;
+  return <PlacePreview type={editor.selected} position={cursorPos} rotationY={editor.rotationY} />;
 }
 

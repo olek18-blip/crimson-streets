@@ -121,6 +121,7 @@ export function usePlayerController() {
     const {
       screen,
       player,
+      editor,
       updatePlayerPosition,
       updatePlayerRotation,
       updateVehicleTransform,
@@ -130,6 +131,16 @@ export function usePlayerController() {
     const { axisX, axisY, sprint, shooting } = useMobileControlsStore.getState();
 
     if (screen !== 'playing') {
+      return;
+    }
+
+    if (editor.enabled) {
+      if (player.isShooting) {
+        setShooting(false);
+      }
+      if (player.animationState !== 'idle') {
+        setPlayerAnimationState('idle');
+      }
       return;
     }
 

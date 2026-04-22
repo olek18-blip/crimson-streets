@@ -64,6 +64,7 @@ function readHudSnapshot(): HudSnapshot {
 export default function GameHUD() {
   const [snapshot, setSnapshot] = useState<HudSnapshot>(() => readHudSnapshot());
   const { player, mission, currentObjective, objectiveDistance, nearVehicleDistance } = snapshot;
+  const editor = useGameStore((state) => state.editor);
   const cityData = cities.find((item) => item.id === player.currentCity);
 
   useEffect(() => {
@@ -228,6 +229,16 @@ export default function GameHUD() {
         <div className="absolute bottom-16 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-16">
           <div className="game-panel rounded px-3 py-2 text-center sm:text-left border border-cyan-300/15">
             <span className="font-display text-[10px] tracking-[0.16em] text-cyan-200">F PARA ENTRAR AL VEHÃCULO</span>
+          </div>
+        </div>
+      )}
+
+      {editor.enabled && (
+        <div className="absolute bottom-28 left-2 right-2 sm:left-4 sm:right-auto sm:bottom-28">
+          <div className="game-panel rounded px-3 py-2 text-center sm:text-left border border-emerald-300/15">
+            <span className="font-display text-[10px] tracking-[0.14em] text-emerald-200">
+              BUILD MODE: `IJKL` MOVER, `SPACE/ENTER` COLOCAR, `R` ROTAR, `X` BORRAR, `1-5` PIEZA, `B` SALIR
+            </span>
           </div>
         </div>
       )}
