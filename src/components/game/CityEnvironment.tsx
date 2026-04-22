@@ -26,7 +26,7 @@ function Building({
     <group position={position}>
       <mesh position={[0, size[1] / 2, 0]} receiveShadow>
         <boxGeometry args={size} />
-        <meshStandardMaterial color={color} emissive={emissive || '#000000'} emissiveIntensity={emissive ? 0.18 : 0} />
+        <meshStandardMaterial color={color} emissive={emissive || '#000000'} emissiveIntensity={emissive ? 0.35 : 0} />
       </mesh>
       <mesh position={[0, size[1] + 0.08, 0]}>
         <boxGeometry args={[size[0] * 0.9, 0.16, size[2] * 0.9]} />
@@ -107,11 +107,11 @@ function MissionZone({
 
 function CityBuildings({ cx, cz, radius, cityId }: { cx: number; cz: number; radius: number; cityId: string }) {
   const palette: Record<string, { base: string[]; window: string; sign?: string }> = {
-    madrona: { base: ['#343946', '#2b303a', '#414857', '#262a33', '#535b69'], window: '#d6a258', sign: '#ff9d3a' },
-    barceloma: { base: ['#412f42', '#32263a', '#57374d', '#261d2e', '#684160'], window: '#ff61d2', sign: '#00d4ff' },
-    valentia: { base: ['#31414d', '#253640', '#415767', '#1f2e36', '#586b78'], window: '#8cc3ff', sign: '#cf6d2b' },
-    sevira: { base: ['#5b4838', '#4b3a2d', '#6a5647', '#3d2d25', '#806b58'], window: '#e5bf86', sign: '#9b6730' },
-    costadelsol: { base: ['#365366', '#284356', '#46657a', '#203746', '#607988'], window: '#ffd57b', sign: '#f0b04d' },
+    madrona: { base: ['#3a3f4a', '#444b57', '#2f343d', '#505866'], window: '#d6a258', sign: '#ff9d3a' },
+    barceloma: { base: ['#3a3f4a', '#444b57', '#2f343d', '#505866'], window: '#ff61d2', sign: '#00d4ff' },
+    valentia: { base: ['#3a3f4a', '#444b57', '#2f343d', '#505866'], window: '#8cc3ff', sign: '#cf6d2b' },
+    sevira: { base: ['#3a3f4a', '#444b57', '#2f343d', '#505866'], window: '#e5bf86', sign: '#9b6730' },
+    costadelsol: { base: ['#3a3f4a', '#444b57', '#2f343d', '#505866'], window: '#ffd57b', sign: '#f0b04d' },
   };
 
   const colors = palette[cityId] || palette.madrona;
@@ -262,6 +262,7 @@ function Road({ start, end, width = 5 }: { start: [number, number]; end: [number
 function StreetLight({ position, color = '#ffcc66' }: { position: [number, number, number]; color?: string }) {
   return (
     <group position={position}>
+      <pointLight position={[0, 3, 0]} color={color} intensity={1.15} distance={14} />
       <Suspense
         fallback={
           <mesh position={[0, 2, 0]}>

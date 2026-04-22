@@ -18,6 +18,7 @@ export default function GameCamera() {
   const { camera, size } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const smoothedLook = useRef(new THREE.Vector3());
+  const lookTarget = useRef(new THREE.Vector3());
   const followYaw = useRef<number | null>(null);
   const lastPlayerPos = useRef<[number, number, number] | null>(null);
 
@@ -56,7 +57,7 @@ export default function GameCamera() {
       pz + Math.cos(yaw) * camDist - Math.sin(yaw) * sideOffset,
     );
 
-    const lookTarget = new THREE.Vector3(
+    lookTarget.current.set(
       px - Math.sin(yaw) * lookAhead,
       py + (player.inVehicle ? 1.2 : 1.05),
       pz - Math.cos(yaw) * lookAhead,
@@ -66,9 +67,9 @@ export default function GameCamera() {
     camera.position.lerp(targetPos.current, POSITION_LERP);
 
     if (smoothedLook.current.lengthSq() === 0) {
-      smoothedLook.current.copy(lookTarget);
+      smoothedLook.current.copy(lookTarget.current);
     } else {
-      smoothedLook.current.lerp(lookTarget, LOOK_LERP);
+      smoothedLook.current.lerp(lookTarget.current, LOOK_LERP);
     }
 
     camera.lookAt(smoothedLook.current);
