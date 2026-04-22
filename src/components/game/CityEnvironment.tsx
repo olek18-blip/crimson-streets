@@ -540,16 +540,7 @@ function DistrictProps({ cityId, cx, cz }: { cityId: string; cx: number; cz: num
         </group>
       );
     case 'valentia':
-      return (
-        <group>
-          {[0, 1, 2].map((i) => (
-            <mesh key={i} position={[cx + 8 + i * 4, 1.1, cz + 10]} castShadow>
-              <boxGeometry args={[3.4, 2.2, 6]} />
-              <meshStandardMaterial color={['#c14545', '#3564cc', '#3ca35b'][i]} />
-            </mesh>
-          ))}
-        </group>
-      );
+      return null;
     case 'sevira':
       return (
         <group>

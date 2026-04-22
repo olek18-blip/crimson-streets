@@ -3,7 +3,7 @@ import { createPortal, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../../game/store';
-import { AnimatedPlayerCharacterModel } from './AssetLibrary';
+import { AnimatedPlayerCharacterModel, LegacyPistolModel } from './AssetLibrary';
 
 const RANGED_WEAPONS = new Set(['pistol', 'rifle']);
 const HAND_SOCKET_CANDIDATES = [
@@ -68,8 +68,11 @@ function WeaponFallback({ weapon }: { weapon: 'fist' | 'knife' | 'pistol' | 'rif
 function WeaponProxy({ weapon }: { weapon: 'knife' | 'pistol' | 'rifle' }) {
   // Until we have weapon assets that are consistently scaled/oriented, use simple proxies.
   // This guarantees "no giant weapons" and keeps gameplay readable.
-  const size: [number, number, number] =
-    weapon === 'rifle' ? [0.035, 0.03, 0.28] : weapon === 'knife' ? [0.02, 0.006, 0.16] : [0.04, 0.025, 0.12];
+  if (weapon === 'pistol') {
+    return <LegacyPistolModel scale={0.08} rotation={[0, Math.PI, 0]} />;
+  }
+
+  const size: [number, number, number] = weapon === 'rifle' ? [0.035, 0.03, 0.28] : [0.02, 0.006, 0.16];
   const color = weapon === 'knife' ? '#c8ccd6' : '#353942';
 
   return (
@@ -166,8 +169,8 @@ export default function Player() {
       if (usingBoneSocket) {
         // Tuned for a typical right-hand socket; adjust later if the rig changes.
         if (player.weapon === 'knife') {
-          weaponRef.current.position.set(0.055, 0.02, 0.02);
-          weaponRef.current.rotation.set(-0.15, Math.PI / 2, 0.9);
+          weaponRef.current.position.set(0.09, 0.02, 0.03);
+          weaponRef.current.rotation.set(-0.15, Math.PI / 2, 0.55);
           weaponRef.current.scale.setScalar(1);
         } else if (player.weapon === 'rifle') {
           weaponRef.current.position.set(0.07, 0.03, 0.015);

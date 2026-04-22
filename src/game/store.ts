@@ -4,6 +4,7 @@ import { cities, initialVehicles, initialNPCs, initialMissions } from './worldDa
 import { clearSavedGame, loadGameState } from './save';
 
 // const INTRO_MISSION_ID = 'mission1';
+const EXPLORATION_MODE = true;
 
 const initialPlayer: PlayerState = {
   position: [6, 0.5, -36],
@@ -137,10 +138,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
+    // For now we always start in exploration mode (no active mission, no combat),
+    // even if a previous session had a mission running.
     set({
-      ...createFreshState(),
-      ...saved,
       screen: 'playing',
+      ...createFreshState(),
     });
   },
 
@@ -232,6 +234,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }),
 
   takeDamage: (amount) => {
+    if (EXPLORATION_MODE) {
+      return;
+    }
     const state = get();
     const newHealth = Math.max(0, state.player.health - amount);
 
