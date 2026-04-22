@@ -78,6 +78,9 @@ export default function Player() {
   const muzzleLightRef = useRef<THREE.PointLight>(null);
   const muzzleMeshRef = useRef<THREE.Mesh>(null);
   const shotFlashTimerRef = useRef(0);
+  const shotPulseLightRef = useRef<THREE.PointLight>(null);
+  const shotPulseMeshRef = useRef<THREE.Mesh>(null);
+  const shotPulseTimerRef = useRef(0);
   const [weaponSocket, setWeaponSocket] = useState<THREE.Object3D | null>(null);
 
   const playerRenderState = useGameStore(
@@ -113,6 +116,15 @@ export default function Player() {
     shotFlashTimerRef.current = 0.07;
     if (muzzleLightRef.current) muzzleLightRef.current.visible = true;
     if (muzzleMeshRef.current) muzzleMeshRef.current.visible = true;
+  }, [playerRenderState.shotTick, playerRenderState.lastShotWeapon]);
+
+  useEffect(() => {
+    if (!playerRenderState.lastShotWeapon) return;
+    if (!(playerRenderState.lastShotWeapon === 'pistol' || playerRenderState.lastShotWeapon === 'rifle')) return;
+    // Debug-friendly "always visible" shot pulse so the player gets feedback even if the weapon socket is off.
+    shotPulseTimerRef.current = 0.12;
+    if (shotPulseLightRef.current) shotPulseLightRef.current.visible = true;
+    if (shotPulseMeshRef.current) shotPulseMeshRef.current.visible = true;
   }, [playerRenderState.shotTick, playerRenderState.lastShotWeapon]);
 
   useFrame((state) => {
@@ -194,6 +206,14 @@ export default function Player() {
         if (muzzleMeshRef.current) muzzleMeshRef.current.visible = false;
       }
     }
+
+    if (shotPulseTimerRef.current > 0) {
+      shotPulseTimerRef.current = Math.max(0, shotPulseTimerRef.current - state.clock.getDelta());
+      if (shotPulseTimerRef.current <= 0) {
+        if (shotPulseLightRef.current) shotPulseLightRef.current.visible = false;
+        if (shotPulseMeshRef.current) shotPulseMeshRef.current.visible = false;
+      }
+    }
   });
 
   if (playerRenderState.inVehicle) {
@@ -223,6 +243,14 @@ export default function Player() {
         <Suspense fallback={<PlayerFallback />}>
           <AnimatedPlayerCharacterModel animationState={playerRenderState.animationState} scale={0.56} rotation={[0, Math.PI, 0]} />
         </Suspense>
+      </group>
+
+      <group position={[0.32, 1.08, -0.7]}>
+        <pointLight ref={shotPulseLightRef} visible={false} color="#ff6a00" intensity={2.6} distance={6} />
+        <mesh ref={shotPulseMeshRef} visible={false}>
+          <sphereGeometry args={[0.06, 10, 10]} />
+          <meshStandardMaterial emissive="#ff7b00" color="#ffcf66" />
+        </mesh>
       </group>
 
       {weaponGroup && (weaponSocket ? createPortal(weaponGroup, weaponSocket) : weaponGroup)}

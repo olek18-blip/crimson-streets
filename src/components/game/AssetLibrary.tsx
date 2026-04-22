@@ -18,6 +18,8 @@ type StaticModelProps = ModelTransformProps & {
 type NormalizedStaticModelProps = StaticModelProps & {
   // Scale the loaded model so its largest dimension fits this size.
   targetMaxSize?: number;
+  // Prevent accidental "scale up" when bounds are unreliable (common with animated/skinned GLBs).
+  allowScaleUp?: boolean;
 };
 
 type ClipStateConfig = {
@@ -84,7 +86,15 @@ function multiplyScale(
   return [a[0] * b, a[1] * b, a[2] * b];
 }
 
-function NormalizedStaticModel({ url, objectName, targetMaxSize = 0.36, position, rotation, scale }: NormalizedStaticModelProps) {
+function NormalizedStaticModel({
+  url,
+  objectName,
+  targetMaxSize = 0.36,
+  allowScaleUp = false,
+  position,
+  rotation,
+  scale,
+}: NormalizedStaticModelProps) {
   const gltf = usePreparedGLTF(url);
 
   const object = useMemo(() => {
@@ -96,12 +106,15 @@ function NormalizedStaticModel({ url, objectName, targetMaxSize = 0.36, position
   }, [gltf.scene, objectName]);
 
   const normalization = useMemo(() => {
+    // Ensure transforms are up to date before computing bounds.
+    object.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(object);
     const size = new THREE.Vector3();
     box.getSize(size);
     const maxAxis = Math.max(size.x, size.y, size.z);
     if (!Number.isFinite(maxAxis) || maxAxis <= 0) return 1;
-    return targetMaxSize / maxAxis;
+    const factor = targetMaxSize / maxAxis;
+    return allowScaleUp ? factor : Math.min(1, factor);
   }, [object, targetMaxSize]);
 
   const normalizedScale = useMemo(() => multiplyScale(scale, normalization), [scale, normalization]);
