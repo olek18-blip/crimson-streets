@@ -15,6 +15,11 @@ type StaticModelProps = ModelTransformProps & {
   objectName?: string;
 };
 
+type NormalizedStaticModelProps = StaticModelProps & {
+  // Scale the loaded model so its largest dimension fits this size.
+  targetMaxSize?: number;
+};
+
 type ClipStateConfig = {
   candidates: string[];
   loop?: THREE.AnimationActionLoopStyles;
@@ -65,6 +70,44 @@ function StaticModel({ url, objectName, position, rotation, scale }: StaticModel
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
+      <Clone object={object} />
+    </group>
+  );
+}
+
+function multiplyScale(
+  a: number | [number, number, number] | undefined,
+  b: number,
+): number | [number, number, number] | undefined {
+  if (a === undefined) return b;
+  if (typeof a === 'number') return a * b;
+  return [a[0] * b, a[1] * b, a[2] * b];
+}
+
+function NormalizedStaticModel({ url, objectName, targetMaxSize = 0.36, position, rotation, scale }: NormalizedStaticModelProps) {
+  const gltf = usePreparedGLTF(url);
+
+  const object = useMemo(() => {
+    if (!objectName) {
+      return gltf.scene;
+    }
+
+    return gltf.scene.getObjectByName(objectName) ?? gltf.scene;
+  }, [gltf.scene, objectName]);
+
+  const normalization = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(object);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxAxis = Math.max(size.x, size.y, size.z);
+    if (!Number.isFinite(maxAxis) || maxAxis <= 0) return 1;
+    return targetMaxSize / maxAxis;
+  }, [object, targetMaxSize]);
+
+  const normalizedScale = useMemo(() => multiplyScale(scale, normalization), [scale, normalization]);
+
+  return (
+    <group position={position} rotation={rotation} scale={normalizedScale}>
       <Clone object={object} />
     </group>
   );
@@ -165,15 +208,15 @@ export function GangCharacterModel(props: ModelTransformProps) {
 }
 
 export function GunModel(props: ModelTransformProps) {
-  return <StaticModel url="/models/gun.glb" {...props} />;
+  return <NormalizedStaticModel url="/models/gun.glb" targetMaxSize={0.56} {...props} />;
 }
 
 export function PistolFireModel(props: ModelTransformProps) {
-  return <StaticModel url="/models/pistol-fire.glb" {...props} />;
+  return <NormalizedStaticModel url="/models/pistol-fire.glb" targetMaxSize={0.32} {...props} />;
 }
 
 export function CombatKnifeModel(props: ModelTransformProps) {
-  return <StaticModel url="/models/combat-knife.glb" {...props} />;
+  return <NormalizedStaticModel url="/models/combat-knife.glb" targetMaxSize={0.26} {...props} />;
 }
 
 export function MalibuCarModel(props: ModelTransformProps) {

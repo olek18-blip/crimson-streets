@@ -145,17 +145,17 @@ export default function Player() {
       if (usingBoneSocket) {
         // Tuned for a typical right-hand socket; adjust later if the rig changes.
         if (player.weapon === 'knife') {
-          weaponRef.current.position.set(0.04, 0.02, 0.03);
-          weaponRef.current.rotation.set(-0.2, Math.PI / 2, 1.25);
-          weaponRef.current.scale.setScalar(0.02);
+          weaponRef.current.position.set(0.055, 0.02, 0.02);
+          weaponRef.current.rotation.set(-0.35, Math.PI / 2, 1.15);
+          weaponRef.current.scale.setScalar(1);
         } else if (player.weapon === 'rifle') {
-          weaponRef.current.position.set(0.06, 0.03, 0.02);
-          weaponRef.current.rotation.set(-Math.PI / 2 + 0.15, 0.12, Math.PI);
-          weaponRef.current.scale.setScalar(0.12);
+          weaponRef.current.position.set(0.07, 0.03, 0.015);
+          weaponRef.current.rotation.set(-Math.PI / 2 + 0.14, 0.1, Math.PI);
+          weaponRef.current.scale.setScalar(1);
         } else if (player.weapon === 'pistol') {
-          weaponRef.current.position.set(0.055, 0.03, 0.015);
-          weaponRef.current.rotation.set(-Math.PI / 2 + 0.1, 0.08, Math.PI);
-          weaponRef.current.scale.setScalar(0.085);
+          weaponRef.current.position.set(0.06, 0.03, 0.012);
+          weaponRef.current.rotation.set(-Math.PI / 2 + 0.08, 0.08, Math.PI);
+          weaponRef.current.scale.setScalar(1);
         }
       } else {
         // Fallback placement (when no hand socket exists on the model).
