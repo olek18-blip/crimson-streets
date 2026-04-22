@@ -8,6 +8,7 @@ function clamp(value: number, min: number, max: number) {
 
 export default function MobileControls() {
   const screen = useGameStore((state) => state.screen);
+  const editorEnabled = useGameStore((state) => state.editor.enabled);
   const playerInVehicle = useGameStore((state) => state.player.inVehicle);
   const vehicles = useGameStore((state) => state.vehicles);
   const playerPos = useGameStore((state) => state.player.position);
@@ -40,10 +41,6 @@ export default function MobileControls() {
     [axisX, axisY],
   );
 
-  if (!isTouchDevice || screen === 'menu') {
-    return null;
-  }
-
   const nearVehicleId = useMemo(() => {
     if (playerInVehicle) return null;
     let best: { id: string; d: number } | null = null;
@@ -57,6 +54,10 @@ export default function MobileControls() {
     }
     return best?.id ?? null;
   }, [playerInVehicle, playerPos, vehicles]);
+
+  if (!isTouchDevice || screen === 'menu' || editorEnabled) {
+    return null;
+  }
 
   const updateFromTouch = (clientX: number, clientY: number) => {
     const pad = padRef.current;

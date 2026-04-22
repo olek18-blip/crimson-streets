@@ -65,6 +65,7 @@ export default function GameHUD() {
   const [snapshot, setSnapshot] = useState<HudSnapshot>(() => readHudSnapshot());
   const { player, mission, currentObjective, availableMission, targetDistance, missionProgress, nearVehicleDistance } = snapshot;
   const editor = useGameStore((state) => state.editor);
+  const openEditor = useGameStore((state) => state.openEditor);
   const cityData = cities.find((item) => item.id === player.currentCity);
 
   useEffect(() => {
@@ -250,6 +251,15 @@ export default function GameHUD() {
         <div className="game-panel rounded px-3 py-2 flex gap-3 text-[9px] text-muted-foreground font-display tracking-wider flex-wrap justify-start max-w-[560px]">
           <span>WASD MOVER</span><span>SHIFT CORRER</span><span>F VEHICULO</span><span>Q ARMA</span><span>CLICK ACCION</span><span>ESC PAUSA</span>
         </div>
+      </div>
+
+      <div className="hidden sm:block absolute bottom-4 right-4 pointer-events-auto">
+        <button
+          onClick={() => openEditor('2d')}
+          className="game-panel rounded-full px-4 py-2 text-[10px] tracking-[0.18em] text-cyan-100 border border-cyan-300/20 hover:bg-cyan-300/10 transition-colors"
+        >
+          ABRIR CONSTRUCCION
+        </button>
       </div>
 
       {nearVehicleDistance !== null && (

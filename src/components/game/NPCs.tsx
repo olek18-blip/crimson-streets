@@ -176,6 +176,7 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
 
 export default function NPCs() {
   const npcs = useGameStore((state) => state.npcs);
+  const playerPosition = useGameStore((state) => state.player.position);
   const updateNPCTransforms = useGameStore((state) => state.updateNPCTransforms);
   const damageNPC = useGameStore((state) => state.damageNPC);
   const setWantedLevel = useGameStore((state) => state.setWantedLevel);
@@ -355,6 +356,12 @@ export default function NPCs() {
   return (
     <group>
       {npcs.map((npc, index) => {
+        const dxToPlayer = npc.position[0] - playerPosition[0];
+        const dzToPlayer = npc.position[2] - playerPosition[2];
+        if (dxToPlayer * dxToPlayer + dzToPlayer * dzToPlayer > 150 * 150) {
+          return null;
+        }
+
         const player = useGameStore.getState().player;
         const activeMission = useGameStore.getState().activeMission;
         const missions = useGameStore.getState().missions;

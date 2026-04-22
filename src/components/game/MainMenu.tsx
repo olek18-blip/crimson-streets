@@ -3,7 +3,7 @@ import { hasSavedGame } from '../../game/save';
 import { useGameStore } from '../../game/store';
 
 export default function MainMenu() {
-  const { startGame, continueGame } = useGameStore();
+  const { startGame, startBuildMode, continueGame } = useGameStore();
   const canContinue = hasSavedGame();
 
   return (
@@ -16,7 +16,7 @@ export default function MainMenu() {
       <div className="absolute bottom-[22%] left-[12%] h-20 w-20 rounded-full border border-cyan-300/10" />
       <div className="absolute bottom-[16%] right-[10%] h-28 w-28 rounded-full border border-orange-300/10" />
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-5 sm:gap-7">
+      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-7">
         <div className="text-center px-2">
           <div className="font-display text-[11px] sm:text-xs tracking-[0.35em] text-cyan-200/70 mb-3">MANDRIL VERTICAL SLICE</div>
           <h1 className="font-display text-4xl sm:text-6xl md:text-8xl tracking-[0.12em] sm:tracking-wider leading-[0.92] text-glow" style={{ color: 'hsl(var(--primary))' }}>
@@ -29,24 +29,37 @@ export default function MainMenu() {
           </h2>
         </div>
 
-        <div className="w-full max-w-[310px] sm:max-w-md rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md px-4 py-3 sm:px-5 sm:py-4 text-center">
+        <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/25 backdrop-blur-md px-4 py-3 sm:px-5 sm:py-4 text-center">
           <p className="text-slate-300 text-sm sm:text-base leading-snug">
-            Un policia corrupto. Una red criminal. Una ciudad que nunca duerme.
+            Juega la historia o entra directamente al editor para construir carreteras, edificios, arboles y farolas en 2D y revisarlo al instante en 3D.
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 mt-1 w-full max-w-sm px-1">
+        <div className="grid w-full max-w-4xl gap-4 md:grid-cols-2">
           <button
             onClick={startGame}
-            className="font-display text-xl sm:text-2xl tracking-[0.22em] sm:tracking-widest px-6 sm:px-12 py-4 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(14 90% 40%))',
-              color: 'hsl(var(--primary-foreground))',
-              boxShadow: '0 0 30px hsl(var(--primary) / 0.35)',
-            }}
+            className="rounded-3xl border border-orange-400/20 bg-black/25 p-6 text-left transition-all hover:-translate-y-1 hover:border-orange-300/40 hover:bg-black/35"
           >
-            NUEVO JUEGO
+            <div className="font-display text-[11px] tracking-[0.28em] text-orange-200/80">MODO HISTORIA</div>
+            <div className="mt-3 font-display text-3xl tracking-[0.12em] text-white">JUGAR</div>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">
+              Recorre Mandril, activa misiones y entra despues al modo construccion desde la partida para ajustar el mapa.
+            </p>
           </button>
+
+          <button
+            onClick={startBuildMode}
+            className="rounded-3xl border border-cyan-300/20 bg-black/25 p-6 text-left transition-all hover:-translate-y-1 hover:border-cyan-200/40 hover:bg-black/35"
+          >
+            <div className="font-display text-[11px] tracking-[0.28em] text-cyan-200/80">MODO CONSTRUCCION</div>
+            <div className="mt-3 font-display text-3xl tracking-[0.12em] text-white">CONSTRUIR</div>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">
+              Diseña la ciudad en planta 2D, cambia a vista 3D para revisar volumen y recoloca elementos sin salir del juego.
+            </p>
+          </button>
+        </div>
+
+        <div className="flex w-full max-w-xl flex-col gap-3 px-1">
           <button
             onClick={continueGame}
             disabled={!canContinue}
@@ -59,34 +72,36 @@ export default function MainMenu() {
               background: 'rgba(3,7,18,0.35)',
             }}
           >
-            CONTINUAR
+            CONTINUAR PARTIDA
           </button>
-          <Link
-            to="/mission-demo"
-            className="font-display text-[11px] sm:text-sm tracking-[0.22em] sm:tracking-[0.28em] px-6 py-3 rounded-xl border text-center transition-all hover:bg-white/10"
-            style={{
-              borderColor: 'hsl(var(--secondary) / 0.35)',
-              color: 'hsl(var(--foreground))',
-              background: 'rgba(3,7,18,0.28)',
-            }}
-          >
-            DEMOSTRACION DE LA MISION
-          </Link>
-          <Link
-            to="/world-map"
-            className="font-display text-[11px] sm:text-sm tracking-[0.22em] sm:tracking-[0.28em] px-6 py-3 rounded-xl border text-center transition-all hover:bg-white/10"
-            style={{
-              borderColor: 'rgba(34,211,238,0.35)',
-              color: 'hsl(var(--foreground))',
-              background: 'rgba(3,7,18,0.28)',
-            }}
-          >
-            MAPA INTERACTIVO
-          </Link>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/mission-demo"
+              className="font-display text-[11px] sm:text-sm tracking-[0.22em] sm:tracking-[0.28em] px-6 py-3 rounded-xl border text-center transition-all hover:bg-white/10"
+              style={{
+                borderColor: 'hsl(var(--secondary) / 0.35)',
+                color: 'hsl(var(--foreground))',
+                background: 'rgba(3,7,18,0.28)',
+              }}
+            >
+              DEMOSTRACION DE LA MISION
+            </Link>
+            <Link
+              to="/world-map"
+              className="font-display text-[11px] sm:text-sm tracking-[0.22em] sm:tracking-[0.28em] px-6 py-3 rounded-xl border text-center transition-all hover:bg-white/10"
+              style={{
+                borderColor: 'rgba(34,211,238,0.35)',
+                color: 'hsl(var(--foreground))',
+                background: 'rgba(3,7,18,0.28)',
+              }}
+            >
+              MAPA INTERACTIVO
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-3 text-[11px] sm:text-xs text-slate-400 font-display tracking-[0.16em] sm:tracking-wider text-center px-3">
-          PROTOTIPO v0.2 - GUARDADO AUTOMATICO ACTIVADO
+        <div className="mt-1 text-[11px] sm:text-xs text-slate-400 font-display tracking-[0.16em] sm:tracking-wider text-center px-3">
+          PROTOTIPO v0.3 - CONSTRUCTOR 2D/3D Y CARGA MAS LIGERA
         </div>
       </div>
     </div>

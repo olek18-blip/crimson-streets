@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, MapEditorState, MissionObjectiveEffect, NPC, PlacedProp, PlayerAnimationState, PlayerState, PlaceableType } from './types';
+import type { GameMode, GameState, MapEditorState, MissionObjectiveEffect, NPC, PlacedProp, PlayerAnimationState, PlayerState, PlaceableType } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
 
@@ -15,7 +15,13 @@ function safeLoadEditorState(): MapEditorState | null {
     const parsed = JSON.parse(raw) as MapEditorState;
     if (!parsed || typeof parsed !== 'object') return null;
     if (!Array.isArray(parsed.placed)) return null;
-    return parsed;
+    return {
+      enabled: Boolean(parsed.enabled),
+      view: parsed.view === '2d' ? '2d' : '3d',
+      selected: parsed.selected ?? 'building',
+      rotationY: typeof parsed.rotationY === 'number' ? parsed.rotationY : 0,
+      placed: parsed.placed,
+    };
   } catch {
     return null;
   }
@@ -48,6 +54,7 @@ const initialPlayer: PlayerState = {
 
 interface GameStore extends GameState {
   startGame: () => void;
+  startBuildMode: () => void;
   continueGame: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
@@ -70,6 +77,9 @@ interface GameStore extends GameState {
   switchWeapon: () => void;
   registerShot: (weapon: PlayerState['weapon']) => void;
   toggleEditor: () => void;
+  openEditor: (view?: MapEditorState['view']) => void;
+  closeEditor: () => void;
+  setEditorView: (view: MapEditorState['view']) => void;
   setEditorSelected: (selected: PlaceableType) => void;
   rotateEditor: () => void;
   placeEditorProp: (prop: Omit<PlacedProp, 'id'>) => void;
@@ -129,7 +139,21 @@ function applyObjectiveEffects(
   return { player: nextPlayer, npcs: nextNPCs };
 }
 
-const createFreshState = (): Omit<GameState, 'screen'> => ({
+function createEditorState(enabled = false, view: MapEditorState['view'] = '3d'): MapEditorState {
+  const saved = safeLoadEditorState();
+  return saved
+    ? { ...saved, enabled, view }
+    : ({
+      enabled,
+      view,
+      selected: 'building',
+      rotationY: 0,
+      placed: [],
+    } satisfies MapEditorState);
+}
+
+const createFreshState = (gameMode: GameMode = 'story'): Omit<GameState, 'screen'> => ({
+  gameMode,
   player: { ...initialPlayer },
   vehicles: deepCopy(initialVehicles),
   npcs: deepCopy(initialNPCs),
@@ -140,13 +164,7 @@ const createFreshState = (): Omit<GameState, 'screen'> => ({
   lastCompletedMission: null,
   shotTick: 0,
   lastShotWeapon: null,
-  editor:
-    safeLoadEditorState() ?? ({
-      enabled: false,
-      selected: 'building',
-      rotationY: 0,
-      placed: [],
-    } satisfies MapEditorState),
+  editor: createEditorState(gameMode === 'build', gameMode === 'build' ? '2d' : '3d'),
 });
 
 // We keep the intro mission data, but we don't auto-activate it on start anymore.
@@ -159,7 +177,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     clearSavedGame();
     set({
       screen: 'playing',
-      ...createFreshState(),
+      ...createFreshState('story'),
+    });
+  },
+
+  startBuildMode: () => {
+    set({
+      screen: 'playing',
+      ...createFreshState('build'),
+      editor: { ...createEditorState(true, '2d'), enabled: true, view: '2d' },
     });
   },
 
@@ -169,7 +195,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!saved) {
       set({
         screen: 'playing',
-        ...createFreshState(),
+        ...createFreshState('story'),
       });
       return;
     }
@@ -178,7 +204,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // even if a previous session had a mission running.
     set({
       screen: 'playing',
-      ...createFreshState(),
+      ...createFreshState('story'),
     });
   },
 
@@ -404,6 +430,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => {
       const next: MapEditorState = { ...state.editor, enabled: !state.editor.enabled };
       safeSaveEditorState(next);
+      return { editor: next, gameMode: next.enabled ? 'build' : 'story' };
+    }),
+
+  openEditor: (view = '3d') =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, enabled: true, view };
+      safeSaveEditorState(next);
+      return { editor: next, gameMode: 'build' };
+    }),
+
+  closeEditor: () =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, enabled: false };
+      safeSaveEditorState(next);
+      return { editor: next, gameMode: 'story' };
+    }),
+
+  setEditorView: (view) =>
+    set((state) => {
+      const next: MapEditorState = { ...state.editor, view };
+      safeSaveEditorState(next);
       return { editor: next };
     }),
 
@@ -450,6 +497,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   resetGame: () =>
     set({
       screen: 'menu',
-      ...createFreshState(),
+      ...createFreshState('story'),
     }),
 }));

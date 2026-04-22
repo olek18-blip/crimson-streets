@@ -94,6 +94,7 @@ function VehicleMesh({
 export default function Vehicles() {
   const vehicles = useGameStore((state) => state.vehicles);
   const currentVehicle = useGameStore((state) => state.player.currentVehicle);
+  const playerPosition = useGameStore((state) => state.player.position);
   const refs = useRef<Record<string, THREE.Group | null>>({});
 
   useFrame(() => {
@@ -110,6 +111,12 @@ export default function Vehicles() {
   return (
     <group>
       {vehicles.map((vehicle) => {
+        const playerDx = vehicle.position[0] - playerPosition[0];
+        const playerDz = vehicle.position[2] - playerPosition[2];
+        if (playerDx * playerDx + playerDz * playerDz > 170 * 170) {
+          return null;
+        }
+
         const isPlayerVehicle = currentVehicle === vehicle.id;
         const player = useGameStore.getState().player;
         const dx = vehicle.position[0] - player.position[0];

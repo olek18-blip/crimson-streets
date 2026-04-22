@@ -7,6 +7,7 @@ import { useGamePersistence } from '../../hooks/useGamePersistence';
 import { useMissionSystem } from '../../hooks/useMissionSystem';
 import { usePlayerController } from '../../hooks/usePlayerController';
 import CityEnvironment from './CityEnvironment';
+import BuildModePanel from './BuildModePanel';
 import GameCamera from './GameCamera';
 import GameHUD from './GameHUD';
 import GameOverScreen from './GameOverScreen';
@@ -73,6 +74,8 @@ function Scene() {
 
 export default function GameScene() {
   const screen = useGameStore((state) => state.screen);
+  const editorEnabled = useGameStore((state) => state.editor.enabled);
+  const gameMode = useGameStore((state) => state.gameMode);
   const [showLoading, setShowLoading] = useState(false);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -115,7 +118,7 @@ export default function GameScene() {
       {screen === 'game-over' && <GameOverScreen />}
       {screen === 'mission-complete' && <MissionCompleteScreen />}
 
-      {screen !== 'menu' && (
+      {screen !== 'menu' && !editorEnabled && (
         <>
           <GameHUD />
           <Minimap />
@@ -123,22 +126,35 @@ export default function GameScene() {
         </>
       )}
 
-      {showLoading && screen === 'playing' && <LoadingSplash progressText="Preparando Mandril, IA y mision activa..." />}
+      {editorEnabled && <BuildModePanel />}
 
-      <Canvas
-        dpr={[1, 1.25]}
-        shadows
-        camera={{ fov: 60, near: 0.1, far: 500 }}
-        gl={{
-          antialias: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          outputColorSpace: THREE.SRGBColorSpace,
-          powerPreference: 'high-performance',
-        }}
-        style={{ background: '#050505' }}
-      >
-        <Scene />
-      </Canvas>
+      {showLoading && screen === 'playing' && (
+        <LoadingSplash
+          progressText={
+            gameMode === 'build'
+              ? 'Cargando editor, mapa y vista de construccion...'
+              : 'Preparando Mandril, IA y mision activa...'
+          }
+        />
+      )}
+
+      {screen !== 'menu' && (
+        <Canvas
+          dpr={[0.75, 1]}
+          shadows
+          camera={{ fov: 60, near: 0.1, far: 500 }}
+          performance={{ min: 0.5 }}
+          gl={{
+            antialias: false,
+            toneMapping: THREE.ACESFilmicToneMapping,
+            outputColorSpace: THREE.SRGBColorSpace,
+            powerPreference: 'high-performance',
+          }}
+          style={{ background: '#050505' }}
+        >
+          <Scene />
+        </Canvas>
+      )}
     </div>
   );
 }

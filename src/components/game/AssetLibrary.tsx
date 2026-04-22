@@ -115,7 +115,7 @@ function NormalizedStaticModel({
     if (!Number.isFinite(maxAxis) || maxAxis <= 0) return 1;
     const factor = targetMaxSize / maxAxis;
     return allowScaleUp ? factor : Math.min(1, factor);
-  }, [object, targetMaxSize]);
+  }, [allowScaleUp, object, targetMaxSize]);
 
   const normalizedScale = useMemo(() => multiplyScale(scale, normalization), [scale, normalization]);
 
@@ -320,30 +320,13 @@ export function CityWomanModel(props: ModelTransformProps) {
 }
 
 useGLTF.preload('/models/ps1-character.glb');
-useGLTF.preload('/models/cop-character.glb');
 useGLTF.preload('/models/male-character.glb');
 useGLTF.preload('/models/lowpoly-male-npc.glb');
 useGLTF.preload('/models/male-base-v2.glb');
 useGLTF.preload('/models/gun.glb');
-useGLTF.preload('/models/pistol-fire.glb');
-useGLTF.preload('/models/combat-knife.glb');
 useGLTF.preload('/models/malibu-car.glb');
 useGLTF.preload('/models/pontiac-ventura.glb');
-useGLTF.preload('/models/refrigerating-truck.glb');
 useGLTF.preload('/models/buildings.glb');
 useGLTF.preload('/models/trees.glb');
 useGLTF.preload('/models/dumpster-set.glb');
 useGLTF.preload('/models/street-light-kit.glb');
-useGLTF.preload('/models/city/building.glb');
-useGLTF.preload('/models/city/hotel-building.glb');
-useGLTF.preload('/models/city/bar.glb');
-useGLTF.preload('/models/city/billboard.glb');
-useGLTF.preload('/models/city/traffic-light.glb');
-useGLTF.preload('/models/city/stop-sign.glb');
-useGLTF.preload('/models/city/police-car.glb');
-useGLTF.preload('/models/city/suv.glb');
-useGLTF.preload('/models/city/car.glb');
-useGLTF.preload('/models/city/road-bits.glb');
-useGLTF.preload('/models/city/path-straight.glb');
-useGLTF.preload('/models/city/man.glb');
-useGLTF.preload('/models/city/woman.glb');

@@ -80,6 +80,7 @@ export interface MissionObjective {
   effects?: MissionObjectiveEffect[];
 }
 
+export type GameMode = 'story' | 'build';
 export type GameScreen = 'menu' | 'playing' | 'paused' | 'mission-complete' | 'game-over';
 
 export interface CityZone {
@@ -92,6 +93,7 @@ export interface CityZone {
 }
 
 export interface GameState {
+  gameMode: GameMode;
   screen: GameScreen;
   player: PlayerState;
   vehicles: Vehicle[];
@@ -106,7 +108,7 @@ export interface GameState {
   editor: MapEditorState;
 }
 
-export type PlaceableType = 'block' | 'building' | 'streetlight' | 'dumpster' | 'tree';
+export type PlaceableType = 'road' | 'block' | 'building' | 'streetlight' | 'dumpster' | 'tree';
 
 export type PlacedProp = {
   id: string;
@@ -117,6 +119,7 @@ export type PlacedProp = {
 
 export type MapEditorState = {
   enabled: boolean;
+  view: '2d' | '3d';
   selected: PlaceableType;
   rotationY: number;
   placed: PlacedProp[];

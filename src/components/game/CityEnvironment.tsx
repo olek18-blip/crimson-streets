@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { cities, WORLD_SIZE } from '../../game/worldData';
 import { useGameStore } from '../../game/store';
 import {
@@ -567,26 +567,39 @@ function Waterfront() {
   );
 }
 
-function RuralZones() {
-  const trees: [number, number, number][] = [];
-  for (let i = 0; i < 220; i++) {
-    const angle = (i / 220) * Math.PI * 2 * 5 + i * 0.71;
-    const dist = 65 + Math.sin(i * 0.27) * 82;
-    const x = Math.cos(angle) * dist;
-    const z = Math.sin(angle) * dist;
-    const inCity = cities.some((c) => {
-      const dx = x - c.center[0];
-      const dz = z - c.center[2];
-      return Math.sqrt(dx * dx + dz * dz) < c.radius + 12;
-    });
-    if (!inCity && Math.abs(x) < WORLD_SIZE && Math.abs(z) < WORLD_SIZE) {
-      trees.push([x, 0, z]);
+function RuralZones({ playerPosition }: { playerPosition: [number, number, number] }) {
+  const trees = useMemo(() => {
+    const nextTrees: [number, number, number][] = [];
+    for (let i = 0; i < 140; i++) {
+      const angle = (i / 140) * Math.PI * 2 * 5 + i * 0.71;
+      const dist = 65 + Math.sin(i * 0.27) * 82;
+      const x = Math.cos(angle) * dist;
+      const z = Math.sin(angle) * dist;
+      const inCity = cities.some((c) => {
+        const dx = x - c.center[0];
+        const dz = z - c.center[2];
+        return Math.sqrt(dx * dx + dz * dz) < c.radius + 12;
+      });
+      if (!inCity && Math.abs(x) < WORLD_SIZE && Math.abs(z) < WORLD_SIZE) {
+        nextTrees.push([x, 0, z]);
+      }
     }
-  }
+    return nextTrees;
+  }, []);
+
+  const visibleTrees = useMemo(
+    () =>
+      trees.filter((tree) => {
+        const dx = tree[0] - playerPosition[0];
+        const dz = tree[2] - playerPosition[2];
+        return dx * dx + dz * dz < 170 * 170;
+      }),
+    [playerPosition, trees],
+  );
 
   return (
     <group>
-      {trees.map((pos, i) => (
+      {visibleTrees.map((pos, i) => (
         <group key={i} position={pos}>
           {i % 5 === 0 ? (
             <Suspense fallback={<TreeFallback />}>
@@ -618,12 +631,33 @@ function DistrictMarker({ x, z, color }: { x: number; z: number; color: string }
 
 function PlacedProps() {
   const placed = useGameStore((s) => s.editor.placed);
+  const playerPosition = useGameStore((s) => s.player.position);
 
   if (placed.length === 0) return null;
 
+  const visiblePlaced = placed.filter((prop) => {
+    const dx = prop.position[0] - playerPosition[0];
+    const dz = prop.position[2] - playerPosition[2];
+    return dx * dx + dz * dz < 220 * 220;
+  });
+
   return (
     <group>
-      {placed.map((p) => {
+      {visiblePlaced.map((p) => {
+        if (p.type === 'road') {
+          return (
+            <group key={p.id} position={[p.position[0], 0, p.position[2]]} rotation={[0, p.rotationY, 0]}>
+              <mesh position={[0, 0.04, 0]} receiveShadow>
+                <boxGeometry args={[2.4, 0.08, 6.2]} />
+                <meshStandardMaterial color="#2a2f36" />
+              </mesh>
+              <mesh position={[0, 0.09, 0]}>
+                <boxGeometry args={[0.1, 0.01, 5.2]} />
+                <meshStandardMaterial color="#d4b46b" emissive="#d4b46b" emissiveIntensity={0.1} />
+              </mesh>
+            </group>
+          );
+        }
         if (p.type === 'streetlight') {
           return (
             <group key={p.id} position={p.position} rotation={[0, p.rotationY, 0]}>
@@ -696,6 +730,16 @@ function PlacedProps() {
 }
 
 export default function CityEnvironment() {
+  const playerPosition = useGameStore((s) => s.player.position);
+  const visibleCities = useMemo(
+    () =>
+      cities.filter((city) => {
+        const dx = city.center[0] - playerPosition[0];
+        const dz = city.center[2] - playerPosition[2];
+        return dx * dx + dz * dz < 230 * 230;
+      }),
+    [playerPosition],
+  );
   const lights: [number, number, number][] = [];
   for (let i = -WORLD_SIZE; i < WORLD_SIZE; i += 24) {
     lights.push([3.5, 0, i]);
@@ -715,7 +759,7 @@ export default function CityEnvironment() {
 
       <Waterfront />
 
-      {cities.map((city) => (
+      {visibleCities.map((city) => (
         <group key={`district-${city.id}`}>
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[city.center[0], 0.012, city.center[2]]} receiveShadow>
             <circleGeometry args={[city.radius, 40]} />
@@ -729,16 +773,16 @@ export default function CityEnvironment() {
         </group>
       ))}
 
-      {cities.map((city) => (
+      {visibleCities.map((city) => (
         <CityBuildings key={city.id} cx={city.center[0]} cz={city.center[2]} radius={city.radius} cityId={city.id} />
       ))}
-      {cities.map((city) => (
+      {visibleCities.map((city) => (
         <CityLandmarks key={`lm-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
-      {cities.map((city) => (
+      {visibleCities.map((city) => (
         <CityPackLandmarks key={`pack-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
-      {cities.map((city) => (
+      {visibleCities.map((city) => (
         <DistrictProps key={`props-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
 
@@ -765,12 +809,12 @@ export default function CityEnvironment() {
       <pointLight position={[198, 5, -106]} color="#00d4ff" intensity={2} distance={14} />
       <pointLight position={[0, 5, 0]} color="#d6a258" intensity={1.2} distance={22} />
 
-      {cities.map((city) => {
+      {visibleCities.map((city) => {
         const offset = city.id === 'madrona' ? [25, 25] : [city.center[0] + 10, city.center[2] + 10];
         return <DistrictMarker key={`marker-${city.id}`} x={offset[0]} z={offset[1]} color={city.color} />;
       })}
 
-      <RuralZones />
+      <RuralZones playerPosition={playerPosition} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.55, 0]}>
         <planeGeometry args={[2200, 2200]} />

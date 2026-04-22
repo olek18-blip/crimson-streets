@@ -2,9 +2,13 @@ import { useEffect } from 'react';
 import { useGameStore } from '../game/store';
 
 export function useMissionSystem() {
-  const { player, missions, activeMission, startMission, completeMissionObjective, completeMission, npcs } = useGameStore();
+  const { player, missions, activeMission, startMission, completeMissionObjective, completeMission, npcs, gameMode, editor } = useGameStore();
 
   useEffect(() => {
+    if (gameMode === 'build' || editor.enabled) {
+      return;
+    }
+
     if (!activeMission) {
       for (const mission of missions) {
         if (mission.status !== 'available') continue;
@@ -64,5 +68,5 @@ export function useMissionSystem() {
     if (mission.objectives.every((objective) => objective.completed)) {
       completeMission(mission.id);
     }
-  }, [player.position, player.weapon, player.inVehicle, npcs, activeMission, missions, startMission, completeMissionObjective, completeMission]);
+  }, [player.position, player.weapon, player.inVehicle, npcs, activeMission, missions, startMission, completeMissionObjective, completeMission, gameMode, editor.enabled]);
 }

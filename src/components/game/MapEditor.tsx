@@ -11,6 +11,7 @@ function snap(n: number, step: number) {
 }
 
 function makePreviewGeometry(type: PlaceableType) {
+  if (type === 'road') return new THREE.BoxGeometry(2, 0.08, 6);
   if (type === 'streetlight') return new THREE.CylinderGeometry(0.05, 0.05, 4, 10);
   if (type === 'dumpster') return new THREE.BoxGeometry(2.3, 1.6, 1.2);
   if (type === 'tree') return new THREE.ConeGeometry(1.2, 3.2, 8);
@@ -53,7 +54,7 @@ function PlacePreview({
         <ringGeometry args={[0.75, 1.05, 24]} />
         <meshStandardMaterial color="#8fd3ff" emissive="#8fd3ff" emissiveIntensity={0.8} transparent opacity={0.55} />
       </mesh>
-      <mesh geometry={geom} material={mat} position={position} rotation={[0, rotationY, 0]} />
+      <mesh geometry={geom} material={mat} position={type === 'road' ? [position[0], 0.06, position[2]] : position} rotation={[0, rotationY, 0]} />
     </group>
   );
 }
@@ -64,6 +65,7 @@ export default function MapEditor() {
   const toggleEditor = useGameStore((s) => s.toggleEditor);
   const rotateEditor = useGameStore((s) => s.rotateEditor);
   const setEditorSelected = useGameStore((s) => s.setEditorSelected);
+  const setEditorView = useGameStore((s) => s.setEditorView);
   const placeEditorProp = useGameStore((s) => s.placeEditorProp);
   const removeEditorPropNear = useGameStore((s) => s.removeEditorPropNear);
   const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(null);
@@ -88,6 +90,12 @@ export default function MapEditor() {
       }
 
       if (!useGameStore.getState().editor.enabled) return;
+
+      if (key === 'v') {
+        const currentView = useGameStore.getState().editor.view;
+        setEditorView(currentView === '2d' ? '3d' : '2d');
+        return;
+      }
 
       if (key === 'r') {
         rotateEditor();
@@ -115,15 +123,20 @@ export default function MapEditor() {
       }
 
       const mapping: Record<string, PlaceableType> = {
-        '1': 'building',
-        '2': 'streetlight',
-        '3': 'dumpster',
+        '1': 'road',
+        '2': 'building',
+        '3': 'streetlight',
         '4': 'tree',
-        '5': 'block',
+        '5': 'dumpster',
+        '6': 'block',
       };
       const selected = mapping[key];
       if (selected) {
         setEditorSelected(selected);
+        return;
+      }
+
+      if (useGameStore.getState().editor.view !== '3d') {
         return;
       }
 
@@ -145,10 +158,9 @@ export default function MapEditor() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [cursorPos, placeEditorProp, removeEditorPropNear, rotateEditor, setEditorSelected, toggleEditor]);
+  }, [cursorPos, placeEditorProp, removeEditorPropNear, rotateEditor, setEditorSelected, setEditorView, toggleEditor]);
 
-  if (!editor.enabled || !cursorPos) return null;
+  if (!editor.enabled || editor.view !== '3d' || !cursorPos) return null;
 
   return <PlacePreview type={editor.selected} position={cursorPos} rotationY={editor.rotationY} />;
 }
-
