@@ -8,13 +8,15 @@ import { CivilianAltCharacterModel, CivilianCharacterModel, GangCharacterModel, 
 
 type BehaviorState = 'idle' | 'patrol' | 'flee' | 'chase' | 'attack';
 
+const IS_MOBILE = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 const ATTACK_RANGE = 2.6;
 const FLEE_TRIGGER_RANGE = 30;
 const POLICE_NOTICE_RANGE = 40;
 const GANG_AGGRO_RANGE = 25;
 const SHOOT_INTERVAL = 0.28;
 const MAX_DELTA = 0.05;
-const NPC_SYNC_INTERVAL = 0.25;
+const NPC_SYNC_INTERVAL = 0.4;
+const MAX_RENDER_DIST = IS_MOBILE ? 80 : 120;
 
 function wrapAngle(angle: number) {
   while (angle > Math.PI) angle -= Math.PI * 2;
@@ -60,11 +62,11 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
   }
 
   if (npc.type === 'police') {
-    if (crimeDetected && distanceToPlayer < POLICE_NOTICE_RANGE) {
-      return 'chase' as const;
-    }
     if (distanceToPlayer < ATTACK_RANGE && crimeDetected) {
       return 'attack' as const;
+    }
+    if (crimeDetected && distanceToPlayer < POLICE_NOTICE_RANGE) {
+      return 'chase' as const;
     }
     return distanceToPlayer < 8 ? ('idle' as const) : ('patrol' as const);
   }
@@ -89,25 +91,26 @@ function NPCFallback({
 }) {
   return (
     <mesh position={position ?? [0, 0.9, 0]} castShadow>
-      <capsuleGeometry args={[0.21, 0.46, 8, 16]} />
-      <meshStandardMaterial color={color} emissive={emissive ?? '#0f1014'} emissiveIntensity={0.12} />
+      <capsuleGeometry args={[0.21, 0.46, 8, 12]} />
+      <meshStandardMaterial color={color} emissive={emissive ?? '#0f1014'} emissiveIntensity={0.08} />
     </mesh>
   );
 }
 
 function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; phase: number }) {
-  const bob = npc.isAlive ? Math.sin(phase) * 0.025 : 0;
+  const bob = npc.isAlive ? Math.sin(phase) * 0.02 : 0;
   const lean = behavior === 'chase' || behavior === 'attack' ? 0.08 : behavior === 'flee' ? -0.1 : 0;
   const accentColor = behavior === 'attack' ? '#ff4d4d' : behavior === 'chase' ? '#ff9f43' : behavior === 'flee' ? '#8fd3ff' : '#d9d9d9';
 
   const civilianVariant = npc.id.length % 2;
   const gangVariant = npc.id.length % 2;
+  const showAttackLight = !IS_MOBILE && (behavior === 'attack' || behavior === 'chase');
 
   if (!npc.isAlive) {
     return (
       <group rotation={[Math.PI / 2, 0.1, 0]} position={[0, 0.08, 0]}>
         <mesh castShadow>
-          <capsuleGeometry args={[0.2, 0.62, 8, 16]} />
+          <capsuleGeometry args={[0.2, 0.62, 8, 12]} />
           <meshStandardMaterial color="#3a2a2a" />
         </mesh>
       </group>
@@ -117,24 +120,22 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
   if (npc.type === 'police') {
     return (
       <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
-        {(behavior === 'attack' || behavior === 'chase') && <pointLight position={[0, 1.1, 0]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={2} distance={3} />}
+        {showAttackLight && <pointLight position={[0, 1.1, 0]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={1.2} distance={2} />}
         <Suspense fallback={<NPCFallback color="#183a63" emissive="#0d1725" />}>
           <PoliceCharacterModel scale={0.9} rotation={[0, Math.PI, 0]} />
         </Suspense>
-
         <mesh position={[0, 1.26, 0.02]} castShadow>
           <boxGeometry args={[0.38, 0.08, 0.24]} />
-          <meshStandardMaterial color="#132641" emissive="#09111d" emissiveIntensity={0.2} />
+          <meshStandardMaterial color="#132641" emissive="#09111d" emissiveIntensity={0.16} />
         </mesh>
         <mesh position={[0, 0.84, 0.18]} castShadow>
           <boxGeometry args={[0.32, 0.1, 0.04]} />
-          <meshStandardMaterial color="#183a63" emissive="#0d1725" emissiveIntensity={0.16} />
+          <meshStandardMaterial color="#183a63" emissive="#0d1725" emissiveIntensity={0.12} />
         </mesh>
-
         {(behavior === 'attack' || behavior === 'chase') && (
           <mesh position={[0, 1.32, 0]}>
-            <sphereGeometry args={[0.05, 10, 10]} />
-            <meshStandardMaterial color={accentColor} emissive={accentColor} />
+            <sphereGeometry args={[0.05, 8, 8]} />
+            <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.65} />
           </mesh>
         )}
       </group>
@@ -153,11 +154,10 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
             <CivilianAltCharacterModel scale={0.56} rotation={[0, Math.PI, 0]} />
           </Suspense>
         )}
-
         {behavior === 'flee' && (
           <mesh position={[0, 1.25, 0]}>
-            <sphereGeometry args={[0.05, 10, 10]} />
-            <meshStandardMaterial color={accentColor} emissive={accentColor} />
+            <sphereGeometry args={[0.05, 8, 8]} />
+            <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.55} />
           </mesh>
         )}
       </group>
@@ -166,16 +166,14 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
 
   return (
     <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
-      {(behavior === 'attack' || behavior === 'chase') && <pointLight position={[0, 1.05, 0.18]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={2} distance={3} />}
-      {npc.type === 'gang' && <pointLight position={[0, 1.05, 0.18]} color="#ff6b6b" intensity={0.12} distance={1.8} />}
+      {showAttackLight && <pointLight position={[0, 1.05, 0.18]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={1.2} distance={2} />}
       <Suspense fallback={<NPCFallback color={gangVariant === 0 ? '#4a1818' : '#26222b'} emissive="#160d0d" />}>
         <GangCharacterModel scale={gangVariant === 0 ? 0.9 : 0.86} rotation={[0, Math.PI, 0]} />
       </Suspense>
-
       {(behavior === 'attack' || behavior === 'chase' || behavior === 'flee') && (
         <mesh position={[0, 1.28, 0]}>
-          <sphereGeometry args={[0.05, 10, 10]} />
-          <meshStandardMaterial color={accentColor} emissive={accentColor} />
+          <sphereGeometry args={[0.05, 8, 8]} />
+          <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.55} />
         </mesh>
       )}
     </group>
@@ -366,7 +364,7 @@ export default function NPCs() {
       {npcs.map((npc, index) => {
         const dxToPlayer = npc.position[0] - playerPosition[0];
         const dzToPlayer = npc.position[2] - playerPosition[2];
-        if (dxToPlayer * dxToPlayer + dzToPlayer * dzToPlayer > (isFastDev ? 80 * 80 : 150 * 150)) {
+        if (dxToPlayer * dxToPlayer + dzToPlayer * dzToPlayer > MAX_RENDER_DIST * MAX_RENDER_DIST) {
           return null;
         }
 
