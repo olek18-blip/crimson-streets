@@ -1,4 +1,4 @@
-import { Suspense, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/store';
@@ -6,6 +6,7 @@ import { isFastDev } from '../../game/env';
 import { MalibuCarModel, PontiacCarModel } from './AssetLibrary';
 
 const VEHICLE_INTERACT_RANGE = 4;
+const TRAFFIC_SYNC_INTERVAL = 0.28;
 
 function carVariantFromId(id: string) {
   return id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? 'malibu' : 'pontiac';
@@ -96,17 +97,64 @@ export default function Vehicles() {
   const vehicles = useGameStore((state) => state.vehicles);
   const currentVehicle = useGameStore((state) => state.player.currentVehicle);
   const playerPosition = useGameStore((state) => state.player.position);
+  const updateVehicleTransform = useGameStore((state) => state.updateVehicleTransform);
   const refs = useRef<Record<string, THREE.Group | null>>({});
+  const homeRef = useRef<Record<string, [number, number, number]>>({});
+  const trafficStateRef = useRef<Record<string, { angle: number; radius: number; speed: number; sync: number; yawOffset: number }>>({});
 
-  useFrame(() => {
+  useEffect(() => {
+    vehicles.forEach((vehicle, index) => {
+      if (!homeRef.current[vehicle.id]) {
+        homeRef.current[vehicle.id] = [...vehicle.position] as [number, number, number];
+      }
+      if (!trafficStateRef.current[vehicle.id]) {
+        const base = vehicle.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + index * 13;
+        trafficStateRef.current[vehicle.id] = {
+          angle: (base % 360) * (Math.PI / 180),
+          radius: vehicle.type === 'motorcycle' ? 4 + (base % 3) : 6 + (base % 5),
+          speed: vehicle.type === 'motorcycle' ? 0.8 + (base % 4) * 0.08 : 0.45 + (base % 5) * 0.05,
+          sync: 0,
+          yawOffset: (base % 5) * 0.18,
+        };
+      }
+    });
+  }, [vehicles]);
+
+  useFrame((_, delta) => {
     const player = useGameStore.getState().player;
-    if (player.inVehicle && player.currentVehicle) {
-      const ref = refs.current[player.currentVehicle];
-      if (ref) {
+
+    vehicles.forEach((vehicle) => {
+      const ref = refs.current[vehicle.id];
+      if (!ref) return;
+
+      if (player.inVehicle && player.currentVehicle === vehicle.id) {
         ref.position.set(...player.position);
         ref.rotation.y = player.rotation;
+        return;
       }
-    }
+
+      const home = homeRef.current[vehicle.id] ?? vehicle.position;
+      const traffic = trafficStateRef.current[vehicle.id];
+      if (!traffic) return;
+
+      traffic.angle += delta * traffic.speed;
+      traffic.sync += delta;
+
+      const wobble = Math.sin(traffic.angle * 2.1 + traffic.yawOffset) * (vehicle.type === 'motorcycle' ? 0.6 : 1.1);
+      const nextX = home[0] + Math.cos(traffic.angle) * traffic.radius;
+      const nextZ = home[2] + Math.sin(traffic.angle) * (traffic.radius * 0.68) + wobble;
+      const lookAheadX = home[0] + Math.cos(traffic.angle + 0.08) * traffic.radius;
+      const lookAheadZ = home[2] + Math.sin(traffic.angle + 0.08) * (traffic.radius * 0.68) + Math.sin((traffic.angle + 0.08) * 2.1 + traffic.yawOffset) * (vehicle.type === 'motorcycle' ? 0.6 : 1.1);
+      const nextRot = Math.atan2(lookAheadX - nextX, lookAheadZ - nextZ);
+
+      ref.position.set(nextX, vehicle.position[1], nextZ);
+      ref.rotation.y = nextRot;
+
+      if (traffic.sync >= TRAFFIC_SYNC_INTERVAL) {
+        traffic.sync = 0;
+        updateVehicleTransform(vehicle.id, [nextX, vehicle.position[1], nextZ], nextRot);
+      }
+    });
   });
 
   return (
@@ -133,12 +181,7 @@ export default function Vehicles() {
             position={vehicle.position}
             rotation={[0, vehicle.rotation, 0]}
           >
-            <VehicleMesh
-              id={vehicle.id}
-              type={vehicle.type}
-              color={vehicle.color}
-              isPlayerVehicle={isPlayerVehicle}
-            />
+            <VehicleMesh id={vehicle.id} type={vehicle.type} color={vehicle.color} isPlayerVehicle={isPlayerVehicle} />
             <VehiclePrompt visible={near} />
           </group>
         );
