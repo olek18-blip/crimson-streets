@@ -8,10 +8,10 @@ import { CivilianAltCharacterModel, CivilianCharacterModel, GangCharacterModel, 
 
 type BehaviorState = 'idle' | 'patrol' | 'flee' | 'chase' | 'attack';
 
-const ATTACK_RANGE = 2.2;
-const FLEE_TRIGGER_RANGE = 18;
-const POLICE_NOTICE_RANGE = 22;
-const GANG_AGGRO_RANGE = 12;
+const ATTACK_RANGE = 2.6;
+const FLEE_TRIGGER_RANGE = 30;
+const POLICE_NOTICE_RANGE = 40;
+const GANG_AGGRO_RANGE = 25;
 const SHOOT_INTERVAL = 0.28;
 const MAX_DELTA = 0.05;
 const NPC_SYNC_INTERVAL = 0.25;
@@ -60,14 +60,19 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
   }
 
   if (npc.type === 'police') {
-    // Exploration mode: police are non-hostile for now.
+    if (crimeDetected && distanceToPlayer < POLICE_NOTICE_RANGE) {
+      return 'chase' as const;
+    }
+    if (distanceToPlayer < ATTACK_RANGE && crimeDetected) {
+      return 'attack' as const;
+    }
     return distanceToPlayer < 8 ? ('idle' as const) : ('patrol' as const);
   }
 
-  if (distanceToPlayer < ATTACK_RANGE && (activeMissionCity === npc.city || violenceNearby)) {
+  if (distanceToPlayer < ATTACK_RANGE && (activeMissionCity === npc.city || violenceNearby || npc.isHostile)) {
     return 'attack' as const;
   }
-  if (distanceToPlayer < GANG_AGGRO_RANGE || activeMissionCity === npc.city || violenceNearby) {
+  if (distanceToPlayer < GANG_AGGRO_RANGE || activeMissionCity === npc.city || violenceNearby || npc.isHostile) {
     return 'chase' as const;
   }
   return 'patrol' as const;
@@ -112,6 +117,7 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
   if (npc.type === 'police') {
     return (
       <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
+        {(behavior === 'attack' || behavior === 'chase') && <pointLight position={[0, 1.1, 0]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={2} distance={3} />}
         <Suspense fallback={<NPCFallback color="#183a63" emissive="#0d1725" />}>
           <PoliceCharacterModel scale={0.9} rotation={[0, Math.PI, 0]} />
         </Suspense>
@@ -160,6 +166,7 @@ function NPCMesh({ npc, behavior, phase }: { npc: NPC; behavior: BehaviorState; 
 
   return (
     <group position={[0, bob, 0]} rotation={[0, 0, lean]}>
+      {(behavior === 'attack' || behavior === 'chase') && <pointLight position={[0, 1.05, 0.18]} color={behavior === 'attack' ? '#ff0000' : '#ff9f43'} intensity={2} distance={3} />}
       {npc.type === 'gang' && <pointLight position={[0, 1.05, 0.18]} color="#ff6b6b" intensity={0.12} distance={1.8} />}
       <Suspense fallback={<NPCFallback color={gangVariant === 0 ? '#4a1818' : '#26222b'} emissive="#160d0d" />}>
         <GangCharacterModel scale={gangVariant === 0 ? 0.9 : 0.86} rotation={[0, Math.PI, 0]} />
@@ -272,7 +279,7 @@ export default function NPCs() {
       }
 
       if (behavior === 'chase') {
-        const moved = moveTowards(simulatedTransform.position, player.position, npc.type === 'police' ? 4.4 : 4.0, dt);
+        const moved = moveTowards(simulatedTransform.position, player.position, npc.type === 'police' ? 4.6 : 4.0, dt);
         nextPosition = moved.position;
         nextRotation = Math.atan2(-toPlayerX, -toPlayerZ);
       }
@@ -280,8 +287,8 @@ export default function NPCs() {
       if (behavior === 'attack') {
         nextRotation = Math.atan2(-toPlayerX, -toPlayerZ);
         if ((attackCooldownRef.current[npc.id] ?? 0) <= 0 && playerDistance < ATTACK_RANGE + 0.4) {
-          takeDamage(npc.type === 'police' ? 8 + player.wantedLevel * 2 : 7);
-          attackCooldownRef.current[npc.id] = npc.type === 'police' ? 0.85 : 1.05;
+          takeDamage(npc.type === 'police' ? 12 : 10);
+          attackCooldownRef.current[npc.id] = 0.5;
         }
       }
 
