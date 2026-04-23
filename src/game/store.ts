@@ -37,8 +37,8 @@ function safeSaveEditorState(editor: MapEditorState) {
 }
 
 const initialPlayer: PlayerState = {
-  position: [6, 0.5, -36],
-  rotation: -0.42,
+  position: [4, 0.5, -18],
+  rotation: 0.18,
   health: 100,
   armor: 0,
   money: 500,
@@ -262,7 +262,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setPlayerInVehicle: (vehicleId) =>
     set((state) => {
       if (!vehicleId) {
-        // Exit vehicle: place player next to the car.
         const exitOffset: [number, number, number] = [
           Math.cos(state.player.rotation + Math.PI / 2) * 1.2,
           0,
@@ -403,7 +402,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   switchWeapon: () =>
     set((state) => {
-      // Exploration mode: keep weapons simple until attachments/animations are solid.
       const weapons: ('fist' | 'knife' | 'pistol')[] = ['fist', 'knife', 'pistol'];
       const currentIndex = weapons.indexOf(state.player.weapon);
 
