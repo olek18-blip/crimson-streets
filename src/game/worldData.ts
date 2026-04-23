@@ -20,10 +20,13 @@ export const WORLD_CONNECTIONS: [[number, number], [number, number]][] = [
 ];
 
 export const initialVehicles: Vehicle[] = [
-  { id: 'mad-car1', type: 'car', position: [10, 0.4, 18], rotation: 0.1, color: '#cc2222', speed: 0, city: 'madrona' },
-  { id: 'mad-car2', type: 'car', position: [-14, 0.4, -10], rotation: Math.PI / 2, color: '#2244aa', speed: 0, city: 'madrona' },
-  { id: 'mad-moto1', type: 'motorcycle', position: [16, 0.3, -6], rotation: Math.PI, color: '#222222', speed: 0, city: 'madrona' },
-  { id: 'mad-car3', type: 'car', position: [-12, 0.4, 26], rotation: -Math.PI / 4, color: '#eeee33', speed: 0, city: 'madrona' },
+  { id: 'mad-car1', type: 'car', position: [8, 0.4, -14], rotation: 0.08, color: '#cc2222', speed: 0, city: 'madrona' },
+  { id: 'mad-car2', type: 'car', position: [-6, 0.4, -12], rotation: Math.PI / 2, color: '#2244aa', speed: 0, city: 'madrona' },
+  { id: 'mad-moto1', type: 'motorcycle', position: [13, 0.3, -18], rotation: Math.PI, color: '#222222', speed: 0, city: 'madrona' },
+  { id: 'mad-car3', type: 'car', position: [-11, 0.4, -20], rotation: -Math.PI / 4, color: '#eeee33', speed: 0, city: 'madrona' },
+  { id: 'mad-car4', type: 'car', position: [2, 0.4, -24], rotation: 0.18, color: '#ff7b39', speed: 0, city: 'madrona' },
+  { id: 'mad-car5', type: 'car', position: [18, 0.4, -10], rotation: -0.25, color: '#f4f4f4', speed: 0, city: 'madrona' },
+  { id: 'mad-moto2', type: 'motorcycle', position: [-15, 0.3, -6], rotation: 1.8, color: '#6f6f6f', speed: 0, city: 'madrona' },
 
   { id: 'sev-car1', type: 'car', position: [-126, 0.4, 132], rotation: 0.8, color: '#7c8798', speed: 0, city: 'sevira' },
   { id: 'sev-car2', type: 'car', position: [-144, 0.4, 110], rotation: 1.7, color: '#55606f', speed: 0, city: 'sevira' },
@@ -43,13 +46,13 @@ export const initialVehicles: Vehicle[] = [
 ];
 
 export const initialNPCs: NPC[] = [
-  { id: 'mad-civ1', type: 'civilian', position: [12, 0.5, -30], rotation: 0.4, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-civ2', type: 'civilian', position: [-18, 0.5, 8], rotation: 1.5, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-civ3', type: 'civilian', position: [18, 0.5, 12], rotation: 2.2, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ1', type: 'civilian', position: [6, 0.5, -28], rotation: 0.4, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ2', type: 'civilian', position: [-10, 0.5, -8], rotation: 1.5, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-civ3', type: 'civilian', position: [16, 0.5, -6], rotation: 2.2, health: 100, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-pol1', type: 'police', position: [-2, 0.5, -18], rotation: 0.1, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
   { id: 'mad-pol2', type: 'police', position: [8, 0.5, -18], rotation: 2.8, health: 150, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-gang1', type: 'gang', position: [24, 0.5, 24], rotation: 2, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
-  { id: 'mad-gang2', type: 'gang', position: [28, 0.5, 25], rotation: 1, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-gang1', type: 'gang', position: [20, 0.5, 8], rotation: 2, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
+  { id: 'mad-gang2', type: 'gang', position: [24, 0.5, 12], rotation: 1, health: 120, isHostile: false, isAlive: true, city: 'madrona' },
 
   { id: 'sev-civ1', type: 'civilian', position: [-132, 0.5, 108], rotation: 0.4, health: 100, isHostile: false, isAlive: true, city: 'sevira' },
   { id: 'sev-civ2', type: 'civilian', position: [-118, 0.5, 140], rotation: 1.7, health: 100, isHostile: false, isAlive: true, city: 'sevira' },
@@ -81,7 +84,7 @@ export const initialMissions: Mission[] = [
       { id: 'obj1', text: 'Ve al punto de acceso policial', completed: false, targetPosition: [3, 0, -18], objectiveType: 'reach', radius: 5, hint: 'Empieza la patrulla en el acceso policial y recibe la orden sucia.' },
       { id: 'obj2', text: 'Equipa el arma reglamentaria', completed: false, objectiveType: 'switch-weapon', hint: 'Pulsa Q y preparate antes de entrar en la zona de cobro.' },
       { id: 'obj3', text: 'Recoge el pago en el mercado', completed: false, targetPosition: [-18, 0, 8], objectiveType: 'reach', radius: 4, effects: [{ type: 'add-money', amount: 800 }], hint: 'Llega al mercado y haz notar que la patrulla va en serio.' },
-      { id: 'obj4', text: 'Entra en el vehiculo para perseguir al corredor', completed: false, targetPosition: [10, 0, 18], objectiveType: 'enter-vehicle', effects: [{ type: 'set-min-wanted-level', level: 1 }], hint: 'Cuando la banda se mueva, toma el coche rojo y corta la huida.' },
+      { id: 'obj4', text: 'Entra en el vehiculo para perseguir al corredor', completed: false, targetPosition: [8, 0, -14], objectiveType: 'enter-vehicle', effects: [{ type: 'set-min-wanted-level', level: 1 }], hint: 'Cuando la banda se mueva, toma el coche rojo y corta la huida.' },
       { id: 'obj5', text: 'Llega al punto de handoff en el back lot', completed: false, targetPosition: [26, 0, 24], objectiveType: 'reach', radius: 4, effects: [{ type: 'set-min-wanted-level', level: 2 }, { type: 'set-npc-hostility', city: 'madrona', npcType: 'gang', hostile: true }], hint: 'Sigue el beacon hasta la zona de intercambio.' },
       { id: 'obj6', text: 'Elimina a la cobertura de la banda', completed: false, objectiveType: 'eliminate-gangs', effects: [{ type: 'set-min-wanted-level', level: 3 }], hint: 'Rompe la proteccion del handoff y asegura la escena.' },
       { id: 'obj7', text: 'Asegura la evidencia', completed: false, targetPosition: [28, 0, 25], objectiveType: 'reach', radius: 4, effects: [{ type: 'set-wanted-level', level: 1 }], hint: 'Muevete hasta la evidencia para cerrar la operacion.' },
