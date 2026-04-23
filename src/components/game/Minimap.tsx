@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/store';
-import { cities, WORLD_SIZE } from '../../game/worldData';
+import { cities, WORLD_CONNECTIONS, WORLD_SIZE } from '../../game/worldData';
 import type { NPC } from '../../game/types';
-
-type MapPoint = {
-  x: number;
-  y: number;
-};
 
 type MinimapSnapshot = {
   playerPosition: [number, number, number];
@@ -28,7 +23,7 @@ function readMinimapSnapshot(): MinimapSnapshot {
     playerRotation: player.rotation,
     currentCity: player.currentCity,
     activeObjective,
-    visibleNpcs: npcs.filter((item) => item.isAlive && item.city === player.currentCity).slice(0, 16),
+    visibleNpcs: npcs.filter((item) => item.isAlive && item.city === player.currentCity).slice(0, 20),
     visibleMissions: missions.filter((item) => item.status === 'available' || item.status === 'active'),
     activeMission,
   };
@@ -36,13 +31,14 @@ function readMinimapSnapshot(): MinimapSnapshot {
 
 export default function Minimap() {
   const [snapshot, setSnapshot] = useState<MinimapSnapshot>(() => readMinimapSnapshot());
-  const mapSize = 180;
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
+  const mapSize = isMobile ? 132 : 190;
   const scale = mapSize / (WORLD_SIZE * 2);
 
   useEffect(() => {
     const update = () => setSnapshot(readMinimapSnapshot());
     update();
-    const intervalId = window.setInterval(update, 150);
+    const intervalId = window.setInterval(update, 120);
     return () => window.clearInterval(intervalId);
   }, []);
 
@@ -54,26 +50,42 @@ export default function Minimap() {
   const playerMap = toMap(snapshot.playerPosition[0], snapshot.playerPosition[2]);
 
   return (
-    <div className="absolute bottom-4 right-4 pointer-events-none hidden sm:block" style={{ width: mapSize, height: mapSize + 28 }}>
-      <div className="mb-2 px-2 flex items-center justify-between text-[9px] font-display tracking-[0.2em] text-muted-foreground">
-        <span>MINIMAPA</span>
-        {snapshot.activeObjective?.targetPosition && <span className="text-amber-300">OBJETIVO</span>}
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        width: mapSize,
+        height: mapSize + (isMobile ? 18 : 24),
+        zIndex: 60,
+        right: isMobile ? 10 : 16,
+        bottom: isMobile ? 188 : 16,
+      }}
+    >
+      <div className="mb-1 px-1.5 flex items-center justify-between text-[8px] sm:text-[9px] font-display tracking-[0.18em] text-muted-foreground">
+        <span>MAP</span>
+        <span className="text-[7px] sm:text-[8px]" style={{ color: cities.find((city) => city.id === snapshot.currentCity)?.color ?? '#cbd5e1' }}>
+          {snapshot.currentCity === 'rural' ? 'RURAL' : cities.find((city) => city.id === snapshot.currentCity)?.name ?? 'RURAL'}
+        </span>
       </div>
 
       <div
-        className="relative w-full h-[180px] rounded-xl overflow-hidden border"
+        className="relative rounded-xl overflow-hidden border"
         style={{
-          borderColor: 'hsl(var(--border) / 0.45)',
-          background: 'radial-gradient(circle at center, rgba(15,23,42,0.92), rgba(2,6,23,0.95))',
-          backdropFilter: 'blur(5px)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+          width: mapSize,
+          height: mapSize,
+          borderColor: 'hsl(var(--border) / 0.5)',
+          background: 'radial-gradient(circle at center, rgba(15,23,42,0.94), rgba(2,6,23,0.98))',
+          backdropFilter: 'blur(6px)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
         }}
       >
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-          backgroundSize: '18px 18px',
-        }} />
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
+            backgroundSize: isMobile ? '14px 14px' : '18px 18px',
+          }}
+        />
 
         {cities.map((city) => {
           const pos = toMap(city.center[0], city.center[2]);
@@ -88,29 +100,24 @@ export default function Minimap() {
                 width: r * 2,
                 height: r * 2,
                 borderRadius: '50%',
-                background: `${city.color}22`,
+                background: `${city.color}20`,
                 border: `1px solid ${city.color}50`,
               }}
             >
-              <span
-                className="absolute -top-3 left-1/2 -translate-x-1/2 text-[6px] font-display tracking-wider whitespace-nowrap"
-                style={{ color: city.color }}
-              >
-                {city.name}
-              </span>
+              {!isMobile && (
+                <span
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-[6px] font-display tracking-wider whitespace-nowrap"
+                  style={{ color: city.color }}
+                >
+                  {city.name}
+                </span>
+              )}
             </div>
           );
         })}
 
         <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${mapSize} ${mapSize}`}>
-          {[
-            [[40, 0], [140, -120]],
-            [[40, 40], [100, 150]],
-            [[-40, 40], [-120, 130]],
-            [[-40, -40], [-80, -160]],
-            [[180, -80], [160, 110]],
-            [[-140, 90], [-130, -120]],
-          ].map(([startPoint, endPoint], index) => {
+          {WORLD_CONNECTIONS.map(([startPoint, endPoint], index) => {
             const start = toMap(startPoint[0], startPoint[1]);
             const end = toMap(endPoint[0], endPoint[1]);
             return (
@@ -120,8 +127,8 @@ export default function Minimap() {
                 y1={start.y}
                 x2={end.x}
                 y2={end.y}
-                stroke="#64748b"
-                strokeWidth="1"
+                stroke="#7c8ca4"
+                strokeWidth={isMobile ? '0.9' : '1.1'}
                 opacity="0.55"
                 strokeDasharray="3 4"
               />
@@ -139,10 +146,10 @@ export default function Minimap() {
               style={{
                 left: pos.x - 2,
                 top: pos.y - 2,
-                width: 4,
-                height: 4,
+                width: isMobile ? 3 : 4,
+                height: isMobile ? 3 : 4,
                 background: color,
-                opacity: 0.9,
+                opacity: 0.95,
               }}
             />
           );
@@ -153,15 +160,16 @@ export default function Minimap() {
           if (!objective?.targetPosition) return null;
           const pos = toMap(objective.targetPosition[0], objective.targetPosition[2]);
           const isActive = mission.id === snapshot.activeMission;
+          const size = isActive ? (isMobile ? 8 : 10) : isMobile ? 6 : 8;
           return (
             <div
               key={mission.id}
               className={`absolute rounded-full ${isActive ? 'animate-pulse' : ''}`}
               style={{
-                left: pos.x - (isActive ? 5 : 4),
-                top: pos.y - (isActive ? 5 : 4),
-                width: isActive ? 10 : 8,
-                height: isActive ? 10 : 8,
+                left: pos.x - size / 2,
+                top: pos.y - size / 2,
+                width: size,
+                height: size,
                 background: isActive ? '#fbbf24' : '#f97316',
                 boxShadow: isActive ? '0 0 12px rgba(251,191,36,0.8)' : '0 0 8px rgba(249,115,22,0.5)',
                 border: '1px solid rgba(255,255,255,0.35)',
@@ -173,10 +181,10 @@ export default function Minimap() {
         <div
           className="absolute"
           style={{
-            left: playerMap.x - 16,
-            top: playerMap.y - 16,
-            width: 32,
-            height: 32,
+            left: playerMap.x - (isMobile ? 12 : 16),
+            top: playerMap.y - (isMobile ? 12 : 16),
+            width: isMobile ? 24 : 32,
+            height: isMobile ? 24 : 32,
             transform: `rotate(${-snapshot.playerRotation * (180 / Math.PI)}deg)`,
           }}
         >
@@ -185,9 +193,9 @@ export default function Minimap() {
             style={{
               width: 0,
               height: 0,
-              borderLeft: '8px solid transparent',
-              borderRight: '8px solid transparent',
-              borderBottom: '18px solid rgba(244,63,94,0.22)',
+              borderLeft: `${isMobile ? 6 : 8}px solid transparent`,
+              borderRight: `${isMobile ? 6 : 8}px solid transparent`,
+              borderBottom: `${isMobile ? 13 : 18}px solid rgba(244,63,94,0.24)`,
               filter: 'drop-shadow(0 0 6px rgba(244,63,94,0.35))',
             }}
           />
@@ -196,10 +204,10 @@ export default function Minimap() {
         <div
           className="absolute"
           style={{
-            left: playerMap.x - 5,
-            top: playerMap.y - 5,
-            width: 10,
-            height: 10,
+            left: playerMap.x - (isMobile ? 4 : 5),
+            top: playerMap.y - (isMobile ? 4 : 5),
+            width: isMobile ? 8 : 10,
+            height: isMobile ? 8 : 10,
           }}
         >
           <div
