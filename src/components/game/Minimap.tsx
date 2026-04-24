@@ -57,12 +57,17 @@ export default function Minimap() {
       className="absolute pointer-events-none"
       style={{
         width: mapSize,
-        height: mapSize,
+        height: mapSize + 28,
         zIndex: 60,
         right: IS_MOBILE ? 10 : 16,
         bottom: IS_MOBILE ? 180 : 16,
       }}
     >
+      <div className="mb-2 px-2 flex items-center justify-between text-[9px] font-display tracking-[0.2em] text-muted-foreground">
+        <span>MINIMAPA</span>
+        {snapshot.activeObjective?.targetPosition && <span className="text-amber-300">OBJETIVO</span>}
+      </div>
+
       <div
         className="relative rounded-xl overflow-hidden border"
         style={{

@@ -1,4 +1,3 @@
-import { Sky } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -32,14 +31,14 @@ function GameLogic() {
 function Scene() {
   return (
     <>
-      <color attach="background" args={['#050505']} />
-      <Sky sunPosition={[10, 20, 10]} turbidity={12} rayleigh={0.24} mieCoefficient={0.02} mieDirectionalG={0.9} />
+      <color attach="background" args={['#0a1520']} />
 
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.44} />
+      <hemisphereLight args={['#8fbfff', '#0b1710', 0.58]} />
       <directionalLight
         position={[10, 20, 10]}
-        intensity={1.2}
-        color="#ffffff"
+        intensity={0.86}
+        color="#d7e8ff"
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -52,12 +51,12 @@ function Scene() {
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
       />
-      <directionalLight position={[-10, 10, -5]} intensity={0.35} color="#9fb8ff" />
+      <directionalLight position={[-10, 10, -5]} intensity={0.36} color="#9fb8ff" />
 
-      <pointLight position={[5, 3, 5]} color="#ff0066" intensity={1.8} distance={12} />
-      <pointLight position={[-5, 4, 8]} color="#00ffff" intensity={1.3} distance={10} />
+      <pointLight position={[5, 3, 5]} color="#ff5a36" intensity={1.4} distance={12} />
+      <pointLight position={[-5, 4, 8]} color="#4fb7ff" intensity={1.1} distance={10} />
 
-      <fog attach="fog" args={['#0a0a0a', 20, 90]} />
+      <fog attach="fog" args={['#0a1520', 36, 155]} />
 
       <GameCamera />
       <GameLogic />

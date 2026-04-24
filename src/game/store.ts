@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { createWithEqualityFn } from 'zustand/traditional';
 import type { GameMode, GameState, MapEditorState, MissionObjectiveEffect, NPC, PlacedProp, PlayerAnimationState, PlayerState, PlaceableType } from './types';
 import { cities, initialVehicles, initialNPCs, initialMissions } from './worldData';
 import { clearSavedGame, loadGameState } from './save';
@@ -37,8 +37,8 @@ function safeSaveEditorState(editor: MapEditorState) {
 }
 
 const initialPlayer: PlayerState = {
-  position: [4, 0.5, -18],
-  rotation: 0.18,
+  position: [6, 0.5, -38],
+  rotation: Math.PI,
   health: 100,
   armor: 0,
   money: 500,
@@ -89,6 +89,18 @@ interface GameStore extends GameState {
 }
 
 const deepCopy = <T,>(arr: T[]): T[] => JSON.parse(JSON.stringify(arr));
+
+function getCityIdForPosition(position: [number, number, number]) {
+  for (const city of cities) {
+    const dx = position[0] - city.center[0];
+    const dz = position[2] - city.center[2];
+    if (dx * dx + dz * dz < city.radius * city.radius) {
+      return city.id;
+    }
+  }
+
+  return 'rural';
+}
 
 function applyObjectiveEffects(
   player: PlayerState,
@@ -167,9 +179,35 @@ const createFreshState = (gameMode: GameMode = 'story'): Omit<GameState, 'screen
   editor: createEditorState(gameMode === 'build', gameMode === 'build' ? '2d' : '3d'),
 });
 
+function createRestoredState(saved: Partial<GameState>): Omit<GameState, 'screen'> {
+  const fresh = createFreshState('story');
+  const restoredPlayer = saved.player ? { ...fresh.player, ...saved.player } : fresh.player;
+
+  return {
+    ...fresh,
+    player: {
+      ...restoredPlayer,
+      currentCity: getCityIdForPosition(restoredPlayer.position),
+      isRunning: false,
+      isShooting: false,
+      animationState: restoredPlayer.health <= 0 ? 'death' : 'idle',
+    },
+    vehicles: saved.vehicles ?? fresh.vehicles,
+    npcs: saved.npcs ?? fresh.npcs,
+    missions: saved.missions ?? fresh.missions,
+    activeMission: saved.activeMission ?? fresh.activeMission,
+    timeOfDay: saved.timeOfDay ?? fresh.timeOfDay,
+    lastCompletedMission: saved.lastCompletedMission ?? fresh.lastCompletedMission,
+    gameMode: 'story',
+    shotTick: 0,
+    lastShotWeapon: null,
+    editor: createEditorState(false, '3d'),
+  };
+}
+
 // We keep the intro mission data, but we don't auto-activate it on start anymore.
 
-export const useGameStore = create<GameStore>((set, get) => ({
+export const useGameStore = createWithEqualityFn<GameStore>((set, get) => ({
   screen: 'menu',
   ...createFreshState(),
 
@@ -200,11 +238,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    // For now we always start in exploration mode (no active mission, no combat),
-    // even if a previous session had a mission running.
     set({
       screen: 'playing',
-      ...createFreshState('story'),
+      ...createRestoredState(saved),
     });
   },
 
@@ -217,16 +253,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
 
   updatePlayerPosition: (pos) => {
-    let currentCity = 'rural';
-
-    for (const city of cities) {
-      const dx = pos[0] - city.center[0];
-      const dz = pos[2] - city.center[2];
-      if (Math.sqrt(dx * dx + dz * dz) < city.radius) {
-        currentCity = city.id;
-        break;
-      }
-    }
+    const currentCity = getCityIdForPosition(pos);
 
     set((state) => ({ player: { ...state.player, position: pos, currentCity } }));
   },
@@ -402,7 +429,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   switchWeapon: () =>
     set((state) => {
-      const weapons: ('fist' | 'knife' | 'pistol')[] = ['fist', 'knife', 'pistol'];
+      // Exploration mode: keep weapons simple until attachments/animations are solid.
+      const weapons: PlayerState['weapon'][] = ['fist', 'knife', 'pistol', 'rifle'];
       const currentIndex = weapons.indexOf(state.player.weapon);
 
       if (state.player.inVehicle) {

@@ -139,12 +139,13 @@ export default function Player() {
     if (shotPulseMeshRef.current) shotPulseMeshRef.current.visible = true;
   }, [playerRenderState.shotTick, playerRenderState.lastShotWeapon]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!groupRef.current || !characterRef.current) {
       return;
     }
 
     const player = useGameStore.getState().player;
+    const dt = Math.min(delta, 0.05);
     const elapsed = state.clock.elapsedTime;
     const runLean = player.animationState === 'run' ? 0.08 : player.animationState === 'walk' ? 0.04 : 0;
     const jumpLift = player.animationState === 'jump' ? Math.max(0, Math.sin(elapsed * 9.5)) * 0.08 : 0;
@@ -212,7 +213,7 @@ export default function Player() {
     }
 
     if (shotFlashTimerRef.current > 0) {
-      shotFlashTimerRef.current = Math.max(0, shotFlashTimerRef.current - state.clock.getDelta());
+      shotFlashTimerRef.current = Math.max(0, shotFlashTimerRef.current - dt);
       if (shotFlashTimerRef.current <= 0) {
         if (muzzleLightRef.current) muzzleLightRef.current.visible = false;
         if (muzzleMeshRef.current) muzzleMeshRef.current.visible = false;
@@ -220,7 +221,7 @@ export default function Player() {
     }
 
     if (shotPulseTimerRef.current > 0) {
-      shotPulseTimerRef.current = Math.max(0, shotPulseTimerRef.current - state.clock.getDelta());
+      shotPulseTimerRef.current = Math.max(0, shotPulseTimerRef.current - dt);
       if (shotPulseTimerRef.current <= 0) {
         if (shotPulseLightRef.current) shotPulseLightRef.current.visible = false;
         if (shotPulseMeshRef.current) shotPulseMeshRef.current.visible = false;

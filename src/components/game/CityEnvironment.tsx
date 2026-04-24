@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { isFastDev } from '../../game/env';
 import { loadBuilderLayout, type BuilderLayout } from '../../game/builderLayout';
 import { cities, WORLD_SIZE } from '../../game/worldData';
@@ -22,8 +22,91 @@ function rand(seed: number) {
   return x - Math.floor(x);
 }
 
+function usePlayerPositionSnapshot(intervalMs = 300) {
+  const [playerPosition, setPlayerPosition] = useState(() => useGameStore.getState().player.position);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setPlayerPosition(useGameStore.getState().player.position);
+    }, intervalMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [intervalMs]);
+
+  return playerPosition;
+}
+
 function cityRand(cx: number, cz: number, i: number) {
   return rand(cx * 91.17 + cz * 53.41 + i * 17.73);
+}
+
+type RegionalRoute = {
+  id: string;
+  start: [number, number];
+  end: [number, number];
+  width: number;
+};
+
+const REGIONAL_ROUTES: RegionalRoute[] = [
+  { id: 'mandril-sevira', start: [0, 0], end: [-135, 120], width: 6 },
+  { id: 'mandril-barceloma', start: [0, 0], end: [135, 118], width: 6 },
+  { id: 'mandril-valentia', start: [0, 0], end: [150, -118], width: 6 },
+  { id: 'mandril-costa', start: [0, 0], end: [-140, -125], width: 6 },
+  { id: 'east-coast-link', start: [135, 118], end: [150, -118], width: 5 },
+  { id: 'west-country-link', start: [-135, 120], end: [-140, -125], width: 5 },
+  { id: 'mandril-north-ring', start: [-40, -40], end: [40, -40], width: 5 },
+  { id: 'mandril-market-ring', start: [-40, 0], end: [40, 0], width: 5 },
+  { id: 'mandril-spine', start: [0, -40], end: [0, 40], width: 5 },
+  { id: 'mandril-backlot-spur', start: [8, 8], end: [34, 28], width: 4.4 },
+  { id: 'mandril-police-access', start: [-10, -24], end: [14, -18], width: 4.2 },
+];
+
+const MANDRIL_LOCAL_ROUTES: RegionalRoute[] = [
+  { id: 'mandril-south-local', start: [-28, -18], end: [34, -18], width: 4.2 },
+  { id: 'mandril-market-local', start: [-28, 8], end: [28, 8], width: 4.4 },
+  { id: 'mandril-east-local', start: [18, -22], end: [18, 32], width: 4.2 },
+  { id: 'mandril-west-local', start: [-18, -6], end: [-18, 18], width: 3.8 },
+  { id: 'mandril-police-local', start: [2, -28], end: [2, -8], width: 3.8 },
+];
+
+const VEGETATION_CLEARANCE_ROUTES = [...REGIONAL_ROUTES, ...MANDRIL_LOCAL_ROUTES];
+
+function getRouteDistanceSq(x: number, z: number, route: RegionalRoute) {
+  const ax = route.start[0];
+  const az = route.start[1];
+  const bx = route.end[0];
+  const bz = route.end[1];
+  const dx = bx - ax;
+  const dz = bz - az;
+  const lengthSq = dx * dx + dz * dz || 1;
+  const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / lengthSq));
+  const closestX = ax + dx * t;
+  const closestZ = az + dz * t;
+  const offsetX = x - closestX;
+  const offsetZ = z - closestZ;
+
+  return offsetX * offsetX + offsetZ * offsetZ;
+}
+
+function isInRoadClearance(x: number, z: number, extraClearance = 4) {
+  return VEGETATION_CLEARANCE_ROUTES.some((route) => {
+    const clearance = route.width / 2 + extraClearance;
+    return getRouteDistanceSq(x, z, route) < clearance * clearance;
+  });
+}
+
+function getRoutePoint(route: RegionalRoute, t: number, offset: number): [number, number, number] {
+  const dx = route.end[0] - route.start[0];
+  const dz = route.end[1] - route.start[1];
+  const length = Math.max(0.001, Math.sqrt(dx * dx + dz * dz));
+  const normalX = -dz / length;
+  const normalZ = dx / length;
+
+  return [
+    route.start[0] + dx * t + normalX * offset,
+    0,
+    route.start[1] + dz * t + normalZ * offset,
+  ];
 }
 
 function Building({
@@ -41,12 +124,44 @@ function Building({
     <group position={position}>
       <mesh position={[0, size[1] / 2, 0]} receiveShadow>
         <boxGeometry args={size} />
-        <meshStandardMaterial color={color} emissive={emissive || '#000000'} emissiveIntensity={emissive ? 0.35 : 0} />
+        <meshStandardMaterial color={color} emissive={emissive || '#151922'} emissiveIntensity={emissive ? 0.08 : 0.06} roughness={0.78} />
+      </mesh>
+      <mesh position={[0, 0.62, size[2] / 2 + 0.045]}>
+        <boxGeometry args={[size[0] * 0.86, 0.34, 0.05]} />
+        <meshStandardMaterial color="#222935" roughness={0.72} />
       </mesh>
       <mesh position={[0, size[1] + 0.08, 0]}>
         <boxGeometry args={[size[0] * 0.9, 0.16, size[2] * 0.9]} />
         <meshStandardMaterial color="#171b22" />
       </mesh>
+      {size[1] > 4 && (
+        <>
+          {Array.from({ length: Math.min(5, Math.floor(size[1] / 2.5)) }).map((_, index) => {
+            const y = 1.4 + index * 1.85;
+            const light = emissive ?? '#9fb8ff';
+            return (
+              <group key={`window-row-${index}`}>
+                <mesh position={[0, y, size[2] / 2 + 0.035]}>
+                  <boxGeometry args={[size[0] * 0.58, 0.12, 0.035]} />
+                  <meshStandardMaterial color={light} emissive={light} emissiveIntensity={0.3} />
+                </mesh>
+                <mesh position={[0, y, -size[2] / 2 - 0.035]}>
+                  <boxGeometry args={[size[0] * 0.58, 0.12, 0.035]} />
+                  <meshStandardMaterial color="#6f7f8f" emissive="#6f7f8f" emissiveIntensity={0.14} />
+                </mesh>
+                <mesh position={[size[0] / 2 + 0.035, y, 0]} rotation={[0, Math.PI / 2, 0]}>
+                  <boxGeometry args={[size[2] * 0.46, 0.1, 0.035]} />
+                  <meshStandardMaterial color="#6f7f8f" emissive="#6f7f8f" emissiveIntensity={0.16} />
+                </mesh>
+                <mesh position={[-size[0] / 2 - 0.035, y, 0]} rotation={[0, Math.PI / 2, 0]}>
+                  <boxGeometry args={[size[2] * 0.46, 0.1, 0.035]} />
+                  <meshStandardMaterial color="#6f7f8f" emissive="#6f7f8f" emissiveIntensity={0.14} />
+                </mesh>
+              </group>
+            );
+          })}
+        </>
+      )}
     </group>
   );
 }
@@ -309,30 +424,30 @@ function CityPackLandmarks({ cx, cz, cityId }: { cx: number; cz: number; cityId:
   return (
     <group>
       <Suspense fallback={null}>
-        <group position={[cx + 8, 0, cz + 12]} rotation={[0, 0.6, 0]} scale={0.72}>
+        <group position={[cx + 8, 0, cz + 12]} rotation={[0, 0.6, 0]} scale={0.24}>
           <CityBuildingModel />
         </group>
-        <group position={[cx - 14, 0, cz + 16]} rotation={[0, -0.35, 0]} scale={0.78}>
+        <group position={[cx - 14, 0, cz + 16]} rotation={[0, -0.35, 0]} scale={0.26}>
           <CityHotelBuildingModel />
           <pointLight position={[2, 6, 0]} color={hotelTint} intensity={1.1} distance={18} />
         </group>
-        <group position={[cx + 18, 0, cz - 10]} rotation={[0, 2.2, 0]} scale={0.7}>
+        <group position={[cx + 18, 0, cz - 10]} rotation={[0, 2.2, 0]} scale={0.26}>
           <CityBarModel />
           <pointLight position={[0, 3.2, 0]} color={neonTint} intensity={1.3} distance={14} />
         </group>
 
-        <group position={[cx + 10, 0, cz - 20]} rotation={[0, 1.2, 0]} scale={0.9}>
+        <group position={[cx + 10, 0, cz - 20]} rotation={[0, 1.2, 0]} scale={0.36}>
           <CityBillboardModel />
           <pointLight position={[0, 4.2, 0]} color="#ff4fd8" intensity={0.9} distance={16} />
         </group>
 
-        <group position={[cx + 2.2, 0, cz - 4.8]} rotation={[0, 0, 0]} scale={0.9}>
+        <group position={[cx + 2.2, 0, cz - 4.8]} rotation={[0, 0, 0]} scale={0.62}>
           <CityTrafficLightModel />
         </group>
-        <group position={[cx - 2.2, 0, cz - 4.6]} rotation={[0, Math.PI, 0]} scale={0.9}>
+        <group position={[cx - 2.2, 0, cz - 4.6]} rotation={[0, Math.PI, 0]} scale={0.62}>
           <CityTrafficLightModel />
         </group>
-        <group position={[cx + 4.3, 0, cz + 3.1]} rotation={[0, Math.PI / 2, 0]} scale={1}>
+        <group position={[cx + 4.3, 0, cz + 3.1]} rotation={[0, Math.PI / 2, 0]} scale={0.72}>
           <CityStopSignModel />
         </group>
 
@@ -376,9 +491,9 @@ function SidewalkGrid({ cityId, cx, cz, radius }: { cityId: string; cx: number; 
   return <group>{pieces}</group>;
 }
 
-function MarketStall({ position, canopy = '#8c3c2e' }: { position: [number, number, number]; canopy?: string }) {
+function MarketStall({ position, canopy = '#8c3c2e', scale = 0.72 }: { position: [number, number, number]; canopy?: string; scale?: number }) {
   return (
-    <group position={position}>
+    <group position={position} scale={scale}>
       <mesh position={[0, 0.9, 0]}>
         <boxGeometry args={[2.8, 1.8, 1.8]} />
         <meshStandardMaterial color="#4b3a2b" />
@@ -454,17 +569,181 @@ function BuildingsBlock({
   );
 }
 
-function TreeFallback() {
+function TreeFallback({ scale = 0.78 }: { scale?: number }) {
+  return (
+    <group scale={scale}>
+      <mesh position={[0, 0.95, 0]} castShadow>
+        <cylinderGeometry args={[0.12, 0.18, 1.9, 8]} />
+        <meshStandardMaterial color="#4a2c16" roughness={0.86} />
+      </mesh>
+      <mesh position={[0, 2.05, 0]} castShadow>
+        <coneGeometry args={[1.05, 1.8, 7]} />
+        <meshStandardMaterial color="#173f25" roughness={0.82} />
+      </mesh>
+      <mesh position={[0, 2.75, 0]} castShadow>
+        <coneGeometry args={[0.76, 1.55, 7]} />
+        <meshStandardMaterial color="#1f5a32" roughness={0.82} />
+      </mesh>
+    </group>
+  );
+}
+
+function Shrub({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.32, 0]} castShadow>
+        <sphereGeometry args={[0.55, 8, 8]} />
+        <meshStandardMaterial color="#244f31" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.42, 0.25, -0.18]} castShadow>
+        <sphereGeometry args={[0.38, 8, 8]} />
+        <meshStandardMaterial color="#1d4129" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+function RoadsideSign({ position, rotationY, color = '#d6a258' }: { position: [number, number, number]; rotationY: number; color?: string }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh position={[0, 0.8, 0]} castShadow>
+        <cylinderGeometry args={[0.035, 0.04, 1.6, 8]} />
+        <meshStandardMaterial color="#5c6470" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.65, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.38, 0.08]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.1} roughness={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+function RoadBarrier({ position, rotationY }: { position: [number, number, number]; rotationY: number }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh position={[0, 0.42, 0]} castShadow>
+        <boxGeometry args={[3.2, 0.22, 0.16]} />
+        <meshStandardMaterial color="#b8bec7" roughness={0.56} />
+      </mesh>
+      <mesh position={[-1.15, 0.2, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.4, 0.12]} />
+        <meshStandardMaterial color="#7c8794" />
+      </mesh>
+      <mesh position={[1.15, 0.2, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.4, 0.12]} />
+        <meshStandardMaterial color="#7c8794" />
+      </mesh>
+    </group>
+  );
+}
+
+function RoadsideDetails({ playerPosition }: { playerPosition: [number, number, number] }) {
+  const details = useMemo(() => {
+    const next: Array<{
+      id: string;
+      type: 'tree' | 'shrub' | 'sign' | 'barrier' | 'light';
+      position: [number, number, number];
+      rotationY: number;
+      color?: string;
+    }> = [];
+
+    for (const route of REGIONAL_ROUTES) {
+      const dx = route.end[0] - route.start[0];
+      const dz = route.end[1] - route.start[1];
+      const length = Math.sqrt(dx * dx + dz * dz);
+      const rotationY = Math.atan2(dx, dz);
+      const count = Math.max(2, Math.floor(length / (isFastDev ? 42 : 26)));
+
+      for (let i = 1; i < count; i += 1) {
+        const seed = rand(route.start[0] * 0.7 + route.end[1] * 1.9 + i * 11.3);
+        const t = i / count;
+        const side = seed > 0.5 ? 1 : -1;
+        const offset = side * (route.width * 0.62 + 2.4 + seed * 2.2);
+        const position = getRoutePoint(route, t, offset);
+        const nearCity = cities.some((city) => {
+          const cityDx = position[0] - city.center[0];
+          const cityDz = position[2] - city.center[2];
+          return cityDx * cityDx + cityDz * cityDz < (city.radius + 7) * (city.radius + 7);
+        });
+
+        if (nearCity && seed < 0.45) {
+          next.push({
+            id: `${route.id}-light-${i}`,
+            type: 'light',
+            position,
+            rotationY,
+          });
+          continue;
+        }
+
+        if (i % 7 === 0) {
+          next.push({
+            id: `${route.id}-sign-${i}`,
+            type: 'sign',
+            position,
+            rotationY,
+            color: seed > 0.5 ? '#d6a258' : '#5fb4ff',
+          });
+          continue;
+        }
+
+        if (i % 5 === 0) {
+          next.push({
+            id: `${route.id}-barrier-${i}`,
+            type: 'barrier',
+            position,
+            rotationY: rotationY + Math.PI / 2,
+          });
+          continue;
+        }
+
+        next.push({
+          id: `${route.id}-${seed > 0.28 ? 'tree' : 'shrub'}-${i}`,
+          type: seed > 0.28 ? 'tree' : 'shrub',
+          position,
+          rotationY,
+        });
+      }
+    }
+
+    return next;
+  }, []);
+
+  const visibleDetails = useMemo(
+    () =>
+      details.filter((detail) => {
+        const dx = detail.position[0] - playerPosition[0];
+        const dz = detail.position[2] - playerPosition[2];
+        return dx * dx + dz * dz < (isFastDev ? 120 * 120 : 190 * 190);
+      }),
+    [details, playerPosition],
+  );
+
   return (
     <group>
-      <mesh position={[0, 1.5, 0]}>
-        <cylinderGeometry args={[0.15, 0.2, 3]} />
-        <meshStandardMaterial color="#5c3b1f" />
-      </mesh>
-      <mesh position={[0, 3.5, 0]}>
-        <coneGeometry args={[1.6, 3.2, 7]} />
-        <meshStandardMaterial color="#214c24" />
-      </mesh>
+      {visibleDetails.map((detail) => {
+        if (detail.type === 'tree') {
+          return (
+            <group key={detail.id} position={detail.position} rotation={[0, detail.rotationY, 0]}>
+              <TreeFallback scale={0.86} />
+            </group>
+          );
+        }
+
+        if (detail.type === 'shrub') {
+          return <Shrub key={detail.id} position={detail.position} />;
+        }
+
+        if (detail.type === 'sign') {
+          return <RoadsideSign key={detail.id} position={detail.position} rotationY={detail.rotationY} color={detail.color} />;
+        }
+
+        if (detail.type === 'light') {
+          return <StreetLight key={detail.id} position={detail.position} color="#ffd27a" />;
+        }
+
+        return <RoadBarrier key={detail.id} position={detail.position} rotationY={detail.rotationY} />;
+      })}
     </group>
   );
 }
@@ -482,11 +761,42 @@ function MandrilDistrictPass() {
       <WetPatch position={[12, 0.105, -4]} size={[18, 7]} rotation={-0.12} />
       <WetPatch position={[23, 0.105, 22]} size={[16, 6]} rotation={0.05} />
 
+      {MANDRIL_LOCAL_ROUTES.map((route) => (
+        <Road key={route.id} start={route.start} end={route.end} width={route.width} />
+      ))}
+
+      {[
+        { position: [-27, 0, -26] as [number, number, number], size: [8, 9, 7] as [number, number, number], color: '#333b46', emissive: '#5fb4ff' },
+        { position: [-17, 0, -30] as [number, number, number], size: [7, 7, 6] as [number, number, number], color: '#404852' },
+        { position: [22, 0, -28] as [number, number, number], size: [9, 11, 7] as [number, number, number], color: '#283044', emissive: '#d6a258' },
+        { position: [26, 0, -10] as [number, number, number], size: [7, 12, 7] as [number, number, number], color: '#252c38', emissive: '#5fb4ff' },
+        { position: [-30, 0, 6] as [number, number, number], size: [8, 5, 8] as [number, number, number], color: '#4a3b2e', emissive: '#d6a258' },
+        { position: [-8, 0, 18] as [number, number, number], size: [7, 6, 7] as [number, number, number], color: '#3c4248' },
+        { position: [8, 0, 18] as [number, number, number], size: [8, 7, 8] as [number, number, number], color: '#303743', emissive: '#ff9d3a' },
+        { position: [34, 0, 12] as [number, number, number], size: [6, 8, 7] as [number, number, number], color: '#2a2f36' },
+      ].map((building, index) => (
+        <Building
+          key={`mandril-block-${index}`}
+          position={building.position}
+          size={building.size}
+          color={building.color}
+          emissive={building.emissive}
+        />
+      ))}
+
       <mesh position={[-18, 0.06, 6]} receiveShadow>
         <boxGeometry args={[18, 0.08, 10]} />
         <meshStandardMaterial color="#69655f" />
       </mesh>
-      {/* Removed market stalls: they read as oversized red/orange boxes. */}
+
+      {[
+        [-24, 0, 3, '#8c3c2e'],
+        [-20, 0, 12, '#2e5d75'],
+        [-15, 0, 3, '#7d6130'],
+        [-10, 0, 12, '#7b2f46'],
+      ].map(([x, y, z, color], index) => (
+        <MarketStall key={`mandril-stall-${index}`} position={[x as number, y as number, z as number]} canopy={color as string} />
+      ))}
 
       <PoliceBarrier position={[0, 0, -18]} />
       <PoliceBarrier position={[6, 0, -18]} />
@@ -500,6 +810,8 @@ function MandrilDistrictPass() {
       <pointLight position={[22, 4, 11]} color="#00d4ff" intensity={1.8} distance={10} />
 
       <Building position={[26, 0, 24]} size={[14, 5, 11]} color="#3a342f" />
+      <Building position={[36, 0, 28]} size={[7, 4, 8]} color="#302b28" />
+      <Building position={[18, 0, 32]} size={[8, 5, 6]} color="#343536" />
       <Dumpster position={[20, 0, 23]} />
       <Dumpster position={[31, 0, 27]} />
       <mesh position={[26, 0.08, 30]} receiveShadow>
@@ -525,6 +837,16 @@ function MandrilDistrictPass() {
 
       <Building position={[10, 0, -10]} size={[7, 12, 7]} color="#39425b" emissive="#d6a258" />
       <Building position={[15, 0, -12]} size={[5, 15, 5]} color="#2d3550" emissive="#d6a258" />
+
+      {[[-31, -12], [-28, 18], [-2, 20], [31, -18], [38, 4], [8, -30]].map((p, i) => (
+        <group key={`mandril-tree-${i}`} position={[p[0], 0, p[1]]}>
+          <TreeFallback scale={0.62} />
+        </group>
+      ))}
+
+      {[[-25, -4], [-7, 3], [4, 14], [30, 4], [14, 27]].map((p, i) => (
+        <Shrub key={`mandril-shrub-${i}`} position={[p[0], 0, p[1]]} />
+      ))}
 
       {[[-8, -6], [-2, -6], [4, -6], [10, -6], [16, -6], [22, -6]].map((p, i) => (
         <StreetLight key={`mandril-light-${i}`} position={[p[0], 0, p[1]]} color={i < 2 ? '#ffcc66' : i < 4 ? '#5fb4ff' : '#ff7f59'} />
@@ -593,7 +915,7 @@ function RuralZones({ playerPosition }: { playerPosition: [number, number, numbe
         const dz = z - c.center[2];
         return Math.sqrt(dx * dx + dz * dz) < c.radius + 12;
       });
-      if (!inCity && Math.abs(x) < WORLD_SIZE && Math.abs(z) < WORLD_SIZE) {
+      if (!inCity && !isInRoadClearance(x, z, 5.5) && Math.abs(x) < WORLD_SIZE && Math.abs(z) < WORLD_SIZE) {
         nextTrees.push([x, 0, z]);
       }
     }
@@ -616,10 +938,10 @@ function RuralZones({ playerPosition }: { playerPosition: [number, number, numbe
         <group key={i} position={pos}>
           {i % 5 === 0 ? (
             <Suspense fallback={<TreeFallback />}>
-              <TreeClusterModel scale={0.72} rotation={[0, ((i % 6) * Math.PI) / 3, 0]} />
+              <TreeClusterModel scale={0.34} rotation={[0, ((i % 6) * Math.PI) / 3, 0]} />
             </Suspense>
           ) : (
-            <TreeFallback />
+            <TreeFallback scale={0.72} />
           )}
         </group>
       ))}
@@ -838,7 +1160,7 @@ function BuilderRuntimeLayout({ playerPosition }: { playerPosition: [number, num
 }
 
 export default function CityEnvironment() {
-  const playerPosition = useGameStore((s) => s.player.position);
+  const playerPosition = usePlayerPositionSnapshot();
   const visibleCities = useMemo(
     () =>
       cities.filter((city) => {
@@ -848,11 +1170,14 @@ export default function CityEnvironment() {
       }),
     [playerPosition],
   );
-  const lights: [number, number, number][] = [];
-  for (let i = -WORLD_SIZE; i < WORLD_SIZE; i += 24) {
-    lights.push([3.5, 0, i]);
-    lights.push([i, 0, 3.5]);
-  }
+  const lights = useMemo(() => {
+    const nextLights: [number, number, number][] = [];
+    for (let i = -WORLD_SIZE; i < WORLD_SIZE; i += 24) {
+      nextLights.push([3.5, 0, i]);
+      nextLights.push([i, 0, 3.5]);
+    }
+    return nextLights;
+  }, []);
 
   return (
     <group>
@@ -888,26 +1213,16 @@ export default function CityEnvironment() {
         <CityLandmarks key={`lm-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
       {visibleCities.map((city) => (
-        <CityPackLandmarks key={`pack-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
-      ))}
-      {visibleCities.map((city) => (
         <DistrictProps key={`props-${city.id}`} cityId={city.id} cx={city.center[0]} cz={city.center[2]} />
       ))}
 
       <MandrilDistrictPass />
       <BuilderRuntimeLayout playerPosition={playerPosition} />
 
-      <Road start={[40, 0]} end={[140, -120]} width={6} />
-      <Road start={[40, 40]} end={[100, 150]} width={6} />
-      <Road start={[-40, 40]} end={[-120, 130]} width={6} />
-      <Road start={[-40, -40]} end={[-80, -160]} width={6} />
-      <Road start={[180, -80]} end={[160, 110]} width={5} />
-      <Road start={[-140, 90]} end={[-130, -120]} width={5} />
-      <Road start={[140, -120]} end={[180, -80]} width={5} />
-      <Road start={[140, 150]} end={[160, 110]} width={5} />
-      <Road start={[-40, -40]} end={[40, -40]} width={5} />
-      <Road start={[-40, 0]} end={[40, 0]} width={5} />
-      <Road start={[0, -40]} end={[0, 40]} width={5} />
+      {REGIONAL_ROUTES.map((route) => (
+        <Road key={route.id} start={route.start} end={route.end} width={route.width} />
+      ))}
+      <RoadsideDetails playerPosition={playerPosition} />
 
       {lights.slice(0, isFastDev ? 10 : 34).map((pos, i) => (
         <StreetLight key={i} position={pos} />

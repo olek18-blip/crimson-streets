@@ -71,10 +71,12 @@ function getBehavior(npc: NPC, player: ReturnType<typeof useGameStore.getState>[
     return distanceToPlayer < 8 ? ('idle' as const) : ('patrol' as const);
   }
 
-  if (distanceToPlayer < ATTACK_RANGE && (activeMissionCity === npc.city || violenceNearby || npc.isHostile)) {
+  const gangAlerted = npc.isHostile || violenceNearby || (activeMissionCity === npc.city && distanceToPlayer < GANG_AGGRO_RANGE);
+
+  if (distanceToPlayer < ATTACK_RANGE && gangAlerted) {
     return 'attack' as const;
   }
-  if (distanceToPlayer < GANG_AGGRO_RANGE || activeMissionCity === npc.city || violenceNearby || npc.isHostile) {
+  if (distanceToPlayer < GANG_AGGRO_RANGE || gangAlerted) {
     return 'chase' as const;
   }
   return 'patrol' as const;
@@ -214,7 +216,11 @@ export default function NPCs() {
   }, [npcs]);
 
   useFrame((_, delta) => {
-    const { player, activeMission, missions } = useGameStore.getState();
+    const { screen, editor, player, activeMission, missions } = useGameStore.getState();
+    if (screen !== 'playing' || editor.enabled) {
+      return;
+    }
+
     const activeMissionCity = activeMission ? missions.find((mission) => mission.id === activeMission)?.city ?? null : null;
     const dt = Math.min(delta, MAX_DELTA);
     worldClockRef.current += dt;

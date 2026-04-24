@@ -20,7 +20,23 @@ export function usePlayerController() {
   const hitReactionTimer = useRef(0);
   const isTouchDeviceRef = useRef(false);
 
+  const resetControllerState = useCallback(() => {
+    keys.current.clear();
+    jumpVelocity.current = 0;
+    hitReactionTimer.current = 0;
+    const { setRunning, setShooting, setPlayerAnimationState } = useGameStore.getState();
+    setRunning(false);
+    setShooting(false);
+    setPlayerAnimationState('idle');
+    useMobileControlsStore.getState().reset();
+  }, []);
+
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    const { screen, editor } = useGameStore.getState();
+    if (screen !== 'playing' || editor.enabled) {
+      return;
+    }
+
     const key = event.key.toLowerCase();
     keys.current.add(key);
 
@@ -74,9 +90,9 @@ export function usePlayerController() {
   }, []);
 
   const handleMouseDown = useCallback(() => {
-    const { screen, setShooting } = useGameStore.getState();
+    const { screen, editor, setShooting } = useGameStore.getState();
     const player = useGameStore.getState().player;
-    if (screen === 'playing' && !player.inVehicle) {
+    if (screen === 'playing' && !editor.enabled && !player.inVehicle) {
       setShooting(true);
     }
   }, []);
@@ -86,15 +102,8 @@ export function usePlayerController() {
   }, []);
 
   const handleWindowBlur = useCallback(() => {
-    keys.current.clear();
-    jumpVelocity.current = 0;
-    hitReactionTimer.current = 0;
-    const { setRunning, setShooting, setPlayerAnimationState } = useGameStore.getState();
-    setRunning(false);
-    setShooting(false);
-    setPlayerAnimationState('idle');
-    useMobileControlsStore.getState().reset();
-  }, []);
+    resetControllerState();
+  }, [resetControllerState]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -116,6 +125,17 @@ export function usePlayerController() {
       window.removeEventListener('blur', handleWindowBlur);
     };
   }, [handleKeyDown, handleKeyUp, handleMouseDown, handleMouseUp, handleWindowBlur]);
+
+  useEffect(() => {
+    return useGameStore.subscribe((state, previousState) => {
+      const inputBlocked = state.screen !== 'playing' || state.editor.enabled;
+      const wasInputBlocked = previousState.screen !== 'playing' || previousState.editor.enabled;
+
+      if (inputBlocked && !wasInputBlocked) {
+        resetControllerState();
+      }
+    });
+  }, [resetControllerState]);
 
   useFrame((_, delta) => {
     const {

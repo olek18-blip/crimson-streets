@@ -34,6 +34,12 @@ export default function MobileControls() {
     return () => reset();
   }, [reset]);
 
+  useEffect(() => {
+    if (!isTouchDevice || screen !== 'playing' || editorEnabled) {
+      reset();
+    }
+  }, [editorEnabled, isTouchDevice, reset, screen]);
+
   const knobStyle = useMemo(
     () => ({
       transform: `translate(calc(-50% + ${axisX * 24}px), calc(-50% + ${axisY * 24}px))`,
