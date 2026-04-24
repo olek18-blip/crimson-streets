@@ -10,6 +10,8 @@ const TRAFFIC_SYNC_INTERVAL = 0.45;
 const MAX_CARS = IS_MOBILE ? 2 : 4;
 const MAX_RENDER_DIST = IS_MOBILE ? 90 : 130;
 const HIGH_DETAIL_DIST = IS_MOBILE ? 0 : 25;
+const BRAKE_DISTANCE = 6.5;
+const LANE_BLOCK_WIDTH = 2.2;
 
 function carVariantFromId(id: string) {
   return id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? 'malibu' : 'pontiac';
@@ -40,6 +42,23 @@ function getLaneConfig(index: number, origin: [number, number, number]) {
     rotation: direction > 0 ? Math.PI / 2 : -Math.PI / 2,
     speed: IS_MOBILE ? 5 : 6.5,
   };
+}
+
+function isPlayerBlockingLane(
+  axis: 'x' | 'z',
+  direction: 1 | -1,
+  carPosition: THREE.Vector3,
+  playerPosition: [number, number, number],
+) {
+  if (axis === 'z') {
+    const lateral = Math.abs(playerPosition[0] - carPosition.x);
+    const forward = (playerPosition[2] - carPosition.z) * direction;
+    return lateral < LANE_BLOCK_WIDTH && forward > 0 && forward < BRAKE_DISTANCE;
+  }
+
+  const lateral = Math.abs(playerPosition[2] - carPosition.z);
+  const forward = (playerPosition[0] - carPosition.x) * direction;
+  return lateral < LANE_BLOCK_WIDTH && forward > 0 && forward < BRAKE_DISTANCE;
 }
 
 function VehiclePrompt({ visible }: { visible: boolean }) {
@@ -191,11 +210,14 @@ export default function Vehicles() {
         ref.rotation.y = cfg.rotation;
       }
 
+      const blockedByPlayer = isPlayerBlockingLane(lane.axis, lane.direction, ref.position, player.position);
+      const effectiveSpeed = blockedByPlayer ? 0 : lane.speed;
+
       if (lane.axis === 'z') {
-        ref.position.z += lane.direction * lane.speed * dt;
+        ref.position.z += lane.direction * effectiveSpeed * dt;
         ref.rotation.y = lane.direction > 0 ? 0 : Math.PI;
       } else {
-        ref.position.x += lane.direction * lane.speed * dt;
+        ref.position.x += lane.direction * effectiveSpeed * dt;
         ref.rotation.y = lane.direction > 0 ? Math.PI / 2 : -Math.PI / 2;
       }
 
