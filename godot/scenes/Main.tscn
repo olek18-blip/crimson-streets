@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1"]
+
+[node name="Main" type="Node3D"]
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="Ground" type="StaticBody3D" parent="World"]
+
+[node name="Collision" type="CollisionShape3D" parent="World/Ground"]
+shape = CapsuleShape3D.new()
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Ground"]
+mesh = PlaneMesh.new()
+
+[node name="Player" parent="." instance=ExtResource("1")]
