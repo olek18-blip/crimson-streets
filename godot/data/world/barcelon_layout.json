@@ -8,6 +8,14 @@
     { "name": "Calle Mercado", "pos": [-34, 0.03, -20], "size": [10, 0.08, 70] },
     { "name": "Calle Circuito", "pos": [34, 0.03, -24], "size": [10, 0.08, 72] }
   ],
+  "traffic_lanes": [
+    { "id": "central_north", "speed": 8.0, "loop": true, "points": [[-2,0.65,58],[-2,0.65,24],[-2,0.65,-12],[-2,0.65,-58]] },
+    { "id": "central_south", "speed": 8.0, "loop": true, "points": [[2,0.65,-58],[2,0.65,-12],[2,0.65,24],[2,0.65,58]] },
+    { "id": "port_east", "speed": 7.0, "loop": true, "points": [[-42,0.65,16],[-12,0.65,16],[18,0.65,16],[42,0.65,16]] },
+    { "id": "port_west", "speed": 7.0, "loop": true, "points": [[42,0.65,20],[18,0.65,20],[-12,0.65,20],[-42,0.65,20]] },
+    { "id": "market_lane", "speed": 6.5, "loop": true, "points": [[-34,0.65,12],[-34,0.65,-16],[-34,0.65,-52]] },
+    { "id": "circuit_lane", "speed": 6.5, "loop": true, "points": [[34,0.65,-54],[34,0.65,-22],[34,0.65,10]] }
+  ],
   "sidewalks": [
     { "pos": [-9, 0.04, 0], "size": [4, 0.1, 130] },
     { "pos": [9, 0.04, 0], "size": [4, 0.1, 130] },
