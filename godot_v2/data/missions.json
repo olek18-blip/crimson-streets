@@ -1,0 +1,33 @@
+{
+  "missions": [
+    {
+      "id": "barcelon_intro",
+      "title": "Dirty Patrol: Barcelon",
+      "description": "Llega al punto de contacto del circuito y confirma la primera ruta de control.",
+      "reward": 250,
+      "steps": [
+        {
+          "id": "reach_circuit",
+          "type": "reach_area",
+          "text": "Conduce o camina hasta la ruta del circuito.",
+          "target": [0, 0.1, -54],
+          "radius": 5.0
+        },
+        {
+          "id": "reach_market",
+          "type": "reach_area",
+          "text": "Ve al contacto del mercado.",
+          "target": [-38, 0.1, 18],
+          "radius": 5.0
+        },
+        {
+          "id": "reach_station",
+          "type": "reach_area",
+          "text": "Vuelve al punto de acceso policial.",
+          "target": [0, 0.1, 58],
+          "radius": 5.0
+        }
+      ]
+    }
+  ]
+}
