@@ -1,0 +1,64 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxShape3D" id="ground_collision"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="PlaneMesh" id="ground_mesh"]
+size = Vector2(60, 60)
+
+[sub_resource type="BoxShape3D" id="road_collision"]
+size = Vector3(10, 0.25, 60)
+
+[sub_resource type="BoxMesh" id="road_mesh"]
+size = Vector3(10, 0.08, 60)
+
+[sub_resource type="BoxShape3D" id="building_collision"]
+size = Vector3(8, 12, 8)
+
+[sub_resource type="BoxMesh" id="building_mesh"]
+size = Vector3(8, 12, 8)
+
+[node name="Chunk_0_0" type="Node3D"]
+
+[node name="Terrain" type="StaticBody3D" parent="."]
+
+[node name="TerrainCollision" type="CollisionShape3D" parent="Terrain"]
+shape = SubResource("ground_collision")
+
+[node name="TerrainMesh" type="MeshInstance3D" parent="Terrain"]
+mesh = SubResource("ground_mesh")
+
+[node name="MainRoad" type="StaticBody3D" parent="."]
+
+[node name="RoadCollision" type="CollisionShape3D" parent="MainRoad"]
+shape = SubResource("road_collision")
+
+[node name="RoadMesh" type="MeshInstance3D" parent="MainRoad"]
+mesh = SubResource("road_mesh")
+
+[node name="Building_A" type="StaticBody3D" parent="."]
+transform = Transform3D(1,0,0, 0,1,0, 0,0,1, -16,6,-12)
+
+[node name="Collision" type="CollisionShape3D" parent="Building_A"]
+shape = SubResource("building_collision")
+
+[node name="Mesh" type="MeshInstance3D" parent="Building_A"]
+mesh = SubResource("building_mesh")
+
+[node name="Building_B" type="StaticBody3D" parent="."]
+transform = Transform3D(1,0,0, 0,1,0, 0,0,1, 16,6,-8)
+
+[node name="Collision" type="CollisionShape3D" parent="Building_B"]
+shape = SubResource("building_collision")
+
+[node name="Mesh" type="MeshInstance3D" parent="Building_B"]
+mesh = SubResource("building_mesh")
+
+[node name="Building_C" type="StaticBody3D" parent="."]
+transform = Transform3D(1,0,0, 0,1,0, 0,0,1, -18,6,18)
+
+[node name="Collision" type="CollisionShape3D" parent="Building_C"]
+shape = SubResource("building_collision")
+
+[node name="Mesh" type="MeshInstance3D" parent="Building_C"]
+mesh = SubResource("building_mesh")
