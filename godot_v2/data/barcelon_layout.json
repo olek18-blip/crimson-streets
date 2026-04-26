@@ -1,0 +1,53 @@
+{
+  "city": "Barcelon",
+  "style": "low-poly urban noir mixed with Mediterranean city references",
+  "spawn": [-3, 1, 12],
+  "vehicle_spawn": [3, 0.6, 18],
+  "roads": [
+    { "name": "Avenida Central", "pos": [0, 0.02, 0], "size": [12, 0.08, 140] },
+    { "name": "Ronda Portuaria", "pos": [0, 0.03, 18], "size": [100, 0.08, 10] },
+    { "name": "Calle Mercado", "pos": [-36, 0.03, -18], "size": [10, 0.08, 80] },
+    { "name": "Calle Circuito", "pos": [36, 0.03, -24], "size": [10, 0.08, 82] },
+    { "name": "Rambla Baja", "pos": [0, 0.03, -52], "size": [100, 0.08, 10] }
+  ],
+  "sidewalks": [
+    { "pos": [-9, 0.04, 0], "size": [4, 0.1, 140] },
+    { "pos": [9, 0.04, 0], "size": [4, 0.1, 140] },
+    { "pos": [0, 0.05, 25], "size": [100, 0.1, 4] },
+    { "pos": [0, 0.05, 11], "size": [100, 0.1, 4] },
+    { "pos": [0, 0.05, -45], "size": [100, 0.1, 4] },
+    { "pos": [0, 0.05, -59], "size": [100, 0.1, 4] }
+  ],
+  "buildings": [
+    { "name": "Bloque Norte A", "pos": [-22, 7, -35], "size": [12, 14, 16] },
+    { "name": "Bloque Norte B", "pos": [22, 9, -38], "size": [14, 18, 14] },
+    { "name": "Mercado", "pos": [-50, 5, 10], "size": [16, 10, 18] },
+    { "name": "Garaje", "pos": [50, 4, 10], "size": [16, 8, 18] },
+    { "name": "Torre Azul", "pos": [-24, 14, 42], "size": [14, 28, 14] },
+    { "name": "Hotel Circuito", "pos": [28, 12, 44], "size": [18, 24, 14] },
+    { "name": "Comisaria Antigua", "pos": [0, 8, 56], "size": [24, 16, 12] },
+    { "name": "Nave Industrial", "pos": [-56, 6, -52], "size": [18, 12, 18] },
+    { "name": "Bloque Rojo", "pos": [56, 8, -52], "size": [16, 16, 16] }
+  ],
+  "trees": [
+    { "pos": [-15, 0, 36] },
+    { "pos": [16, 0, 36] },
+    { "pos": [-54, 0, -32] },
+    { "pos": [54, 0, -34] },
+    { "pos": [-18, 0, -66] },
+    { "pos": [18, 0, -66] }
+  ],
+  "traffic_lanes": [
+    { "id": "central_north", "speed": 8.0, "loop": true, "points": [[-2,0.65,64],[-2,0.65,24],[-2,0.65,-12],[-2,0.65,-64]] },
+    { "id": "central_south", "speed": 8.0, "loop": true, "points": [[2,0.65,-64],[2,0.65,-12],[2,0.65,24],[2,0.65,64]] },
+    { "id": "port_east", "speed": 7.0, "loop": true, "points": [[-48,0.65,16],[-14,0.65,16],[18,0.65,16],[48,0.65,16]] },
+    { "id": "port_west", "speed": 7.0, "loop": true, "points": [[48,0.65,20],[18,0.65,20],[-14,0.65,20],[-48,0.65,20]] },
+    { "id": "market_lane", "speed": 6.5, "loop": true, "points": [[-36,0.65,18],[-36,0.65,-18],[-36,0.65,-58]] },
+    { "id": "circuit_lane", "speed": 6.5, "loop": true, "points": [[36,0.65,-60],[36,0.65,-22],[36,0.65,14]] }
+  ],
+  "mission_markers": [
+    { "id": "intro_route", "title": "Entra en la ruta del circuito", "pos": [0, 0.1, -54] },
+    { "id": "market_contact", "title": "Contacto del mercado", "pos": [-38, 0.1, 18] },
+    { "id": "police_access", "title": "Punto de acceso policial", "pos": [0, 0.1, 58] }
+  ]
+}
