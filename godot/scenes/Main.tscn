@@ -1,14 +1,18 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1"]
 [ext_resource type="Script" path="res://systems/WorldSystem.gd" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/PauseMap.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/Car.tscn" id="4"]
+[ext_resource type="Script" path="res://systems/DayTimeSystem.gd" id="5"]
+[ext_resource type="Script" path="res://ui/DebugConsole.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/gta_camera.gd" id="7"]
 
 [sub_resource type="BoxShape3D" id="1"]
-size = Vector3(200, 1, 200)
+size = Vector3(260, 1, 260)
 
 [sub_resource type="PlaneMesh" id="2"]
-size = Vector2(200, 200)
+size = Vector2(260, 260)
 
 [node name="Main" type="Node3D"]
 
@@ -17,6 +21,7 @@ script = ExtResource("2")
 player_path = NodePath("../Player")
 
 [node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.55, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("1")
@@ -25,12 +30,21 @@ shape = SubResource("1")
 mesh = SubResource("2")
 
 [node name="Player" parent="." groups=["player"] instance=ExtResource("1")]
+transform = Transform3D(1,0,0, 0,1,0, 0,0,1, -3,1,12)
+
+[node name="Car" parent="." groups=["car"] instance=ExtResource("4")]
+transform = Transform3D(1,0,0, 0,1,0, 0,0,1, 3,0.6,18)
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("7")
+player_path = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
 
 [node name="PauseMap" parent="." instance=ExtResource("3")]
-[node name="Car" parent="." instance=ExtResource("res://scenes/Car.tscn") groups=["car"]]
-transform = Transform3D(1,0,0, 0,1,0, 0,0,1, 5,0,5)
+
 [node name="DayTimeSystem" type="Node" parent="."]
-script = ExtResource("res://systems/DayTimeSystem.gd")
+script = ExtResource("5")
 
 [node name="DebugConsole" type="CanvasLayer" parent="."]
-script = ExtResource("res://ui/DebugConsole.gd")
+script = ExtResource("6")
