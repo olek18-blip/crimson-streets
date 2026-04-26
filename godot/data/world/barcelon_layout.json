@@ -1,0 +1,37 @@
+{
+  "city": "Barcelon",
+  "spawn": [-3, 1, 12],
+  "vehicle_spawn": [3, 0.6, 18],
+  "roads": [
+    { "name": "Avenida Central", "pos": [0, 0.02, 0], "size": [12, 0.08, 130] },
+    { "name": "Diagonal Portuaria", "pos": [0, 0.03, 18], "size": [90, 0.08, 10] },
+    { "name": "Calle Mercado", "pos": [-34, 0.03, -20], "size": [10, 0.08, 70] },
+    { "name": "Calle Circuito", "pos": [34, 0.03, -24], "size": [10, 0.08, 72] }
+  ],
+  "sidewalks": [
+    { "pos": [-9, 0.04, 0], "size": [4, 0.1, 130] },
+    { "pos": [9, 0.04, 0], "size": [4, 0.1, 130] },
+    { "pos": [0, 0.05, 25], "size": [90, 0.1, 4] },
+    { "pos": [0, 0.05, 11], "size": [90, 0.1, 4] }
+  ],
+  "buildings": [
+    { "name": "Bloque Norte A", "pos": [-22, 7, -35], "size": [12, 14, 16] },
+    { "name": "Bloque Norte B", "pos": [22, 9, -38], "size": [14, 18, 14] },
+    { "name": "Mercado", "pos": [-48, 5, 10], "size": [16, 10, 18] },
+    { "name": "Garaje", "pos": [48, 4, 10], "size": [16, 8, 18] },
+    { "name": "Torre Azul", "pos": [-24, 14, 42], "size": [14, 28, 14] },
+    { "name": "Hotel Circuito", "pos": [27, 12, 44], "size": [18, 24, 14] }
+  ],
+  "trees": [
+    { "pos": [-15, 0, 36] },
+    { "pos": [16, 0, 36] },
+    { "pos": [-54, 0, -32] },
+    { "pos": [54, 0, -34] },
+    { "pos": [-18, 0, -58] },
+    { "pos": [18, 0, -58] }
+  ],
+  "mission_markers": [
+    { "id": "intro_route", "title": "Entra en la ruta del circuito", "pos": [0, 0.1, -54] },
+    { "id": "market_contact", "title": "Contacto del mercado", "pos": [-38, 0.1, 18] }
+  ]
+}
