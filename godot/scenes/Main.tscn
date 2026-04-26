@@ -29,3 +29,8 @@ mesh = SubResource("2")
 [node name="PauseMap" parent="." instance=ExtResource("3")]
 [node name="Car" parent="." instance=ExtResource("res://scenes/Car.tscn") groups=["car"]]
 transform = Transform3D(1,0,0, 0,1,0, 0,0,1, 5,0,5)
+[node name="DayTimeSystem" type="Node" parent="."]
+script = ExtResource("res://systems/DayTimeSystem.gd")
+
+[node name="DebugConsole" type="CanvasLayer" parent="."]
+script = ExtResource("res://ui/DebugConsole.gd")
