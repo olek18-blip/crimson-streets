@@ -1,113 +1,93 @@
 # The Dangerous Spain / Crimson Streets
 
-A third-person crime-action game project in active prototype development.
+Third-person open-world crime-action prototype inspired by GTA-style systemic gameplay, with a stylized Spanish urban setting and a data-driven Godot 4 production path.
 
-This repository currently contains a web prototype built with React + Vite + Three.js / React Three Fiber, while the longer-term production direction is a Godot 4 game with Web export support.
+## Current status
 
-## Current project direction
+The repository now contains two tracks:
 
-The project has moved beyond the old top-down / Canvas concept.
+1. **Web prototype** — the existing React / Vite / Three.js prototype used for quick visual iteration and mobile browser testing.
+2. **Godot v2 base** — the new clean production-oriented Godot 4 rewrite in `godot_v2/`.
 
-The current canonical direction is:
-- title universe: The Dangerous Spain
-- prototype repository name: Crimson Streets
-- core fantasy: a corrupt police officer operating inside a layered system of gangs, institutional corruption, logistics crime, and political conspiracy
-- MVP target: a Mandril vertical slice
+The current recommended direction is **Godot v2**.
 
-## Canon premise
+The older `godot/` folder should be considered **legacy / experimental**. It contains useful earlier experiments, but new systems should be built in `godot_v2/`.
 
-You play as Daniel Vega, a corrupt police officer working inside a compromised system.
+## Game direction
 
-The game is not centered only on street crime. Its identity comes from the tension between:
+Working title universe: **The Dangerous Spain**  
+Prototype repo name: **Crimson Streets**
+
+Core fantasy:
+
+> A corrupt police officer operating inside a layered Spanish urban system of gangs, institutional corruption, logistics crime, political pressure and evidence manipulation.
+
+The goal is not just street crime. The identity comes from tension between:
+
 - police authority
 - corruption as routine
 - gang pressure
 - evidence control
 - internal investigations
 - political power above street-level violence
+- open-world exploration and systemic missions
 
-## Current state of the repo
+## Recommended MVP direction
 
-This repository currently includes:
-- a playable 3D web prototype
-- a redesigned HUD and minimap
-- in-world objective beacon support
-- a mission demo aligned with the MVP direction
-- improved city blockout and district readability
-- a stronger Mandril district pass
-- atmospheric lighting and noir mood improvements
-- mission, art direction, MVP, and GDD-alignment documentation
+Current recommendation:
 
-## MVP focus: Mandril vertical slice
+- **Map size:** medium
+- **Visual style:** mixed — low-poly / stylized noir with recognizable Spanish and Mediterranean urban references
+- **Gameplay priority:** traffic + solid world + mission loop
 
-The near-term goal is not a full open world.
-
-The goal is a polished Mandril slice that proves:
-- tone
-- third-person traversal
-- vehicle entry / exit
-- basic driving pressure
-- corruption-driven mission structure
-- gang / police faction tension
-- one meaningful pursuit
-- one narrative hook strong enough to justify the full game
-
-### Mandril slice target spaces
-
-- police access point
-- street market edge
-- gang block pressure zone
-- nightlife / club edge
-- arterial road
-- back lot / warehouse resolution space
-
-## Main playable / reviewable pieces right now
-
-### 1. Game prototype
-
-The main game scene is the active environment prototype.
-
-### 2. Mission demo
-
-A mission demo route exists to communicate the MVP flow more clearly.
-
-Current demo direction:
-- briefing corruption beat
-- protection money collection
-- gang pressure
-- pursuit escalation
-- evidence recovery
-- final conspiracy hook
+This means: do not build a huge empty map. Build a compact city slice that feels alive.
 
 ## Repository structure
 
 ```text
 crimson-streets/
-|- src/                        # Current web prototype code
-|- public/
-|- docs/
-|  |- art-direction/
-|  |- deploy/
-|  |- gdd/
-|  |- missions/
-|  |- mvp/
-|- godot/                      # Reserved for Godot 4 production migration
-|- build/web/                  # Reserved for future Godot Web export
-|- vercel.json
-|- package.json
-|- README.md
+├─ src/                         # Existing web prototype
+├─ public/                      # Web prototype assets
+├─ docs/                        # GDD, missions, art direction, deployment notes
+├─ godot/                       # Legacy Godot experiments; do not expand unless migrating code out
+├─ godot_v2/                    # Clean Godot 4 rewrite; current recommended production base
+│  ├─ project.godot
+│  ├─ data/
+│  │  └─ barcelon_layout.json   # Data-driven city layout
+│  ├─ scripts/
+│  │  ├─ Game.gd
+│  │  ├─ WorldBuilder.gd
+│  │  └─ TrafficSystem.gd
+│  └─ scenes/                   # Clean scenes should live here
+├─ build/web/                   # Future Godot Web export target
+├─ package.json
+├─ vercel.json
+└─ README.md
 ```
 
-## Tech stack
+## Godot v2 architecture
 
-- React
-- Vite
-- TypeScript
-- Three.js / React Three Fiber
-- Zustand
-- Tailwind-style UI workflow already present in the project
+The rewrite follows the useful patterns from GTA-like open-world engines and the SanAndreasUnity reference project, but rewritten for this project instead of copying code.
 
-## Local development
+### Core principles
+
+- **Data-driven world:** city data lives in JSON; code builds the world.
+- **Systems over hardcoded scenes:** traffic, world building, missions and UI should be reusable systems.
+- **Small playable slice first:** Barcelon / Mandril-style city slice before large-scale world expansion.
+- **Traffic early:** roads and lanes are part of the world foundation, not a late cosmetic addition.
+- **Separate prototype from production:** web prototype remains useful, but Godot v2 is the clean base.
+
+### Current Godot v2 pieces
+
+- `godot_v2/project.godot` — clean Godot project config.
+- `godot_v2/data/barcelon_layout.json` — medium Barcelon layout with roads, sidewalks, buildings, trees, lanes and mission markers.
+- `godot_v2/scripts/Game.gd` — central game manager stub.
+- `godot_v2/scripts/WorldBuilder.gd` — data-driven world builder foundation.
+- `godot_v2/scripts/TrafficSystem.gd` — pooled lane-based traffic system foundation.
+
+## Web prototype
+
+The existing web prototype remains available for fast iteration and browser testing.
 
 Install and run:
 
@@ -115,95 +95,84 @@ Install and run:
 git clone https://github.com/olek18-blip/crimson-streets.git
 cd crimson-streets
 npm install
+npm run dev
 ```
 
-### Normal dev mode
+Fast mode:
 
 ```bash
-cmd /c npm run dev
+npm run dev:fast
 ```
 
-Use this when you want to test the full scene.
-
-### Fast dev mode
+Validation:
 
 ```bash
-cmd /c npm run dev:fast
+npm run lint
+npm run build
 ```
 
-Use this for day-to-day iteration. It keeps the same app shell and game flow, but reduces the runtime load in development by trimming visible world content and skipping some heavy preloading.
+## Godot v2 development
 
-### Validation
+Open Godot 4 and load:
 
-```bash
-cmd /c npm run lint
-cmd /c npm run build
+```text
+godot_v2/project.godot
 ```
 
-## Deploy notes
+Recommended first target:
 
-The repository is currently configured for the Vite prototype, not yet for the future Godot export.
+1. Create a clean `godot_v2/scenes/Main.tscn`.
+2. Attach `Game.gd` as the main orchestrator.
+3. Attach `WorldBuilder.gd` and load `barcelon_layout.json`.
+4. Add player, camera, vehicle and HUD systems.
+5. Connect `TrafficSystem.gd` to real traffic vehicle scenes.
 
-Current deploy target:
-- framework: vite
+## Migration plan
+
+Move useful systems from the older prototype into `godot_v2/` only when they are clean, tested and needed.
+
+Priority order:
+
+1. **World foundation** — roads, buildings, sidewalks, props and collision.
+2. **Player and camera** — stable third-person traversal.
+3. **Vehicle gameplay** — enter, exit, drive, collide.
+4. **Traffic** — lane following, pooling, braking, avoidance.
+5. **HUD and minimap** — GTA-inspired but adapted to this game.
+6. **Mission loop** — objective, marker, reward, consequence.
+7. **Police / wanted system** — heat, escalation, response.
+8. **Interiors** — scene swap / portal system.
+
+## Design rule
+
+Do not expand the world until the first 10–15 minutes feel good.
+
+A compact city slice with readable roads, working vehicles, traffic, mission pressure and clean UI is more valuable than a large empty map.
+
+## Documentation
+
+Useful docs already in the repo:
+
+- `docs/gdd/gdd-canon-alignment.md`
+- `docs/mvp/mandril-vertical-slice.md`
+- `docs/missions/mission-template.md`
+- `docs/missions/mission-01-guided-intro.md`
+- `docs/art-direction/visual-target.md`
+- `docs/art-direction/environment-style-guide.md`
+- `docs/deploy/vercel-prototype-deploy.md`
+
+## Deployment notes
+
+Current live deployment is still the web prototype:
+
+- framework: Vite
 - build command: `npm run build`
 - output directory: `dist`
 
-If Vercel shows an older menu or an older version tag, it is usually serving an older deployment or a cached page. In that case:
-- hard refresh with `Ctrl + F5`
-- check that Vercel is deploying from `main`
-- redeploy the latest commit if needed
+Future Godot Web deployment should use:
 
-See:
-- `docs/deploy/vercel-prototype-deploy.md`
-
-## Important note about Godot
-
-The repo already contains structure and planning for a future Godot 4 migration, but the current live-friendly version is still the web prototype.
-
-When the Godot Web export becomes the primary runtime, deployment should switch from:
-- `dist`
-
-to:
-- `build/web`
-
-## Core documentation inside the repo
-
-### GDD alignment
-
-- `docs/gdd/gdd-canon-alignment.md`
-
-### MVP planning
-
-- `docs/mvp/mandril-vertical-slice.md`
-
-### Mission structure
-
-- `docs/missions/mission-template.md`
-- `docs/missions/mission-01-guided-intro.md`
-- `docs/missions/mission-mandril-dirty-patrol-blockout.md`
-- `docs/missions/mission-data-schema.json`
-
-### Art direction
-
-- `docs/art-direction/visual-target.md`
-- `docs/art-direction/character-style-guide.md`
-- `docs/art-direction/environment-style-guide.md`
-- `docs/art-direction/scene-targets.md`
-
-## Current priorities
-
-1. strengthen the Mandril vertical slice
-2. turn the current blockout into a real mission flow
-3. improve environment readability and atmosphere
-4. move from prototype mission logic toward a reusable mission system
-5. prepare the eventual Godot implementation path without losing momentum
-
-## Strategic rule
-
-Do not expand into a huge map before Mandril feels real.
-
-A strong 15-20 minute vertical slice with identity, tension, and mission direction is more valuable than a broad but empty open world.
+```text
+build/web/
+```
 
 ## License
 
