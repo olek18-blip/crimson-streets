@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1"]
 [ext_resource type="Script" path="res://systems/WorldSystem.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://ui/DebugConsole.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/gta_camera.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/barcelon_world_builder.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/traffic_system.gd" id="9"]
 
 [sub_resource type="BoxShape3D" id="1"]
 size = Vector3(260, 1, 260)
@@ -23,6 +24,9 @@ player_path = NodePath("../Player")
 
 [node name="WorldBuilder" type="Node3D" parent="."]
 script = ExtResource("8")
+
+[node name="TrafficSystem" type="Node3D" parent="."]
+script = ExtResource("9")
 
 [node name="Ground" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.55, 0)
