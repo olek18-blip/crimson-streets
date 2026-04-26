@@ -6,6 +6,14 @@ var gravity := ProjectSettings.get_setting("physics/3d/default_gravity")
 var current_car = null
 var interact_distance := 3.5
 
+func is_in_car() -> bool:
+    return current_car != null
+
+func get_camera_target():
+    if current_car:
+        return current_car
+    return self
+
 func _physics_process(delta):
     if current_car:
         return
