@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/Game.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/CameraRig.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/MissionSystem.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/GPSSystem.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/GameHUD.gd" id="10"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -43,3 +44,6 @@ target_path = NodePath("../Player")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 current = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("10")
