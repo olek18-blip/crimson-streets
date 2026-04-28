@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/VehicleController.gd" id="1"]
 
@@ -11,6 +11,33 @@ size = Vector3(1.85, 0.55, 3.8)
 [sub_resource type="BoxMesh" id="3"]
 size = Vector3(1.35, 0.48, 1.45)
 
+[sub_resource type="StandardMaterial3D" id="4"]
+albedo_color = Color(0.72, 0.05, 0.05, 1)
+roughness = 0.52
+
+[sub_resource type="StandardMaterial3D" id="5"]
+albedo_color = Color(0.05, 0.09, 0.13, 1)
+roughness = 0.36
+
+[sub_resource type="CylinderMesh" id="6"]
+top_radius = 0.34
+bottom_radius = 0.34
+height = 0.28
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="7"]
+albedo_color = Color(0.015, 0.015, 0.018, 1)
+roughness = 0.82
+
+[sub_resource type="BoxMesh" id="8"]
+size = Vector3(1.65, 0.08, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="9"]
+albedo_color = Color(1, 0.86, 0.42, 1)
+emission_enabled = true
+emission = Color(1, 0.74, 0.24, 1)
+emission_energy_multiplier = 0.9
+
 [node name="Car" type="CharacterBody3D" groups=["car"]]
 script = ExtResource("1")
 
@@ -21,14 +48,44 @@ shape = SubResource("1")
 [node name="Body" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.45, 0)
 mesh = SubResource("2")
+material_override = SubResource("4")
 
 [node name="Cabin" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.88, -0.25)
 mesh = SubResource("3")
+material_override = SubResource("5")
+
+[node name="FrontLights" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.54, -1.94)
+mesh = SubResource("8")
+material_override = SubResource("9")
+
+[node name="WheelFL" type="MeshInstance3D" parent="."]
+position = Vector3(-1.02, 0.34, -1.18)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("6")
+material_override = SubResource("7")
+
+[node name="WheelFR" type="MeshInstance3D" parent="."]
+position = Vector3(1.02, 0.34, -1.18)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("6")
+material_override = SubResource("7")
+
+[node name="WheelBL" type="MeshInstance3D" parent="."]
+position = Vector3(-1.02, 0.34, 1.18)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("6")
+material_override = SubResource("7")
+
+[node name="WheelBR" type="MeshInstance3D" parent="."]
+position = Vector3(1.02, 0.34, 1.18)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("6")
+material_override = SubResource("7")
 
 [node name="DriverAnchor" type="Node3D" parent="."]
 position = Vector3(-0.35, 0.82, -0.25)
 
 [node name="ExitAnchor" type="Node3D" parent="."]
 position = Vector3(2.45, 0.8, 0)
-

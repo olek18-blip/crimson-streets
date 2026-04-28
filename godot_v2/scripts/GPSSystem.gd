@@ -9,7 +9,7 @@ func _ready():
 	player = get_tree().get_first_node_in_group("player") as Node3D
 	mission_system = get_node_or_null("../MissionSystem")
 
-func _process(delta):
+func _process(_delta):
 	if not mission_system:
 		return
 

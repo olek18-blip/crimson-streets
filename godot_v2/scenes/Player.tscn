@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/PlayerController.gd" id="1"]
 
@@ -10,6 +10,20 @@ height = 1.45
 radius = 0.35
 height = 1.45
 
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_color = Color(0.18, 0.23, 0.28, 1)
+roughness = 0.72
+
+[sub_resource type="SphereMesh" id="4"]
+radius = 0.28
+
+[sub_resource type="StandardMaterial3D" id="5"]
+albedo_color = Color(0.86, 0.68, 0.52, 1)
+roughness = 0.68
+
+[sub_resource type="BoxMesh" id="6"]
+size = Vector3(0.46, 0.22, 0.18)
+
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1")
 
@@ -20,4 +34,14 @@ shape = SubResource("1")
 [node name="Body" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.82, 0)
 mesh = SubResource("2")
+material_override = SubResource("3")
 
+[node name="Head" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.72, 0)
+mesh = SubResource("4")
+material_override = SubResource("5")
+
+[node name="ChestAccent" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.04, -0.31)
+mesh = SubResource("6")
+material_override = SubResource("5")
