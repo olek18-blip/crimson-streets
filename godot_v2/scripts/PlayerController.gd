@@ -30,7 +30,7 @@ func _physics_process(delta):
 	var turn_input: float = Input.get_axis("move_left", "move_right")
 	rotation.y -= turn_input * turn_speed * delta
 
-	var forward_input: float = Input.get_axis("move_back", "move_forward")
+	var forward_input: float = Input.get_axis("move_forward", "move_back")
 	var dir: Vector3 = -global_transform.basis.z.normalized() * forward_input
 
 	var speed: float = run_speed if Input.is_action_pressed("run") else move_speed
