@@ -3,6 +3,7 @@ extends CharacterBody3D
 @export var move_speed: float = 7.0
 @export var run_speed: float = 11.0
 @export var gravity: float = 24.0
+@export var turn_speed: float = 10.0
 
 var current_vehicle: Node = null
 
@@ -27,12 +28,21 @@ func _physics_process(delta):
 		Input.get_axis("move_back", "move_forward")
 	)
 
-	var player_basis: Basis = global_transform.basis
-	dir += -player_basis.z * input.y
-	dir += player_basis.x * input.x
+	var camera_basis: Basis = _get_camera_basis()
+	var camera_forward := -camera_basis.z
+	var camera_right := camera_basis.x
+	camera_forward.y = 0.0
+	camera_right.y = 0.0
+	camera_forward = camera_forward.normalized()
+	camera_right = camera_right.normalized()
+
+	dir += camera_forward * input.y
+	dir += camera_right * input.x
 
 	if dir.length() > 0:
 		dir = dir.normalized()
+		var target_yaw := atan2(-dir.x, -dir.z)
+		rotation.y = lerp_angle(rotation.y, target_yaw, turn_speed * delta)
 
 	var speed: float = run_speed if Input.is_action_pressed("run") else move_speed
 	velocity = dir * speed
@@ -62,3 +72,9 @@ func exit_vehicle():
 func _input(event):
 	if current_vehicle and event.is_action_pressed("interact"):
 		exit_vehicle()
+
+func _get_camera_basis() -> Basis:
+	var camera := get_viewport().get_camera_3d()
+	if camera:
+		return camera.global_transform.basis
+	return global_transform.basis
