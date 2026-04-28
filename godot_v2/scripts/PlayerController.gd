@@ -3,9 +3,12 @@ extends CharacterBody3D
 @export var move_speed: float = 7.0
 @export var run_speed: float = 11.0
 @export var gravity: float = 24.0
-@export var turn_speed: float = 10.0
+@export var jump_velocity: float = 8.5
+@export var turn_speed: float = 3.4
+@export var max_health: int = 100
 
 var current_vehicle: Node = null
+var health: int = 100
 
 func get_camera_target() -> Node3D:
 	if current_vehicle is Node3D:
@@ -21,28 +24,14 @@ func _physics_process(delta):
 		vertical_velocity -= gravity * delta
 	else:
 		vertical_velocity = 0.0
+		if Input.is_action_just_pressed("jump"):
+			vertical_velocity = jump_velocity
 
-	var dir: Vector3 = Vector3.ZERO
-	var input: Vector2 = Vector2(
-		Input.get_axis("move_left", "move_right"),
-		Input.get_axis("move_back", "move_forward")
-	)
+	var turn_input: float = Input.get_axis("move_left", "move_right")
+	rotation.y -= turn_input * turn_speed * delta
 
-	var camera_basis: Basis = _get_camera_basis()
-	var camera_forward := -camera_basis.z
-	var camera_right := camera_basis.x
-	camera_forward.y = 0.0
-	camera_right.y = 0.0
-	camera_forward = camera_forward.normalized()
-	camera_right = camera_right.normalized()
-
-	dir += camera_forward * input.y
-	dir += camera_right * input.x
-
-	if dir.length() > 0:
-		dir = dir.normalized()
-		var target_yaw := atan2(-dir.x, -dir.z)
-		rotation.y = lerp_angle(rotation.y, target_yaw, turn_speed * delta)
+	var forward_input: float = Input.get_axis("move_back", "move_forward")
+	var dir: Vector3 = -global_transform.basis.z.normalized() * forward_input
 
 	var speed: float = run_speed if Input.is_action_pressed("run") else move_speed
 	velocity = dir * speed
@@ -72,9 +61,3 @@ func exit_vehicle():
 func _input(event):
 	if current_vehicle and event.is_action_pressed("interact"):
 		exit_vehicle()
-
-func _get_camera_basis() -> Basis:
-	var camera := get_viewport().get_camera_3d()
-	if camera:
-		return camera.global_transform.basis
-	return global_transform.basis
