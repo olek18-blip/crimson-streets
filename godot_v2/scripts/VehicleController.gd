@@ -1,15 +1,15 @@
 extends CharacterBody3D
 
-@export var acceleration := 18.0
-@export var brake_force := 28.0
-@export var max_forward_speed := 24.0
-@export var max_reverse_speed := 9.0
-@export var turn_rate := 2.4
-@export var idle_drag := 0.93
-@export var moving_drag := 0.985
+@export var acceleration: float = 18.0
+@export var brake_force: float = 28.0
+@export var max_forward_speed: float = 24.0
+@export var max_reverse_speed: float = 9.0
+@export var turn_rate: float = 2.4
+@export var idle_drag: float = 0.93
+@export var moving_drag: float = 0.985
 
 var driver: Node3D = null
-var current_speed := 0.0
+var current_speed: float = 0.0
 
 @onready var driver_anchor: Node3D = get_node_or_null("DriverAnchor")
 @onready var exit_anchor: Node3D = get_node_or_null("ExitAnchor")
@@ -30,7 +30,7 @@ func enter_vehicle(new_driver: Node3D) -> bool:
 func exit_vehicle() -> Node3D:
 	if not driver:
 		return null
-	var old_driver := driver
+	var old_driver: Node3D = driver
 	driver = null
 	current_speed = 0.0
 	old_driver.visible = true
@@ -50,8 +50,8 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	var steer := Input.get_axis("steer_left", "steer_right")
-	var throttle := Input.get_axis("brake", "accelerate")
+	var steer: float = Input.get_axis("steer_left", "steer_right")
+	var throttle: float = Input.get_axis("brake", "accelerate")
 
 	if throttle > 0.01:
 		current_speed += throttle * acceleration * delta
@@ -60,11 +60,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		current_speed *= idle_drag
 
-	current_speed = clamp(current_speed, -max_reverse_speed, max_forward_speed)
+	current_speed = clampf(current_speed, -max_reverse_speed, max_forward_speed)
 
-	var speed_ratio := clamp(abs(current_speed) / max_forward_speed, 0.0, 1.0)
+	var speed_ratio: float = clampf(absf(current_speed) / max_forward_speed, 0.0, 1.0)
 	if speed_ratio > 0.03:
-		var reverse := -1.0 if current_speed < 0.0 else 1.0
+		var reverse: float = -1.0 if current_speed < 0.0 else 1.0
 		rotation.y += steer * turn_rate * delta * speed_ratio * reverse
 
 	current_speed *= moving_drag

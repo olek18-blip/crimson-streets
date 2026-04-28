@@ -1,0 +1,45 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/Game.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/Car.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/WorldBuilder.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/TrafficSystem.gd" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/TrafficVehicle.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/CameraRig.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/MissionSystem.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/GPSSystem.gd" id="9"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.65, 0.15)
+light_energy = 2.1
+shadow_enabled = true
+
+[node name="World" type="Node3D" parent="."]
+script = ExtResource("4")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.2, 12)
+
+[node name="PlayerCar" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.65, 18)
+
+[node name="Traffic" type="Node3D" parent="."]
+script = ExtResource("5")
+vehicle_scene = ExtResource("6")
+
+[node name="MissionSystem" type="Node" parent="."]
+script = ExtResource("8")
+
+[node name="GPSSystem" type="Node" parent="."]
+script = ExtResource("9")
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("7")
+target_path = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
