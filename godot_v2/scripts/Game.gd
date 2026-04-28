@@ -1,8 +1,8 @@
 extends Node
 
-var player
-var world
-var traffic
+var player: Node = null
+var world: Node = null
+var traffic: Node = null
 
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
@@ -11,6 +11,6 @@ func _ready():
 
 	print("[GAME] Initialized clean base")
 
-func _process(delta):
+func _process(_delta):
 	# future: global tick systems
 	pass
